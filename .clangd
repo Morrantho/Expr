@@ -1,0 +1,4 @@
+CompileFlags:
+  Add: [-Wno-initializer-overrides]
+Completion:
+  HeaderInsertion: Never
