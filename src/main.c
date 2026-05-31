@@ -18,28 +18,31 @@
 #define X_TOKEN_POST_OPS( NAME, PREC, ASSOC, PRE, INF, POST, PRE_OP, INF_OP, POST_OP ) [ TK_##NAME ] = OP_##POST_OP,
 #define X_TOKEN_INF_OPS( NAME, PREC, ASSOC, PRE, INF, POST, PRE_OP, INF_OP, POST_OP ) [ TK_##NAME ] = OP_##INF_OP,
 #define X_TOKENS( X )\
-/*     NAME   PREC    ASSOC  PRE  INF  POST  PRE     INF  POST */\
-	X( EOS,   NONE,   NONE,  ERR, ERR, ERR,  NOP,    NOP,   NOP )\
-	X( NOT,   UNARY,  LEFT,  PRE, ERR, ERR,  NOT,    NOP,   NOP )     /* ! */\
-	X( NOTEQ, CMP,    LEFT,  ERR, INF, ERR,  NOP,    NOTEQ, NOP )     /* != */\
-	X( MOD,   FACTOR, NONE,  ERR, INF, ERR,  NOP,    MOD,   NOP )     /* % */\
-	X( ROUND, POW,    LEFT,  PRE, ERR, ERR,  ROUND,  NOP,   NOP )     /* %% */\
-	X( MODEQ, ASSIGN, RIGHT, ERR, INF, ERR,  MODEQ,  NOP,   NOP )     /* %= */\
-	X( LP,    NONE,   NONE,  GRP, ERR, ERR,  NOP,    NOP,   NOP )     /* ( */\
-	X( RP,    NONE,   NONE,  ERR, ERR, ERR,  NOP,    NOP,   NOP )     /* ) */\
-	X( MUL,   FACTOR, LEFT,  ERR, INF, ERR,  NOP,    MUL,   NOP )     /* * */\
-	X( CEIL,  POW,    NONE,  PRE, ERR, ERR,  CEIL,   MUL,   NOP )     /* ** */\
-	X( MULEQ, ASSIGN, RIGHT, ERR, INF, ERR,  NOP,    MULEQ, NOP )     /* *= */\
-	X( ADD,   TERM,   LEFT,  NOP, INF, ERR,  NOP,    ADD,   NOP )     /* + */\
-	X( INC,   UNARY,  LEFT,  PRE, ERR, POST, PREINC, NOP,   POSTINC ) /* ++ */\
-	X( ADDEQ, ASSIGN, RIGHT, ERR, INF, ERR,  NOP,    ADDEQ, NOP )     /* += */\
-	X( SUB,   TERM,   LEFT,  PRE, INF, ERR,  NEG,    SUB,   NOP )     /* - */\
-	X( DEC,   UNARY,  LEFT,  PRE, ERR, POST, PREDEC, NOP,   POSTDEC ) /* -- */\
-	X( SUBEQ, ASSIGN, RIGHT, ERR, INF, ERR,  NOP,    SUBEQ, NOP )     /* -= */\
-	X( DIV,   FACTOR, LEFT,  ERR, INF, ERR,  NOP,    DIV,   NOP )     /* / */\
-	X( FLOOR, POW,    NONE,  PRE, ERR, ERR,  FLOOR,  NOP,   NOP )     /* // */\
-	X( DIVEQ, ASSIGN, RIGHT, ERR, INF, ERR,  NOP,    DIVEQ, NOP )     /* /= */\
-	X( NUM,   NONE,   NONE,  NUM, ERR, ERR,  NOP,    NOP,   NOP )     /* 0-9.0-9 */
+/*     NAME   PREC    ASSOC  PRE     INF  POST  PRE     INF  POST */\
+	X( EOS,    NONE,   NONE,  NOP,    ERR, ERR,  NOP,    NOP,   NOP )\
+	X( NOT,    UNARY,  LEFT,  PRE,    ERR, ERR,  NOT,    NOP,   NOP )     /* ! */\
+	X( NOTEQ,  CMP,    LEFT,  ERR,    INF, ERR,  NOP,    NOTEQ, NOP )     /* != */\
+	X( MOD,    FACTOR, NONE,  ERR,    INF, ERR,  NOP,    MOD,   NOP )     /* % */\
+	X( ROUND,  UNARY,  LEFT,  PRE,    ERR, ERR,  ROUND,  NOP,   NOP )     /* %% */\
+	X( MODEQ,  ASSIGN, RIGHT, ERR,    INF, ERR,  MODEQ,  NOP,   NOP )     /* %= */\
+	X( BAND,   BAND,   LEFT,  ERR,    INF, ERR,  NOP,    BAND,  NOP )     /* & */\
+	X( AND,    AND,    LEFT,  ERR,    INF, ERR,  NOP,    AND,   NOP )     /* && */\
+	X( BANDEQ, AND,    LEFT,  ERR,    INF, ERR,  NOP,    AND,   NOP )     /* &= */\
+	X( LP,     NONE,   NONE,  GRP,    ERR, ERR,  NOP,    NOP,   NOP )     /* ( */\
+	X( RP,     NONE,   NONE,  ERR,    ERR, ERR,  NOP,    NOP,   NOP )     /* ) */\
+	X( MUL,    FACTOR, LEFT,  ERR,    INF, ERR,  NOP,    MUL,   NOP )     /* * */\
+	X( CEIL,   UNARY,  NONE,  PRE,    ERR, ERR,  CEIL,   MUL,   NOP )     /* ** */\
+	X( MULEQ,  ASSIGN, RIGHT, ERR,    INF, ERR,  NOP,    MULEQ, NOP )     /* *= */\
+	X( ADD,    TERM,   LEFT,  NOPPRE, INF, ERR,  NOP,    ADD,   NOP )     /* + */\
+	X( INC,    UNARY,  LEFT,  PRE,    ERR, POST, PREINC, NOP,   POSTINC ) /* ++ */\
+	X( ADDEQ,  ASSIGN, RIGHT, ERR,    INF, ERR,  NOP,    ADDEQ, NOP )     /* += */\
+	X( SUB,    TERM,   LEFT,  PRE,    INF, ERR,  NEG,    SUB,   NOP )     /* - */\
+	X( DEC,    UNARY,  LEFT,  PRE,    ERR, POST, PREDEC, NOP,   POSTDEC ) /* -- */\
+	X( SUBEQ,  ASSIGN, RIGHT, ERR,    INF, ERR,  NOP,    SUBEQ, NOP )     /* -= */\
+	X( DIV,    FACTOR, LEFT,  ERR,    INF, ERR,  NOP,    DIV,   NOP )     /* / */\
+	X( FLOOR,  UNARY,  NONE,  PRE,    ERR, ERR,  FLOOR,  NOP,   NOP )     /* // */\
+	X( DIVEQ,  ASSIGN, RIGHT, ERR,    INF, ERR,  NOP,    DIVEQ, NOP )     /* /= */\
+	X( NUM,    NONE,   NONE,  NUM,    ERR, ERR,  NOP,    NOP,   NOP )     /* 0-9.0-9 */
 
 #define X_LEX_TYPE_RANGES( RANGE, TK ) [ RANGE ] = TK_##TK,
 #define X_LEX_TYPES( X )\
@@ -54,6 +57,7 @@ typedef enum TkType { X_TOKENS( X_TOKEN_ENUMS ) } TkType;
 
 typedef enum Deno { /* Denotation */
 	DENO_NOP,
+	DENO_NOPPRE,
 	DENO_ERR,
 	DENO_GRP,       /* ( */
 	DENO_PRE,       /* Unary */
@@ -110,6 +114,9 @@ typedef enum Op {
 	OP_MOD,     /* a % b */
 	OP_ROUND,	/* %%a */
 	OP_MODEQ,	/* a %= b */
+	OP_BAND,	/* a & b */
+	OP_AND,		/* a && b */
+	OP_BANDEQ	/* a &= b */
 } Op;
 
 typedef struct Inst {
@@ -143,54 +150,60 @@ void Throw( char* fmt, ... ){
 	exit( EXIT_FAILURE );
 }
 
-void LexEat0( App* a, TkType t ){
+void LexEat( App* a, TkType t ){
 	a->t = t;
-}
-
-void LexEat1( App* a, TkType t ){
 	++a->s;
-	a->t = t;
 }
 
 void LexNot( App* a ){
-	a->t = TK_NOT;
-	if( *a->s == '=' ) return LexEat1( a, TK_NOTEQ );
+	LexEat( a, TK_NOT );
+	if( *a->s == '=' ) return LexEat( a, TK_NOTEQ );
+}
+
+void LexComment( App* a ){
+	while( *a->s == '$' ) a->s++;
 }
 
 void LexMod( App* a ){
-	a->t = TK_MOD;
-	if( *a->s == '%' ) return LexEat1( a, TK_ROUND );
-	if( *a->s == '=' ) return LexEat1( a, TK_MODEQ );
+	LexEat( a, TK_MOD );
+	if( *a->s == '%' ) return LexEat( a, TK_ROUND );
+	if( *a->s == '=' ) return LexEat( a, TK_MODEQ );
+}
+
+void LexBand( App* a ){
+	LexEat( a, TK_BAND );
+	if( *a->s == '&' ) return LexEat( a, TK_AND );
+	if( *a->s == '=' ) return LexEat( a, TK_BANDEQ );
 }
 
 void LexMul( App* a ){
-	a->t = TK_MUL;
-	if( *a->s == '*' ) return LexEat1( a, TK_CEIL );
-	if( *a->s == '=' ) return LexEat1( a, TK_MULEQ );
+	LexEat( a, TK_MUL );
+	if( *a->s == '*' ) return LexEat( a, TK_CEIL );
+	if( *a->s == '=' ) return LexEat( a, TK_MULEQ );
 }
 
 void LexPlus( App* a ){
-	a->t = TK_ADD;
-	if( *a->s == '+' ) return LexEat1( a, TK_INC );
-	if( *a->s == '=' ) return LexEat1( a, TK_ADDEQ );
+	LexEat( a, TK_ADD );
+	if( *a->s == '+' ) return LexEat( a, TK_INC );
+	if( *a->s == '=' ) return LexEat( a, TK_ADDEQ );
 }
 
 void LexMinus( App* a ){
-	a->t = TK_SUB;
-	if( *a->s == '-' ) return LexEat1( a, TK_DEC );
-	if( *a->s == '=' ) return LexEat1( a, TK_SUBEQ );
+	LexEat( a, TK_SUB );
+	if( *a->s == '-' ) return LexEat( a, TK_DEC );
+	if( *a->s == '=' ) return LexEat( a, TK_SUBEQ );
 }
 
 void LexDiv( App* a ){
-	a->t = TK_DIV;
-	if( *a->s == '/' ) return LexEat1( a, TK_FLOOR );
-	if( *a->s == '=' ) return LexEat1( a, TK_DIVEQ );
+	LexEat( a, TK_DIV );
+	if( *a->s == '/' ) return LexEat( a, TK_FLOOR );
+	if( *a->s == '=' ) return LexEat( a, TK_DIVEQ );
 }
 
 void LexNum( App* a, u8* ops ){
-	f64 n = a->s[ -1 ] - '0';
+	f64 n = 0;
 	for( ; ops[ *a->s ] == TK_NUM; ++a->s )
-		n = n * 10.0 + a->s[ 0 ] - '0';
+		n = n * 10.0 + *a->s - '0';
 	if( *a->s == '.' && ops[ a->s[ 1 ] ] == TK_NUM ){
 		++a->s;
 		for( f64 f = 0.1; ops[ *a->s ] == TK_NUM; ++a->s, f *= 0.1 )
@@ -202,15 +215,17 @@ void LexNum( App* a, u8* ops ){
 
 void Lex( App* a ){
 	static u8 ops[ ] = { X_LEX_TYPES( X_LEX_TYPE_RANGES ) };
-	LEX: switch( ( Ascii )*a->s++ ){
-	default: Throw( "Unexpected Char: '%c'\n", a->s[ -1 ] );
-	case '\0': return LexEat0( a, TK_EOS );
-	case 1 ... 32: goto LEX;
+	LEX: switch( *a->s ){
+	default: Throw( "Unexpected Char: '%c'\n", *a->s );
+	case '\0': return LexEat( a, TK_EOS );
+	case 1 ... 32: a->s++; goto LEX;
 	case '!': return LexNot( a );
 	// case '\"': return LexStr( a, ops );
-	case '(': return LexEat0( a, TK_LP );
-	case ')': return LexEat0( a, TK_RP );
+	case '$': LexComment( a ); goto LEX;
+	case '(': return LexEat( a, TK_LP );
+	case ')': return LexEat( a, TK_RP );
 	case '%': return LexMod( a );
+	case '&': return LexBand( a );
 	case '*': return LexMul( a );
 	case '+': return LexPlus( a );
 	case '-': return LexMinus( a );
@@ -242,6 +257,8 @@ Reg ExprPrefix( App* a ){
 	Lex( a );
 	switch( ( Deno )prefixes[ t ] ){
 	default: Throw( "Bad Expr Prefix: %d\n", t );
+	case DENO_NOP: return src; /* True NOP */
+	case DENO_NOPPRE: return Expr( a, PREC_UNARY ); /* NOP + */
 	case DENO_GRP:
 		src = Expr( a, PREC_NONE );
 		Match( a, TK_RP );
@@ -251,8 +268,6 @@ Reg ExprPrefix( App* a ){
 		dst = RegPush( a );
 		Emit( a, prefix_ops[ t ], dst, src, 0, n );
 		return dst;
-	case DENO_NOP: /* NOP + */
-		return Expr( a, PREC_UNARY );
 	case DENO_NUM:
 		dst = RegPush( a );
 		Emit( a, OP_LOADC, dst, 0, 0, n );
@@ -378,6 +393,15 @@ f64 Run( Inst* ip ){
 	case OP_MODEQ: /* mutates */
 		r[ i->a ] = r[ i->b ] = ( x64 )r[ i->b ] % ( x64 )r[ i->c ];
 		goto RUN;	
+	case OP_BAND:
+		r[ i->a ] = ( x64 )r[ i->b ] & ( x64 )r[ i->c ];
+		goto RUN;
+	case OP_AND:
+		r[ i->a ] = r[ i->b ] && r[ i->c ];
+		goto RUN;
+	case OP_BANDEQ: /* mutates */
+		r[ i->a ] = r[ i->b ] = ( x64 )r[ i->b ] & ( x64 )r[ i->c ];
+		goto RUN;
 	}
 	return r[ i->a ];
 }
@@ -396,6 +420,7 @@ void Repl( App* app ){
 	for( ;; ){
 		printf( "> " );
 		if( !fgets( ( char* )src, REPL_MAX, stdin ) ) return;
+		if( src[ 0 ] == '\n' ) continue;
 		Reset( app, src );
 		Compile( app );
 		f64 v = Run( app->bc );
