@@ -1,6 +1,6 @@
 CC=clang
 STD=-std=c2y
-SRC=main.c
+SRC=src/main.c
 LIB=
 WARN=-Wall -Wextra -Werror -Wpedantic
 NOWARN=-Wno-unused-parameter -Wno-gnu-label-as-value -Wno-gnu-designator -Wno-initializer-overrides
@@ -11,13 +11,16 @@ ASM=-O3 -ffast-math -march=native -S
 .PHONY: debug release fast asm
 
 debug:
-	$(CC) $(STD) $(WARN) $(NOWARN) $(DBG) $(SRC) $(LIB) -o a
+	$(CC) $(STD) $(WARN) $(NOWARN) $(DBG) $(SRC) $(LIB)
 
 release:
-	$(CC) $(STD) $(WARN) $(NOWARN) $(REL) $(SRC) $(LIB) -o a
+	$(CC) $(STD) $(WARN) $(NOWARN) $(REL) $(SRC) $(LIB)
 
 fast:
-	$(CC) $(STD) $(WARN) $(NOWARN) $(FAST) $(SRC) $(LIB) -o a
+	$(CC) $(STD) $(WARN) $(NOWARN) $(FAST) $(SRC) $(LIB)
 
 asm:
 	$(CC) $(STD) $(WARN) $(NOWARN) $(ASM) $(SRC) $(LIB) -o a.s
+
+clean:
+	rm -f a.out a.s
