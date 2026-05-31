@@ -7,65 +7,76 @@
 #define REG_MAX 255
 #define BC_MAX 1023
 
-#define X_TOKEN_ENUMS( N, V, PRE, INF, PR, AS, UOP, BOP ) TK_##N = V,
-#define X_TOKEN_PRES( N, V, PRE, INF, PR, AS, UOP, BOP ) [ TK_##N ] = DN_##PRE,
-#define X_TOKEN_INFS( N, V, PRE, INF, PR, AS, UOP, BOP ) [ TK_##N ] = DN_##INF,
-#define X_TOKEN_POSTS( N, V, PRE, INF, PR, AS, UOP, BOP ) [ TK_##N ] = DN_##POST,
-#define X_TOKEN_PRECS( N, V, PRE, INF, PR, AS, UOP, BOP ) [ TK_##N ] = PR_##PR,
-#define X_TOKEN_ASSOCS( N, V, PRE, INF, PR, AS, UOP, BOP ) [ TK_##N ] = AS_##AS,
-#define X_TOKEN_UOPS( N, V, PRE, INF, PR, AS, UOP, BOP ) [ TK_##N ] = OP_##UOP,
-#define X_TOKEN_BOPS( N, V, PRE, INF, PR, AS, UOP, BOP ) [ TK_##N ] = OP_##BOP,
+#define X_TOKEN_ENUMS( NAME, PREC, ASSOC, PRE, INF, PST, PRE_OP, INF_OP, PST_OP )   TK_##NAME,
+#define X_TOKEN_PRES( NAME, PREC, ASSOC, PRE, INF, PST, PRE_OP, INF_OP, PST_OP )    [ TK_##NAME ] = DENO_##PRE,
+#define X_TOKEN_PSTS( NAME, PREC, ASSOC, PRE, INF, PST, PRE_OP, INF_OP, PST_OP )    [ TK_##NAME ] = DENO_##PST,
+#define X_TOKEN_INFS( NAME, PREC, ASSOC, PRE, INF, PST, PRE_OP, INF_OP, PST_OP )    [ TK_##NAME ] = DENO_##INF,
+#define X_TOKEN_PRECS( NAME, PREC, ASSOC, PRE, INF, PST, PRE_OP, INF_OP, PST_OP )   [ TK_##NAME ] = PREC_##PREC,
+#define X_TOKEN_ASSOCS( NAME, PREC, ASSOC, PRE, INF, PST, PRE_OP, INF_OP, PST_OP )  [ TK_##NAME ] = ASSOC_##ASSOC,
+#define X_TOKEN_PRE_OPS( NAME, PREC, ASSOC, PRE, INF, PST, PRE_OP, INF_OP, PST_OP ) [ TK_##NAME ] = OP_##PRE_OP,
+#define X_TOKEN_PST_OPS( NAME, PREC, ASSOC, PRE, INF, PST, PRE_OP, INF_OP, PST_OP ) [ TK_##NAME ] = OP_##PST_OP,
+#define X_TOKEN_INF_OPS( NAME, PREC, ASSOC, PRE, INF, PST, PRE_OP, INF_OP, PST_OP ) [ TK_##NAME ] = OP_##INF_OP,
 #define X_TOKENS( X )\
-	/* NAME  VAL PRE  INF  PREC  ASSOC UOP   BOP */\
-	X( EOS,  0,  ERR, ERR, NONE, NONE, HALT, HALT )\
-	X( NUM,  1,  NUM, ERR, NONE, NONE, HALT, HALT )\
-	X( MOD, '%', ERR, BIN, FACT, LEFT, HALT, MOD )\
-	X( LP,  '(', GRP, ERR, NONE, NONE, HALT, HALT )\
-	X( RP,  ')', ERR, ERR, NONE, NONE, HALT, HALT )\
-	X( MUL, '*', ERR, BIN, FACT, LEFT, HALT, MUL )\
-	X( ADD, '+', UNA, BIN, TERM, LEFT, HALT, ADD )\
-	X( SUB, '-', UNA, BIN, TERM, LEFT, NEG , SUB )\
-	X( DIV, '/', ERR, BIN, FACT, LEFT, HALT, DIV )\
+/*     NAME     PREC      ASSOC PRE     INF  PST  PRE_OP INF_OP PST_OP */\
+	X( EOS,     NONE,     NONE, ERR,    ERR, ERR, NOP,    NOP,   NOP )\
+	X( MOD,     FACT,     LEFT, ERR,    INF, ERR, NOP,    MOD,   NOP )\
+	X( LP,      NONE,     NONE, GRP,    ERR, ERR, NOP,    NOP,   NOP )\
+	X( RP,      NONE,     NONE, ERR,    ERR, ERR, NOP,    NOP,   NOP )\
+	X( MUL,     FACT,     LEFT, ERR,    INF, ERR, NOP,    MUL,   NOP )\
+	X( ADD,     TERM,     LEFT, NOP,    INF, ERR, NOP,    ADD,   NOP )\
+	X( INC,     PRETERM,  LEFT, PRE,    ERR, PST, PREINC, NOP,   POSTINC )\
+	X( SUB,     TERM,     LEFT, PRE,    INF, ERR, NEG,    SUB,   NOP )\
+	X( DEC,     PRETERM,  LEFT, PRE,    ERR, PST, PREDEC, NOP,   POSTDEC )\
+	X( DIV,     FACT,     LEFT, ERR,    INF, ERR, NOP,    DIV,   NOP )\
+	X( NUM,     NONE,     NONE, NUM,    ERR, ERR, NOP,    NOP,   NOP )
 
 typedef uint8_t u8, Reg;
 typedef long long x64;
 typedef enum TkType { X_TOKENS( X_TOKEN_ENUMS ) } TkType;
 
-typedef enum Deno {
-	DN_ERR,
-	DN_GRP,
-	DN_UNA,
-	DN_NUM,
-	DN_BIN
+typedef enum Deno { /* Denotation */
+	DENO_NOP,
+	DENO_ERR,
+	DENO_GRP,       /* ( */
+	DENO_PRE,       /* Unary */
+	DENO_PST,       /* Postfix Unary */
+	DENO_INF,       /* Binary */
+	DENO_NUM,
 } Deno;
 
-typedef enum Prec {
-	PR_NONE,
-	PR_TERM,
-	PR_FACT,
-	PR_UNARY
+typedef enum Prec { /* Low To High */
+	PREC_NONE,      /* ( */
+	PREC_TERM,      /* + - */
+	PREC_FACT,      /* * / % */
+	PREC_PRE,       /* - ! ~ */
+	PREC_PRETERM,   /* ++ -- We dont need a POSTTERM */
 } Prec;
 
 typedef enum Assoc {
-	AS_NONE = 0,
-	AS_LEFT = 0,
-	AS_RIGHT
+	ASSOC_NONE = 0,
+	ASSOC_LEFT = 0,
+	ASSOC_RIGHT
 } Assoc;
 
 typedef enum Op {
+	OP_NOP,
 	OP_HALT,
 	OP_LOADC,
-	OP_NEG,
-	OP_MOD = '%',
-	OP_MUL = '*',
-	OP_ADD = '+',
-	OP_SUB = '-',
-	OP_DIV = '/'
+	OP_ADD,     /* a + b */
+	OP_PREINC,  /* ++n */
+	OP_POSTINC, /* n++ */
+	OP_SUB,     /* a - b */
+	OP_NEG,     /* -n */
+	OP_PREDEC,  /* --n */
+	OP_POSTDEC, /* n-- */
+	OP_MUL,     /* a * b */
+	OP_DIV,     /* a / b */
+	OP_MOD,     /* a % b */
 } Op;
 
 typedef struct Inst {
 	u8 op, a, b, c;
-	double v; /* In a real lang, this would be a const or ref id, sharing fields with a, b, or c */
+	double v; /* const / ref id will make it go away soon. */
 } Inst;
 
 typedef struct App {
@@ -77,11 +88,12 @@ typedef struct App {
 	u8 nr;
 } App;
 
-static u8 pre[ ] = { X_TOKENS( X_TOKEN_PRES ) };
-// static u8 post[ ] = { X_TOKENS( X_TOKEN_POSTS ) };
-static u8 inf[ ] = { X_TOKENS( X_TOKEN_INFS ) };
-static u8 uops[ ] = { X_TOKENS( X_TOKEN_UOPS ) };
-static u8 bops[ ] = { X_TOKENS( X_TOKEN_BOPS ) };
+static u8 prefixes[ ] = { X_TOKENS( X_TOKEN_PRES ) };
+static u8 infixes[ ] = { X_TOKENS( X_TOKEN_INFS ) };
+static u8 postfixes[ ] = { X_TOKENS( X_TOKEN_PSTS ) };
+static u8 prefix_ops[ ] = { X_TOKENS( X_TOKEN_PRE_OPS ) };
+static u8 infix_ops[ ] = { X_TOKENS( X_TOKEN_INF_OPS ) };
+static u8 postfix_ops[ ] = { X_TOKENS( X_TOKEN_PST_OPS ) };
 static u8 precs[ ] = { X_TOKENS( X_TOKEN_PRECS ) };
 static u8 assocs[ ] = { X_TOKENS( X_TOKEN_ASSOCS ) };
 
@@ -112,18 +124,33 @@ TkType LexNum( App* a, u8* ops ){
 	return a->t = TK_NUM;
 }
 
+void LexEat( App* a, TkType t ){
+	++a->s;
+	a->t = t;
+}
+
+void LexPlus( App* a ){
+	a->t = TK_ADD;
+	if( *a->s == '+' ) return LexEat( a, TK_INC );
+}
+
+void LexMinus( App* a ){
+	a->t = TK_SUB;
+	if( *a->s == '-' ) return LexEat( a, TK_DEC );
+}
+
 void Lex( App* a ){
 	static u8 ops[ ] = { [ 0 ... 127 ] = TK_EOS, [ '0' ... '9' ] = TK_NUM };
 	LEX: switch( *a->s++ ){
-	default: Throw( "stdin: Unexpected Symbol Near '%c'\n", a->s[ -1 ] );
+	default: Throw( "Unexpected Char: '%c'\n", a->s[ -1 ] );
 	case '\0': a->t = TK_EOS; return;
-	case 1 ... 32: goto LEX;
+	case 1 ... 32: goto LEX; /* Whitespace */
 	case '(': a->t = TK_LP; return;
 	case ')': a->t = TK_RP; return;
 	case '%': a->t = TK_MOD; return;
 	case '*': a->t = TK_MUL; return;
-	case '+': a->t = TK_ADD; return;
-	case '-': a->t = TK_SUB; return;
+	case '+': return LexPlus( a );
+	case '-': return LexMinus( a );
 	case '/': a->t = TK_DIV; return;
 	case '0' ... '9': LexNum( a, ops ); return;
 }}
@@ -146,39 +173,55 @@ void Emit( App* app, Op op, char a, char b, char c, double v ){
 Reg Expr( App* a, Prec min );
 
 Reg ExprPrefix( App* a ){
-	Reg r = REG_MAX;
+	Reg src = REG_MAX, dst = REG_MAX;
 	TkType t = a->t;
 	double n = a->n;
 	Lex( a );
-	switch( pre[ t ] ){
+	switch( prefixes[ t ] ){
 	default: Throw( "Bad Expr Prefix: %d\n", t );
-	case DN_GRP:
-		r = Expr( a, PR_NONE );
+	case DENO_GRP:
+		src = Expr( a, PREC_NONE );
 		Match( a, TK_RP );
-		return r;
-	case DN_UNA:
-		r = Expr( a, PR_UNARY );
-		Emit( a, uops[ t ], r, r, 0, n );
-		return r;
-	case DN_NUM:
-		r = RegPush( a );
-		Emit( a, OP_LOADC, r, 0, 0, n );
-		return r;
+		return src;
+	case DENO_PRE: /* Unarys */
+		src = Expr( a, PREC_PRE );
+		dst = RegPush( a );
+		Emit( a, prefix_ops[ t ], dst, src, 0, n );
+		return dst;
+	case DENO_NOP: /* NOP Prefix Unarys */
+		return Expr( a, PREC_PRE );
+	case DENO_NUM:
+		dst = RegPush( a );
+		Emit( a, OP_LOADC, dst, 0, 0, n );
+		return dst;
 }}
 
-Reg ExprPostfix( App* a, Reg lhs ){
-	return lhs;
+Reg ExprPostfix( App* a, Reg src ){
+	for( ;; ){
+		TkType t = a->t;
+		double n = a->n;
+		switch( postfixes[ t ] ){
+		default: return src;
+		case DENO_PST: /* ++ -- */
+			Lex( a );
+			Reg dst = RegPush( a );
+			Emit( a, postfix_ops[ t ], dst, src, 0, n );
+			return dst;
+		}
+	}
 }
 
 Reg ExprInfix( App* a, Reg lhs, Prec min ){
 	Reg rhs = REG_MAX;
-	while( inf[ a->t ] == DN_BIN ){
+	while( infixes[ a->t ] == DENO_INF ){
 		if( precs[ a->t ] - assocs[ a->t ] <= min ) break;
 		TkType t = a->t;
 		Prec p = precs[ t ];
 		Lex( a );
 		rhs = Expr( a, p );
-		Emit( a, bops[ t ], lhs, lhs, rhs, 0 );
+		Reg dst = RegPush( a );
+		Emit( a, infix_ops[ t ], dst, lhs, rhs, 0 );
+		lhs = dst;
 	}
 	return lhs;
 }
@@ -192,30 +235,40 @@ Reg Expr( App* a, Prec min ){
 
 void Compile( App* a ){
 	Lex( a );
-	Reg r = Expr( a, PR_NONE );
+	Reg dst = Expr( a, PREC_NONE );
 	if( a->t != TK_EOS ) Throw( "Unexpected Token: %d\n", a->t );
-	Emit( a, OP_HALT, r, 0, 0, 0 );
+	Emit( a, OP_HALT, dst, 0, 0, 0 );
 }
 
 double Run( Inst* ip ){
 	static double r[ REG_MAX ];
 	static Inst* i;
-	RUN: switch( ( i = ip++ )->op ){
+	RUN: switch( ( Op )( i = ip++ )->op ){
+	case OP_NOP: goto RUN;
 	case OP_HALT: break;
-	case OP_LOADC:
-		r[ i->a ] = i->v; goto RUN;
-	case OP_NEG:
-		r[ i->a ] = -r[ i->b ]; goto RUN;
-	case OP_MOD:
-		r[ i->a ] = ( x64 )r[ i->b ] % ( x64 )r[ i->c ]; goto RUN;		
-	case OP_MUL:
-		r[ i->a ] = r[ i->b ] * r[ i->c ]; goto RUN;
-	case OP_ADD:
-		r[ i->a ] = r[ i->b ] + r[ i->c ]; goto RUN;
-	case OP_SUB:
-		r[ i->a ] = r[ i->b ] - r[ i->c ]; goto RUN;
-	case OP_DIV:
-		r[ i->a ] = r[ i->b ] / r[ i->c ]; goto RUN;
+	case OP_LOADC: r[ i->a ] = i->v; goto RUN;
+	case OP_ADD: r[ i->a ] = r[ i->b ] + r[ i->c ]; goto RUN;
+	case OP_PREINC:
+		r[ i->b ] = r[ i->b ] + 1;
+		r[ i->a ] = r[ i->b ];
+		goto RUN;
+	case OP_POSTINC:
+		r[ i->a ] = r[ i->b ];
+		r[ i->b ] = r[ i->b ] + 1;
+		goto RUN;
+	case OP_SUB: r[ i->a ] = r[ i->b ] - r[ i->c ]; goto RUN;
+	case OP_NEG: r[ i->a ] = -r[ i->b ]; goto RUN;
+	case OP_PREDEC:
+		r[ i->b ] = r[ i->b ] - 1;
+		r[ i->a ] = r[ i->b ];
+		goto RUN;	
+	case OP_POSTDEC:
+		r[ i->a ] = r[ i->b ];
+		r[ i->b ] = r[ i->b ] - 1;
+		goto RUN;
+	case OP_MUL: r[ i->a ] = r[ i->b ] * r[ i->c ]; goto RUN;
+	case OP_DIV: r[ i->a ] = r[ i->b ] / r[ i->c ]; goto RUN;
+	case OP_MOD: r[ i->a ] = ( x64 )r[ i->b ] % ( x64 )r[ i->c ]; goto RUN;		
 	}
 	return r[ i->a ];
 }
