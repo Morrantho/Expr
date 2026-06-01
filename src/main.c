@@ -48,11 +48,11 @@
 	X( LSHEQ,  ASSIGN, RIGHT, ERR,    INF, ERR,  NOP,    LSHEQ,  NOP )     /* <<= */\
 	X( BREAK,  NONE,   NONE,  ERR,    ERR, ERR,  BREAK,  NOP,    NOP )     /* <== */\
 	X( ISEQ,   CMP,    LEFT,  ERR,    INF, ERR,  NOP,    ISEQ,   NOP )     /* == */\
+	X( CONT,   NONE,   NONE,  ERR,    ERR, ERR,  CONT,   NOP,    NOP )     /* ==> */\
 	X( GT,     CMP,    LEFT,  ERR,    INF, ERR,  NOP,    GT,     NOP )     /* > */\
 	X( RSH,    SHIFT,  LEFT,  ERR,    INF, ERR,  NOP,    RSH,    NOP )     /* >> */\
 	X( GTE,    CMP,    LEFT,  ERR,    INF, ERR,  NOP,    GTE,    NOP )     /* >= */\
 	X( RSHEQ,  ASSIGN, RIGHT, ERR,    INF, ERR,  NOP,    RSHEQ,  NOP )     /* >>= */\
-	X( CONT,   NONE,   NONE,  ERR,    ERR, ERR,  CONT,   NOP,    NOP )     /* ==> */
 
 #define X_LEX_TYPE_RANGES( RANGE, TK ) [ RANGE ] = TK_##TK,
 #define X_LEX_TYPES( X )\
@@ -133,11 +133,11 @@ typedef enum Op {
 	OP_LTE,		/* a <= b */
 	OP_BREAK,	/* <== */
 	OP_ISEQ,	/* == */
+	OP_CONT,	/* ==> */
 	OP_GT,		/* a > b */
 	OP_RSH,		/* a >> b */
 	OP_RSHEQ,	/* a >>= b */
 	OP_GTE,		/* a >= b */
-	OP_CONT,	/* >== */
 } Op;
 
 typedef struct Inst {
@@ -176,52 +176,52 @@ void LexEat( App* a, TkType t ){
 	++a->s;
 }
 
-void LexNot( App* a ){
+void LexNot( App* a ){ /* ! != */
 	LexEat( a, TK_NOT );
 	if( *a->s == '=' ) return LexEat( a, TK_NOTEQ );
 }
 
-void LexComment( App* a ){
+void LexComment( App* a ){ /* $ */
 	while( *a->s == '$' ) a->s++;
 }
 
-void LexMod( App* a ){
+void LexMod( App* a ){ /* % %% %= */
 	LexEat( a, TK_MOD );
 	if( *a->s == '%' ) return LexEat( a, TK_ROUND );
 	if( *a->s == '=' ) return LexEat( a, TK_MODEQ );
 }
 
-void LexBand( App* a ){
+void LexBand( App* a ){ /* & && &= */
 	LexEat( a, TK_BAND );
 	if( *a->s == '&' ) return LexEat( a, TK_AND );
 	if( *a->s == '=' ) return LexEat( a, TK_BANDEQ );
 }
 
-void LexMul( App* a ){
+void LexMul( App* a ){ /* * ** *= */
 	LexEat( a, TK_MUL );
 	if( *a->s == '*' ) return LexEat( a, TK_CEIL );
 	if( *a->s == '=' ) return LexEat( a, TK_MULEQ );
 }
 
-void LexPlus( App* a ){
+void LexPlus( App* a ){ /* + ++ += */
 	LexEat( a, TK_ADD );
 	if( *a->s == '+' ) return LexEat( a, TK_INC );
 	if( *a->s == '=' ) return LexEat( a, TK_ADDEQ );
 }
 
-void LexMinus( App* a ){
+void LexMinus( App* a ){ /* - -- -= */
 	LexEat( a, TK_SUB );
 	if( *a->s == '-' ) return LexEat( a, TK_DEC );
 	if( *a->s == '=' ) return LexEat( a, TK_SUBEQ );
 }
 
-void LexDiv( App* a ){
+void LexDiv( App* a ){ /* / // /= */
 	LexEat( a, TK_DIV );
 	if( *a->s == '/' ) return LexEat( a, TK_FLOOR );
 	if( *a->s == '=' ) return LexEat( a, TK_DIVEQ );
 }
 
-void LexLt( App* a ){ /* < << <= <<= <== */
+void LexLt( App* a ){ /* < << <<= <= <== */
 	LexEat( a, TK_LT );
 	if( *a->s == '<' ){
 		LexEat( a, TK_LSH );
@@ -235,24 +235,21 @@ void LexLt( App* a ){ /* < << <= <<= <== */
 	}
 }
 
-void LexEq( App* a ){
+void LexEq( App* a ){ /* == ==> */
 	LexEat( a, TK_EOS );
 	if( *a->s != '=' ) Throw( "Use : for assignments.\n" );
 	LexEat( a, TK_ISEQ );
+	if( *a->s == '>' ) return LexEat( a, TK_CONT );
 }
 
-void LexGt( App* a ){ /* > >> >= >>= ==> */
+void LexGt( App* a ){ /* > >> >= >>= */
 	LexEat( a, TK_GT );
 	if( *a->s == '>' ){
 		LexEat( a, TK_RSH );
 		if( *a->s == '=' ) return LexEat( a, TK_RSHEQ );
 		return;
 	}
-	if( *a->s == '=' ){
-		LexEat( a, TK_GTE );
-		if( *a->s == '=' ) return LexEat( a, TK_CONT );
-		return;
-	}
+	if( *a->s == '=' ){ LexEat( a, TK_GTE ); }
 }
 
 void LexNum( App* a, u8* ops ){
@@ -477,6 +474,8 @@ f64 Run( Inst* ip ){
 	case OP_ISEQ:
 		r[ i->a ] = r[ i->b ] == r[ i->c ];
 		goto RUN;
+	case OP_CONT:
+		goto RUN;		
 	case OP_GT:
 		r[ i->a ] = r[ i->b ] > r[ i->c ];
 		goto RUN;
@@ -488,8 +487,6 @@ f64 Run( Inst* ip ){
 		goto RUN;
 	case OP_GTE:
 		r[ i->a ] = r[ i->b ] >= r[ i->c ];
-		goto RUN;
-	case OP_CONT:
 		goto RUN;
 	}
 	return r[ i->a ];
