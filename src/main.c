@@ -137,7 +137,7 @@ typedef enum Op {
 	OP_RSH,		/* a >> b */
 	OP_RSHEQ,	/* a >>= b */
 	OP_GTE,		/* a >= b */
-	OP_CONT,	/* ==> */
+	OP_CONT,	/* >== */
 } Op;
 
 typedef struct Inst {
