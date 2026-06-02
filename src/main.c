@@ -454,9 +454,11 @@ f64 Run( Inst* ip ){
 	static f64 r[ REG_MAX ];
 	Inst* i;
 	RUN:switch( ( Op )( i = ip++ )->op ){
-		case OP_NOP: case OP_BREAK: case OP_CONT: goto RUN;
+		case OP_NOP: goto RUN;
 		case OP_HALT: break;
 		case OP_LOADC: r[ i->a ] = i->n; goto RUN;
+		case OP_BREAK: goto RUN;
+		case OP_CONT: goto RUN;
 		X_OPS_UNA_C( X_VM_UNA_C )
 		X_OPS_UNA_MUT_PRE_C( X_VM_UNA_MUT_PRE_C )
 		X_OPS_UNA_MUT_POST_C( X_VM_UNA_MUT_POST_C )
