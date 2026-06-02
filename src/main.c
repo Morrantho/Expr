@@ -2,12 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <math.h>
+#include "ascii.h"
 
 #define REPL_MAX 255
 #define REG_MAX 255
 #define BC_MAX 1023
 
-#define X_TKS( X )\
+#define X_TKS( X ) /* prefix, infix, and postfix point to a denotation type enum */\
 	/* NAME    PREC    ASSOC  PREFIX  INFIX  POSTFIX */\
 	X( EOS,    NONE,   NONE,  NOP,    ERR,   ERR  ) /* \0  */\
 	X( NOT,    UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* !   */\
@@ -44,6 +46,55 @@
 	X( RSH,    SHIFT,  LEFT,  ERR,    INF,   ERR  ) /* >>  */\
 	X( GTE,    REL,    LEFT,  ERR,    INF,   ERR  ) /* >=  */\
 	X( RSHEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* >>= */\
+	X( BXOR,   BXOR,   LEFT,  ERR,    INF,   ERR  ) /* ^   */\
+	X( POW,    POW,    LEFT,  ERR,    INF,   ERR  ) /* ^^ */\
+	X( BXOREQ, ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* ^= */\
+	X( BOR,    BOR,    LEFT,  ERR,    INF,   ERR  ) /* | */\
+	X( OR,     OR,     LEFT,  ERR,    INF,   ERR  ) /* || */\
+	X( BOREQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* |= */\
+	X( BNOT,   UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* ~ */
+
+#define X_LEX_1WAY( X )\
+	X( '\0', EOS  )\
+	X( '(',  LP   )\
+	X( ')',  RP   )\
+	X( '~',  BNOT )
+
+#define X_LEX_2WAY( X )\
+	X( '!', '=', NOT, NOTEQ )
+
+#define X_LEX_3WAY( X )\
+	X( '%', '%', '=', MOD,  ROUND, MODEQ  )\
+	X( '&', '&', '=', BAND, AND,   BANDEQ )\
+	X( '*', '*', '=', MUL,  CEIL,  MULEQ  )\
+	X( '+', '+', '=', ADD,  INC,   ADDEQ  )\
+	X( '-', '-', '=', SUB,  DEC,   SUBEQ  )\
+	X( '/', '/', '=', DIV,  FLOOR, DIVEQ  )\
+	X( '^', '^', '=', BXOR, POW,   BXOREQ )\
+	X( '|', '|', '=', BOR,  OR,    BOREQ  )
+
+#define X_LEX_TYPES( X )\
+	X( 0 ... 127,   EOS )\
+	X( '0' ... '9', NUM )
+	// X( 'A' ... 'Z', ID  )\
+	// X( 'a' ... 'z', ID  )\
+	// X( '_',         ID )
+
+#define X_LEX_1CASES( CH, TK )\
+	case CH: return LexEat( app, TK_##TK );
+
+#define X_LEX_2CASES( CH1, CH2, TK1, TK2 )\
+	case CH1:\
+		LexEat( app, TK_##TK1 );\
+		if( *app->src == CH2 ) return LexEat( app, TK_##TK2 );\
+		return;
+
+#define X_LEX_3CASES( CH1, CH2, CH3, TK1, TK2, TK3 )\
+	case CH1:\
+		LexEat( app, TK_##TK1 );\
+		if( *app->src == CH2 ) return LexEat( app, TK_##TK2 );\
+		if( *app->src == CH3 ) return LexEat( app, TK_##TK3 );\
+		return;
 
 #define X_PRECS( X )\
 	X( NONE )   /*  */\
@@ -114,50 +165,18 @@
 	X( GT,      GT,     INF  ) /* a > b   */\
 	X( RSH,     RSH,    INF  ) /* a >> b  */\
 	X( RSHEQ,   RSHEQ,  INF  ) /* a >>= b */\
-	X( GTE,     GTE,    INF  ) /* a >= b  */
+	X( GTE,     GTE,    INF  ) /* a >= b  */\
+	X( BXOR,    BXOR,   INF  ) /* a ^ b   */\
+	X( POW,     POW,    INF  ) /* a ^^ b  */\
+	X( BXOREQ,  BXOREQ, INF  ) /* a ^= b  */\
+	X( BOR,     BOR,    INF  ) /* a | b   */\
+	X( OR,      OR,     INF  ) /* a || b  */\
+	X( BOREQ,   BOREQ,  INF  ) /* a |= b  */\
+	X( BNOT,    BNOT,   PRE  ) /* ~a      */
 
 #define X_OPS( X )\
 	X_OPS_NOEMIT( X )\
 	X_OPS_EMIT( X )
-
-#define X_LEX_1WAY( X )\
-	X( '\0', EOS )\
-	X( '(',  LP )\
-	X( ')',  RP )
-
-#define X_LEX_2WAY( X )\
-	X( '!', '=', NOT, NOTEQ )
-
-#define X_LEX_3WAY( X )\
-	X( '%', '%', '=', MOD,  ROUND, MODEQ )\
-	X( '&', '&', '=', BAND, AND,   BANDEQ )\
-	X( '*', '*', '=', MUL,  CEIL,  MULEQ )\
-	X( '+', '+', '=', ADD,  INC,   ADDEQ )\
-	X( '-', '-', '=', SUB,  DEC,   SUBEQ )\
-	X( '/', '/', '=', DIV,  FLOOR, DIVEQ )
-
-#define X_LEX_TYPES( X )\
-	X( 0 ... 127,   EOS )\
-	X( '0' ... '9', NUM )
-	// X( 'A' ... 'Z', ID  )\
-	// X( 'a' ... 'z', ID  )\
-	// X( '_',         ID )
-
-#define X_LEX_1CASES( CH, TK )\
-	case CH: return LexEat( app, TK_##TK );
-
-#define X_LEX_2CASES( CH1, CH2, TK1, TK2 )\
-	case CH1:\
-		LexEat( app, TK_##TK1 );\
-		if( *app->src == CH2 ) return LexEat( app, TK_##TK2 );\
-		return;
-
-#define X_LEX_3CASES( CH1, CH2, CH3, TK1, TK2, TK3 )\
-	case CH1:\
-		LexEat( app, TK_##TK1 );\
-		if( *app->src == CH2 ) return LexEat( app, TK_##TK2 );\
-		if( *app->src == CH3 ) return LexEat( app, TK_##TK3 );\
-		return;
 
 #define X_LEX_TYPE_RANGES( RANGE, TK ) [ RANGE ] = TK_##TK,
 #define X_TK_ENUMS( TK, PREC, ASSOC, PREFIX, INFIX, POSTFIX ) TK_##TK,
@@ -270,7 +289,7 @@ void LexNum( App* app, u8* ops ){
 
 void Lex( App* app ){
 	static u8 types[ ] = { X_LEX_TYPES( X_LEX_TYPE_RANGES ) };
-	lex:switch( *app->src ){
+	lex:switch( ( Ascii )*app->src ){
 		default: Throw( "Unexpected Char: '%c'\n", *app->src );
 		case 1 ... 32: app->src++; goto lex;
 		case '$': LexComment( app ); goto lex;
@@ -308,23 +327,24 @@ Reg ExprPrefix( App* a ){
 	f64 num = a->num;
 	Lex( a );
 	switch( ( Deno )denos[ POS_PRE ][ tk ] ){
-	default: Throw( "Bad Expr Prefix: %d\n", tk );
-	case DENO_NOP: return src; /* do nothing */
-	case DENO_NOPPRE: return Expr( a, PREC_UNARY ); /* ignore unary + */
-	case DENO_GRP:
-		src = Expr( a, PREC_NONE );
-		Match( a, TK_RP );
-		return src;
-	case DENO_PRE:
-		src = Expr( a, PREC_UNARY );
-		dst = RegPush( a );
-		Emit( a, ops[ POS_PRE ][ tk ], dst, src, 0, num );
-		return dst;
-	case DENO_NUM:
-		dst = RegPush( a );
-		Emit( a, OP_LOADC, dst, 0, 0, num );
-		return dst;
-}}
+		default: Throw( "Bad Expr Prefix: %d\n", tk );
+		case DENO_NOP: return src; /* do nothing */
+		case DENO_NOPPRE: return Expr( a, PREC_UNARY ); /* ignore unary + */
+		case DENO_GRP:
+			src = Expr( a, PREC_NONE );
+			Match( a, TK_RP );
+			return src;
+		case DENO_PRE:
+			src = Expr( a, PREC_UNARY );
+			dst = RegPush( a );
+			Emit( a, ops[ POS_PRE ][ tk ], dst, src, 0, num );
+			return dst;
+		case DENO_NUM:
+			dst = RegPush( a );
+			Emit( a, OP_LOADC, dst, 0, 0, num );
+			return dst;
+	}
+}
 
 Reg ExprPostfix( App* app, Reg src ){
 	for( ;; ){
@@ -377,8 +397,8 @@ void Compile( App* app ){
 f64 Run( Inst* ip ){
 	static f64 r[ REG_MAX ];
 	static Inst* i;
-	RUN: switch( ( i = ip++ )->op ){
-	case OP_NOP: goto RUN;
+	RUN: switch( ( Op )( i = ip++ )->op ){
+	case OP_NOP: case OP_COUNT: goto RUN;
 	case OP_HALT: break;
 	case OP_LOADC:
 		r[ i->a ] = i->n;
@@ -488,6 +508,27 @@ f64 Run( Inst* ip ){
 		goto RUN;
 	case OP_GTE:
 		r[ i->a ] = r[ i->b ] >= r[ i->c ];
+		goto RUN;
+	case OP_BXOR:
+		r[ i->a ] = ( x64 )r[ i->b ] ^ ( x64 )r[ i->c ];
+		goto RUN;
+	case OP_POW:
+		r[ i->a ] = pow( r[ i->b ], r[ i->c ] );
+		goto RUN;
+	case OP_BXOREQ: /* mutates */
+		r[ i->a ] = r[ i->b ] = ( x64 )r[ i->b ] ^ ( x64 )r[ i->c ];
+		goto RUN;
+	case OP_BOR:
+		r[ i->a ] = ( x64 )r[ i->b ] | ( x64 )r[ i->c ];
+		goto RUN;
+	case OP_OR:
+		r[ i->a ] = r[ i->b ] || r[ i->c ];
+		goto RUN;
+	case OP_BOREQ:
+		r[ i->a ] = r[ i->b ] = ( x64 )r[ i->b ] | ( x64 )r[ i->c ];
+		goto RUN;
+	case OP_BNOT:
+		r[ i->a ] = ~( x64 )r[ i->b ];
 		goto RUN;
 	}
 	return r[ i->a ];

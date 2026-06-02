@@ -1,7 +1,7 @@
 CC=clang
 STD=-std=c2y
 SRC=src/main.c
-LIB=
+LIB=-lm
 WARN=-Wall -Wextra -Werror -Wpedantic
 NOWARN=-Wno-unused-parameter -Wno-gnu-label-as-value -Wno-gnu-designator -Wno-initializer-overrides
 DBG=-O0 -ggdb3 -fno-omit-frame-pointer -DDEBUG
