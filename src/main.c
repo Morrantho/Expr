@@ -123,7 +123,7 @@
 	X( PRE )\
 	X( POST )\
 	X( INF )\
-	X( NUM )	
+	X( NUM )
 
 #define X_OPS_CORE( X )\
 	X( NO_CAST, NO_OP, NOP,   NO_TK, NO_POS ) /*     */\
@@ -143,9 +143,9 @@
 	X( f64, +,     POSTINC, INC,   POST ) /* a++ */\
 	X( f64, -,     POSTDEC, DEC,   POST ) /* a-- */
 #define X_OPS_UNA_FN( X )\
-	X( f64, round, ROUND,   ROUND, PRE  ) /* %%a */\
-	X( f64, ceil,  CEIL,    CEIL,  PRE  ) /* **a */\
-	X( f64, floor, FLOOR,   FLOOR, PRE  ) /* //a */
+	X( f64, Round, ROUND,   ROUND, PRE  ) /* %%a */\
+	X( f64, Ceil,  CEIL,    CEIL,  PRE  ) /* **a */\
+	X( f64, Floor, FLOOR,   FLOOR, PRE  ) /* //a */
 #define X_OPS_UNA( X )\
 	X_OPS_UNA_C( X )\
 	X_OPS_UNA_MUT_PRE_C( X )\
@@ -450,6 +450,22 @@ void Compile( App* app ){
 	Emit( app, OP_HALT, dst, 0, 0, 0 );
 }
 
+f64 Round( f64 n ){
+	x64 i = n;
+	f64 f = n - i;
+	return i + ( f >= 0.5 ) - ( f <= -0.5 );
+}
+
+f64 Ceil( f64 n ){
+	x64 i = n;
+	return n + ( i < n );
+}
+
+f64 Floor( f64 n ){
+	x64 i = n;
+	return i - ( i > n );
+}
+
 f64 Run( Inst* ip ){
 	static f64 r[ REG_MAX ];
 	Inst* i;
@@ -484,7 +500,7 @@ void Repl( App* app ){
 	}
 }
 
-int main( int nargs, char** args ){
+int main( void ){
 	App app;
 	Repl( &app );
 	return 0;

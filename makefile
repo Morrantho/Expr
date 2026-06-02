@@ -3,7 +3,7 @@ STD=-std=c2y
 SRC=src/main.c
 LIB=-lm
 WARN=-Wall -Wextra -Werror -Wpedantic
-NOWARN=-Wno-unused-parameter -Wno-gnu-label-as-value -Wno-gnu-designator -Wno-initializer-overrides
+NOWARN=-Wno-gnu-designator -Wno-initializer-overrides
 DBG=-O0 -ggdb3 -fno-omit-frame-pointer -DDEBUG
 REL=-O3 -flto -march=native -DNDEBUG
 FAST=-O3 -flto -ffast-math -fomit-frame-pointer -fno-stack-protector -march=native -DNDEBUG -s
