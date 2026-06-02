@@ -126,70 +126,73 @@
 	X( NUM )	
 
 #define X_OPS_CORE( X )\
-	X( NO_CAST, NO_COP, NOP,   NO_TK, NO_POS ) /*     */\
-	X( NO_CAST, NO_COP, HALT,  NO_TK, NO_POS ) /*     */\
-	X( f64,     NO_COP, LOADC, NO_TK, NO_POS ) /*     */\
-	X( NO_CAST, NO_COP, BREAK, NO_TK, NO_POS ) /* <== */\
-	X( NO_CAST, NO_COP, CONT,  NO_TK, NO_POS ) /* ==> */
+	X( NO_CAST, NO_OP, NOP,   NO_TK, NO_POS ) /*     */\
+	X( NO_CAST, NO_OP, HALT,  NO_TK, NO_POS ) /*     */\
+	X( NO_CAST, NO_OP, LOADC, NO_TK, NO_POS ) /*     */\
+	X( NO_CAST, NO_OP, BREAK, NO_TK, NO_POS ) /* <== */\
+	X( NO_CAST, NO_OP, CONT,  NO_TK, NO_POS ) /* ==> */
 
 #define X_OPS_UNA_C( X )\
-	X( f64, !, NOT,     NOT,  PRE )  /* !a */\
-	X( f64, -, NEG,     SUB,  PRE )  /* -a */\
-	X( x64, ~, BNOT,    BNOT, PRE )  /* ~a */
+	X( f64, !,     NOT,     NOT,   PRE  ) /* !a */\
+	X( f64, -,     NEG,     SUB,   PRE  ) /* -a */\
+	X( x64, ~,     BNOT,    BNOT,  PRE  ) /* ~a */
 #define X_OPS_UNA_MUT_PRE_C( X )\
-	X( f64, +, PREINC,  INC,  PRE )  /* ++a */\
-	X( f64, -, PREDEC,  DEC,  PRE )  /* --a */
+	X( f64, +,     PREINC,  INC,   PRE  ) /* ++a */\
+	X( f64, -,     PREDEC,  DEC,   PRE  ) /* --a */
 #define X_OPS_UNA_MUT_POST_C( X )\
-	X( f64, +, POSTINC, INC,  POST ) /* a++ */\
-	X( f64, -, POSTDEC, DEC,  POST ) /* a-- */
-#define X_OPS_UNA_MUT_C( X )\
+	X( f64, +,     POSTINC, INC,   POST ) /* a++ */\
+	X( f64, -,     POSTDEC, DEC,   POST ) /* a-- */
+#define X_OPS_UNA_FN( X )\
+	X( f64, round, ROUND,   ROUND, PRE  ) /* %%a */\
+	X( f64, ceil,  CEIL,    CEIL,  PRE  ) /* **a */\
+	X( f64, floor, FLOOR,   FLOOR, PRE  ) /* //a */
+#define X_OPS_UNA( X )\
+	X_OPS_UNA_C( X )\
 	X_OPS_UNA_MUT_PRE_C( X )\
-	X_OPS_UNA_MUT_POST_C( X )
+	X_OPS_UNA_MUT_POST_C( X )\
+	X_OPS_UNA_FN( X )
 
 #define X_OPS_BIN_C( X )\
-	X( f64, !=,  NOTEQ,   NOTEQ,  INF  ) /* a != b  */\
-	X( x64, %,   MOD,     MOD,    INF  ) /* a % b   */\
-	X( x64, &,   BAND,    BAND,   INF  ) /* a & b   */\
-	X( f64, &&,  AND,     AND,    INF  ) /* a && b  */\
-	X( f64, *,   MUL,     MUL,    INF  ) /* a * b   */\
-	X( f64, +,   ADD,     ADD,    INF  ) /* a + b   */\
-	X( f64, -,   SUB,     SUB,    INF  ) /* a - b   */\
-	X( f64, /,   DIV,     DIV,    INF  ) /* a / b   */\
-	X( f64, <,   LT,      LT,     INF  ) /* a < b   */\
-	X( x64, <<,  LSH,     LSH,    INF  ) /* a << b  */\
-	X( f64, <=,  LTE,     LTE,    INF  ) /* a <= b  */\
-	X( f64, ==,  ISEQ,    ISEQ,   INF  ) /* a == b  */\
-	X( f64, >,   GT,      GT,     INF  ) /* a > b   */\
-	X( x64, >>,  RSH,     RSH,    INF  ) /* a >> b  */\
-	X( f64, >=,  GTE,     GTE,    INF  ) /* a >= b  */\
-	X( x64, ^,   BXOR,    BXOR,   INF  ) /* a ^ b   */\
-	X( x64, |,   BOR,     BOR,    INF  ) /* a | b   */\
-	X( f64, ||,  OR,      OR,     INF  ) /* a || b  */
+	X( f64, !=,  NOTEQ,  NOTEQ,  INF ) /* a != b  */\
+	X( x64, %,   MOD,    MOD,    INF ) /* a % b   */\
+	X( x64, &,   BAND,   BAND,   INF ) /* a & b   */\
+	X( f64, &&,  AND,    AND,    INF ) /* a && b  */\
+	X( f64, *,   MUL,    MUL,    INF ) /* a * b   */\
+	X( f64, +,   ADD,    ADD,    INF ) /* a + b   */\
+	X( f64, -,   SUB,    SUB,    INF ) /* a - b   */\
+	X( f64, /,   DIV,    DIV,    INF ) /* a / b   */\
+	X( f64, <,   LT,     LT,     INF ) /* a < b   */\
+	X( x64, <<,  LSH,    LSH,    INF ) /* a << b  */\
+	X( f64, <=,  LTE,    LTE,    INF ) /* a <= b  */\
+	X( f64, ==,  ISEQ,   ISEQ,   INF ) /* a == b  */\
+	X( f64, >,   GT,     GT,     INF ) /* a > b   */\
+	X( x64, >>,  RSH,    RSH,    INF ) /* a >> b  */\
+	X( f64, >=,  GTE,    GTE,    INF ) /* a >= b  */\
+	X( x64, ^,   BXOR,   BXOR,   INF ) /* a ^ b   */\
+	X( x64, |,   BOR,    BOR,    INF ) /* a | b   */\
+	X( f64, ||,  OR,     OR,     INF ) /* a || b  */
 #define X_OPS_BIN_MUT_C( X )\
-	X( x64, %,  MODEQ,   MODEQ,  INF  ) /* a %= b  */\
-	X( x64, &,  BANDEQ,  BANDEQ, INF  ) /* a &= b  */\
-	X( f64, *,  MULEQ,   MULEQ,  INF  ) /* a *= b  */\
-	X( f64, +,  ADDEQ,   ADDEQ,  INF  ) /* a += b  */\
-	X( f64, -,  SUBEQ,   SUBEQ,  INF  ) /* a -= b  */\
-	X( f64, /,  DIVEQ,   DIVEQ,  INF  ) /* a /= b  */\
-	X( x64, <<, LSHEQ,   LSHEQ,  INF  ) /* a <<= b */\
-	X( x64, >>, RSHEQ,   RSHEQ,  INF  ) /* a >>= b */\
-	X( x64, ^,  BXOREQ,  BXOREQ, INF  ) /* a ^= b  */\
-	X( x64, |,  BOREQ,   BOREQ,  INF  ) /* a |= b  */
-
-#define X_OPS_NO_C( X ) /* Need Manual Implementation */\
-	X( f64, NO_C, ROUND, ROUND, PRE ) /* %%a    */\
-	X( f64, NO_C, CEIL,  CEIL,  PRE ) /* **a    */\
-	X( f64, NO_C, FLOOR, FLOOR, PRE ) /* //a    */\
-	X( f64, NO_C, POW,   POW,   INF ) /* a ^^ b */
+	X( x64, %,   MODEQ,  MODEQ,  INF ) /* a %= b  */\
+	X( x64, &,   BANDEQ, BANDEQ, INF ) /* a &= b  */\
+	X( f64, *,   MULEQ,  MULEQ,  INF ) /* a *= b  */\
+	X( f64, +,   ADDEQ,  ADDEQ,  INF ) /* a += b  */\
+	X( f64, -,   SUBEQ,  SUBEQ,  INF ) /* a -= b  */\
+	X( f64, /,   DIVEQ,  DIVEQ,  INF ) /* a /= b  */\
+	X( x64, <<,  LSHEQ,  LSHEQ,  INF ) /* a <<= b */\
+	X( x64, >>,  RSHEQ,  RSHEQ,  INF ) /* a >>= b */\
+	X( x64, ^,   BXOREQ, BXOREQ, INF ) /* a ^= b  */\
+	X( x64, |,   BOREQ,  BOREQ,  INF ) /* a |= b  */
+#define X_OPS_BIN_FN( X )\
+	X( f64, pow, POW,    POW,    INF ) /* a ^^ b */
+#define X_OPS_BIN( X )\
+	X_OPS_BIN_C( X )\
+	X_OPS_BIN_MUT_C( X )\
+	X_OPS_BIN_FN( X )
 
 #define X_OPS( X )\
 	X_OPS_CORE( X )\
-	X_OPS_UNA_C( X )\
-	X_OPS_UNA_MUT_C( X )\
-	X_OPS_BIN_C( X )\
-	X_OPS_BIN_MUT_C( X )\
-	X_OPS_NO_C( X )
+	X_OPS_UNA( X )\
+	X_OPS_BIN( X )
 
 #define X_VM_UNA_C( CAST, C_OP, OP, TK, POS )\
 	case OP_##OP:{\
@@ -208,6 +211,12 @@
 		r[ i->b ] = ( CAST )r[ i->b ] C_OP 1;\
 		goto RUN;\
 	}
+#define X_VM_UNA_FN( CAST, FN, OP, TK, POS )\
+	case OP_##OP:{\
+		r[ i->a ] = ( CAST )FN( r[ i->b ] );\
+		goto RUN;\
+	}
+
 #define X_VM_BIN_C( CAST, C_OP, OP, TK, POS )\
 	case OP_##OP:{\
 		r[ i->a ] = ( CAST )r[ i->b ] C_OP ( CAST )r[ i->c ];\
@@ -215,7 +224,12 @@
 	}
 #define X_VM_BIN_MUT_C( CAST, C_OP, OP, TK, POS )\
 	case OP_##OP:{\
-		r[ i->a ] = ( CAST )r[ i->b ] C_OP ( CAST )r[ i->c ];\
+		r[ i->a ] = r[ i->b ] = ( CAST )r[ i->b ] C_OP ( CAST )r[ i->c ];\
+		goto RUN;\
+	}
+#define X_VM_BIN_FN( CAST, FN, OP, TK, POS )\
+	case OP_##OP:{\
+		r[ i->a ] = ( CAST )FN( r[ i->b ], r[ i->c ] );\
 		goto RUN;\
 	}
 
@@ -263,11 +277,8 @@ static u8 denos[ POS_COUNT ][ TK_COUNT ] = { /* Defines Parse Behavior */
 	X_TKS( X_DENO_POSTS )
 };
 static u8 ops[ POS_COUNT ][ TK_COUNT ] = { /* Defines what to emit */
-	X_OPS_UNA_C( X_OP_MAP )
-	X_OPS_UNA_MUT_C( X_OP_MAP )
-	X_OPS_BIN_C( X_OP_MAP )
-	X_OPS_BIN_MUT_C( X_OP_MAP )
-	X_OPS_NO_C( X_OP_MAP )
+	X_OPS_UNA( X_OP_MAP )
+	X_OPS_BIN( X_OP_MAP )
 };
 
 void Throw( char* fmt, ... ){
@@ -442,19 +453,17 @@ void Compile( App* app ){
 f64 Run( Inst* ip ){
 	static f64 r[ REG_MAX ];
 	Inst* i;
-	RUN: switch( ( Op )( i = ip++ )->op ){
+	RUN:switch( ( Op )( i = ip++ )->op ){
 		case OP_NOP: case OP_BREAK: case OP_CONT: goto RUN;
 		case OP_HALT: break;
 		case OP_LOADC: r[ i->a ] = i->n; goto RUN;
-		case OP_ROUND: r[ i->a ] = round( r[ i->b ] ); goto RUN;
-		case OP_CEIL: r[ i->a ]  = ceil( r[i->b] ); goto RUN;
-		case OP_FLOOR: r[ i->a ] = floor( r[ i->b ] ); goto RUN;
-		case OP_POW: r[ i->a ]   = pow( r[ i->b ], r[ i->c ] ); goto RUN;
 		X_OPS_UNA_C( X_VM_UNA_C )
 		X_OPS_UNA_MUT_PRE_C( X_VM_UNA_MUT_PRE_C )
 		X_OPS_UNA_MUT_POST_C( X_VM_UNA_MUT_POST_C )
+		X_OPS_UNA_FN( X_VM_UNA_FN )
 		X_OPS_BIN_C( X_VM_BIN_C )
 		X_OPS_BIN_MUT_C( X_VM_BIN_MUT_C )
+		X_OPS_BIN_FN( X_VM_BIN_FN )
 	}
 	return r[ i->a ];
 }
