@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
-#include "ascii.h"
 
 #define REPL_MAX 255
 #define REG_MAX 255
@@ -133,19 +132,19 @@
 	X( NO_CAST, NO_OP, CONT,  NO_TK, NO_POS ) /* ==> */
 
 #define X_OPS_UNA_C( X )\
-	X( f64, !,     NOT,     NOT,   PRE  ) /* !a */\
-	X( f64, -,     NEG,     SUB,   PRE  ) /* -a */\
-	X( x64, ~,     BNOT,    BNOT,  PRE  ) /* ~a */
+	X( f64, !,       NOT,     NOT,   PRE  ) /* !a */\
+	X( f64, -,       NEG,     SUB,   PRE  ) /* -a */\
+	X( x64, ~,       BNOT,    BNOT,  PRE  ) /* ~a */
 #define X_OPS_UNA_MUT_PRE_C( X )\
-	X( f64, +,     PREINC,  INC,   PRE  ) /* ++a */\
-	X( f64, -,     PREDEC,  DEC,   PRE  ) /* --a */
+	X( f64, +,       PREINC,  INC,   PRE  ) /* ++a */\
+	X( f64, -,       PREDEC,  DEC,   PRE  ) /* --a */
 #define X_OPS_UNA_MUT_POST_C( X )\
-	X( f64, +,     POSTINC, INC,   POST ) /* a++ */\
-	X( f64, -,     POSTDEC, DEC,   POST ) /* a-- */
+	X( f64, +,       POSTINC, INC,   POST ) /* a++ */\
+	X( f64, -,       POSTDEC, DEC,   POST ) /* a-- */
 #define X_OPS_UNA_FN( X )\
-	X( f64, Round, ROUND,   ROUND, PRE  ) /* %%a */\
-	X( f64, Ceil,  CEIL,    CEIL,  PRE  ) /* **a */\
-	X( f64, Floor, FLOOR,   FLOOR, PRE  ) /* //a */
+	X( f64, VmRound, ROUND,   ROUND, PRE  ) /* %%a */\
+	X( f64, VmCeil,  CEIL,    CEIL,  PRE  ) /* **a */\
+	X( f64, VmFloor, FLOOR,   FLOOR, PRE  ) /* //a */
 #define X_OPS_UNA( X )\
 	X_OPS_UNA_C( X )\
 	X_OPS_UNA_MUT_PRE_C( X )\
@@ -345,7 +344,7 @@ void LexNum( App* app, u8* ops ){
 
 void Lex( App* app ){
 	static u8 types[ ] = { X_LEX_TYPES( X_LEX_TYPE_RANGES ) };
-	lex:switch( ( Ascii )*app->src ){
+	lex:switch( *app->src ){
 		default: Throw( "Unexpected Char: '%c'\n", *app->src );
 		case 1 ... 32: app->src++; goto lex;
 		case '$': LexComment( app ); goto lex;
@@ -450,18 +449,18 @@ void Compile( App* app ){
 	Emit( app, OP_HALT, dst, 0, 0, 0 );
 }
 
-f64 Round( f64 n ){
+f64 VmRound( f64 n ){
 	x64 i = n;
 	f64 f = n - i;
 	return i + ( f >= 0.5 ) - ( f <= -0.5 );
 }
 
-f64 Ceil( f64 n ){
+f64 VmCeil( f64 n ){
 	x64 i = n;
 	return n + ( i < n );
 }
 
-f64 Floor( f64 n ){
+f64 VmFloor( f64 n ){
 	x64 i = n;
 	return i - ( i > n );
 }
