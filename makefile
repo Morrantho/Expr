@@ -1,5 +1,5 @@
 CC=cc
-STD=-std=c2y
+STD=-std=gnu23
 SRC=src/unity.c
 EXCLUDES=-not -name "unity.c" -not -name "main.c"
 SRCS=$(shell find src/ -name "*.c" -type f $(EXCLUDES))

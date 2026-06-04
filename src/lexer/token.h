@@ -54,7 +54,7 @@ typedef enum TkType { X_TKS( X_TK_ENUMS ) } TkType;
 
 typedef struct Tk {
 	TkType type;
-	u32 start, len;
+	u32 ln, col;
 	union {
 		f64 num;
 		u32 intern;
