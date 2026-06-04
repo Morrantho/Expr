@@ -1,0 +1,66 @@
+#ifndef TK_H
+#define TK_H
+
+#include "../common/typedefs.h"
+
+#define X_TKS( X ) /* prefix, infix, and postfix point to a denotation type enum */\
+	/* ENUM    PREC    ASSOC  PREFIX  INFIX  POSTFIX */\
+	X( EOS,    NONE,   NONE,  NOP,    ERR,   ERR  ) /* \0  */\
+	X( NOT,    UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* !   */\
+	X( NOTEQ,  EQUAL,  LEFT,  ERR,    INF,   ERR  ) /* !=  */\
+	X( MOD,    FACTOR, LEFT,  ERR,    INF,   ERR  ) /* %   */\
+	X( ROUND,  UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* %%  */\
+	X( MODEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* %=  */\
+	X( BAND,   BAND,   LEFT,  ERR,    INF,   ERR  ) /* &   */\
+	X( AND,    AND,    LEFT,  ERR,    INF,   ERR  ) /* &&  */\
+	X( BANDEQ, ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* &=  */\
+	X( LP,     NONE,   NONE,  GRP,    ERR,   ERR  ) /* (   */\
+	X( RP,     NONE,   NONE,  ERR,    ERR,   ERR  ) /* )   */\
+	X( MUL,    FACTOR, LEFT,  ERR,    INF,   ERR  ) /* *   */\
+	X( CEIL,   UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* **  */\
+	X( MULEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* *=  */\
+	X( ADD,    TERM,   LEFT,  NOPPRE, INF,   ERR  ) /* +   */\
+	X( INC,    UNARY,  LEFT,  PRE,    ERR,   POST ) /* ++  */\
+	X( ADDEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* +=  */\
+	X( SUB,    TERM,   LEFT,  PRE,    INF,   ERR  ) /* -   */\
+	X( DEC,    UNARY,  LEFT,  PRE,    ERR,   POST ) /* --  */\
+	X( SUBEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* -=  */\
+	X( DIV,    FACTOR, LEFT,  ERR,    INF,   ERR  ) /* /   */\
+	X( FLOOR,  UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* //  */\
+	X( DIVEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* /=  */\
+	X( NUM,    NONE,   NONE,  NUM,    ERR,   ERR  ) /* 0-9 */\
+	X( LT,     REL,    LEFT,  ERR,    INF,   ERR  ) /* <   */\
+	X( LSH,    SHIFT,  LEFT,  ERR,    INF,   ERR  ) /* <<  */\
+	X( LTE,    REL,    LEFT,  ERR,    INF,   ERR  ) /* <=  */\
+	X( LSHEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* <<= */\
+	X( BREAK,  NONE,   NONE,  ERR,    ERR,   ERR  ) /* <== */\
+	X( ISEQ,   EQUAL,  LEFT,  ERR,    INF,   ERR  ) /* ==  */\
+	X( CONT,   NONE,   NONE,  ERR,    ERR,   ERR  ) /* ==> */\
+	X( GT,     REL,    LEFT,  ERR,    INF,   ERR  ) /* >   */\
+	X( RSH,    SHIFT,  LEFT,  ERR,    INF,   ERR  ) /* >>  */\
+	X( GTE,    REL,    LEFT,  ERR,    INF,   ERR  ) /* >=  */\
+	X( RSHEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* >>= */\
+	X( BXOR,   BXOR,   LEFT,  ERR,    INF,   ERR  ) /* ^   */\
+	X( POW,    POW,    LEFT,  ERR,    INF,   ERR  ) /* ^^ */\
+	X( BXOREQ, ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* ^= */\
+	X( BOR,    BOR,    LEFT,  ERR,    INF,   ERR  ) /* | */\
+	X( OR,     OR,     LEFT,  ERR,    INF,   ERR  ) /* || */\
+	X( BOREQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* |= */\
+	X( BNOT,   UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* ~ */
+
+#define X_TK_ENUMS( ENUM, PREC, ASSOC, PRE, INF, POST ) TK_##ENUM,
+#define X_TK_STRS( ENUM, PREC, ASSOC, PRE, INF, POST ) #ENUM,
+typedef enum TkType { X_TKS( X_TK_ENUMS ) } TkType;
+
+typedef struct Tk {
+	TkType type;
+	u32 start, len;
+	union {
+		f64 num;
+		u32 intern;
+	};
+} Tk;
+
+x8* TkGetType( Tk* tk );
+
+#endif

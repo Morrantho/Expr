@@ -9,8 +9,8 @@
 typedef u32 SrcId;
 
 typedef struct Src {
-	x8* path;
-	x8* text;
+	u8* path;
+	u8* text;
 	u32 len;
 } Src;
 
@@ -22,7 +22,7 @@ typedef struct SrcList {
 
 void SrcInit( SrcList* list, u32 cap );
 Src* SrcGet( SrcList* list, SrcId id );
-Src* SrcLoad( SrcList* list, x8* path );
+Src* SrcLoad( SrcList* list, u8* path );
 void SrcFree( SrcList* list );
 
 #endif

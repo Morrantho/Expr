@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define sil static inline
+
 typedef char x8;
 typedef short x16;
 typedef int x32;

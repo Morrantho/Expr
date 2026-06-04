@@ -13,7 +13,9 @@
 	X( FREE, "Tried To Free A Null Pointer!\n" )\
 	X( BADFILE, "File Not Found: %s\n" )\
 	X( FTELL, "Failed To Read File Size For File: %s\n" )\
-	X( FREAD, "Failed To Read Bytes From File: %s\n" )
+	X( FREAD, "Failed To Read Bytes From File: %s\n" )\
+	X( LEXBADCHAR, "Unexpected Char: '%c'\n" )\
+	X( LEXASSIGN, "Use : For Assignments\n" )
 
 typedef enum ErrType { X_ERRS( X_ERR_ENUMS ) } ErrType;
 void Throw( ErrType err, ... );

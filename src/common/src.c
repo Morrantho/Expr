@@ -22,25 +22,9 @@ Src* SrcGet( SrcList* list, SrcId id ){
 	return &list->data[ id ];
 }
 
-// static x8* SrcRead( x8* path, u32* out_len ){
-// 	FILE* file = fopen( path, "rb" );
-// 	if( !file ) Throw( ERR_BADFILE, path );
-// 	fseek( file, 0, SEEK_END );
-// 	long len = ftell( file );
-// 	if( len < 0 ) Throw( ERR_FTELL, path );
-// 	fseek( file, 0, SEEK_SET );
-// 	x8* text = MemAlloc( 1, len + 1 );
-// 	size_t bytes = fread( text, 1, len, file );
-// 	fclose( file );
-// 	if( bytes != len ) Throw( ERR_FREAD, path );
-// 	text[ len ] = '\0';
-// 	*out_len = len;
-// 	return text;
-// }
-
-static FILE* SrcOpen( x8* path, u32* out_len ){
+static FILE* SrcOpen( u8* path, u32* out_len ){
 	if( !path ){ *out_len = SRC_REPL_MAX; return stdin; }
-	FILE* file = fopen( path, "rb" );
+	FILE* file = fopen( ( x8* )path, "rb" );
 	if( !file ) Throw( ERR_BADFILE, path );
 	fseek( file, 0, SEEK_END );
 	long len = ftell( file );
@@ -50,9 +34,9 @@ static FILE* SrcOpen( x8* path, u32* out_len ){
 	return file;
 }
 
-static x8* SrcRead( x8* path, u32* out_len ){
+static u8* SrcRead( u8* path, u32* out_len ){
 	FILE* file = SrcOpen( path, out_len );
-	x8* text = MemAlloc( 1, *out_len + 1 );
+	u8* text = MemAlloc( 1, *out_len + 1 );
 	if( !path ) return text; /* file == stdin works too */
 	size_t bytes = fread( text, 1, *out_len, file );
 	fclose( file );
@@ -61,15 +45,15 @@ static x8* SrcRead( x8* path, u32* out_len ){
 	return text;
 }
 
-static x8* SrcPath( x8* path ){
-	if( !path ) path = "stdin";
-	size_t len = strlen( path );
-	x8* dst = MemAlloc( sizeof( x8 ), len + 1 );
+static u8* SrcPath( u8* path ){
+	if( !path ) path = ( u8*)"stdin";
+	size_t len = strlen( ( x8* )path );
+	u8* dst = MemAlloc( sizeof( u8 ), len + 1 );
 	memcpy( dst, path, len + 1 ); /* Copy \0 */
 	return dst;
 }
 
-Src* SrcLoad( SrcList* list, x8* path ){
+Src* SrcLoad( SrcList* list, u8* path ){
 	Src* src = SrcGet( list, SrcPush( list ) );
 	src->path = SrcPath( path );
 	src->text = SrcRead( path, &src->len );

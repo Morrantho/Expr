@@ -1,0 +1,36 @@
+Note: We could EASILY codegen many repetitive functions, but we're not
+sacrificing debugging, so they will remain hand written.
+The only thing in this codebase we codegen are enums, static data,
+and dispatch mechanisms. None of which matter while debugging.
+
+General: All strings converted to u8* over x8*. All code compiles without
+warnings.
+
+err.h: Added ERR_FREAD, ERR_LEXBADCHAR, ERR_LEXASSIGN
+
+ascii.h: Readded. It contains the ascii code name, which function
+each ascii char should invoke as a lex starter, the label to jump to
+( if using computed goto ), and the action to perform after the call
+has been made. This can only be JMP or RET, which are just aliases
+for continue and return. It is used in both the switch and computer
+goto versions of the lexer for expanding switch cases, or generating
+the goto labell array. The goto version also expands it's a label list,
+including only unique labels. It implements the same as the switch version.
+
+token.c: Contains the basic core token struct. It stores the token
+type, its start index in the source code, as its total length. We could use
+pointers as a span, but this saves a few bytes. We will be implementing string
+interning soon, so we union the .num and .intern fields together. There is only
+ever going to be one token, and it is stored directly on the lexer so we don't
+have to pass context around. Since our number lexer is custom and doesn't
+use strtod(), we store the result into the .num union field directly on the
+lexer's token. This file also contains all tokens from the old main.c, which
+also is another big list macro that the parser will use heavily for determining
+what to do when a token is seen in a particular position. We of course also store
+precedence and associativity for proper parse order. x8* TkGetType( TkType ) now
+also exists for debugging.
+
+lexer.c: Reimplemented all lex functions from the old main.c. Lex() is now
+extremely minimal, only displaying dispatch choice, mechanism, and expansion.
+
+src.c: Removed unused SrcRead( ).

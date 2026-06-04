@@ -6,9 +6,12 @@
 
 typedef struct App {
 	u32 nargs;
-	x8** args;
+	u8** args;
 	SrcList sources;
 	Lexer lexer;
+	// Parser parser;
+	// Compiler compiler;
+	// Vm vm;
 } App;
 
 x32 main( x32 nargs, x8** args );
