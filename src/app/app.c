@@ -41,10 +41,10 @@ static void AppRun( App* app ){
 static void AppInit( App* app, u32 nargs, u8** args ){
 	app->nargs = nargs - 1;
 	app->args = args;
-	LogInit( &app->logs, LOG_AOB_CAP, LOG_ENTRY_CAP );
-	SrcInit( &app->sources, SRC_LIST_CAP );
-	Src* src = SrcLoad( &app->sources, app->args[ 1 ] );
-	LexInit( &app->lexer, &app->logs, src );
+	SrcInit( &app->sources, SRC_AOB_CAP, SRC_LIST_CAP );
+	SrcId src_id = SrcLoad( &app->sources, app->args[ 1 ] );
+	LogInit( &app->logs, &app->sources, LOG_AOB_CAP, LOG_ENTRY_CAP );
+	LexInit( &app->lexer, &app->logs, src_id, SrcGetText( &app->sources, src_id ) );
 }
 
 x32 main( x32 nargs, x8** args ){

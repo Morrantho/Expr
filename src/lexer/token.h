@@ -2,6 +2,7 @@
 #define TK_H
 
 #include "../common/typedefs.h"
+#include "../common/log.h"
 
 #define X_TKS( X ) /* prefix, infix, and postfix point to a denotation type enum */\
 	/* ENUM    PREC    ASSOC  PREFIX  INFIX  POSTFIX */\
@@ -50,18 +51,18 @@
 	X( BNOT,   UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* ~ */
 
 #define X_TK_ENUMS( ENUM, PREC, ASSOC, PRE, INF, POST ) TK_##ENUM,
-#define X_TK_STRS( ENUM, PREC, ASSOC, PRE, INF, POST ) #ENUM,
+#define X_TK_STRS( ENUM, PREC, ASSOC, PRE, INF, POST ) ( u8*)#ENUM,
 typedef enum TkType { X_TKS( X_TK_ENUMS ) } TkType;
 
 typedef struct Tk {
 	TkType type;
-	u32 ln, col;
+	LogPos pos;
 	union {
 		f64 num;
 		u32 intern;
 	};
 } Tk;
 
-x8* TkGetType( Tk* tk );
+u8* TkGetType( Tk* tk );
 
 #endif

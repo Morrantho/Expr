@@ -7,7 +7,7 @@
 #include "typedefs.h"
 
 #define X_ERR_ENUMS( ENUM, FMT ) ERR_##ENUM,
-#define X_ERR_FMTS( ENUM, FMT ) FMT,
+#define X_ERR_FMTS( ENUM, FMT ) ( u8* )FMT,
 #define X_ERRS( X )\
 	X( OOM, "Failed To Allocate Block: %d. Out Of Memory.\n" )\
 	X( FREE, "Tried To Free A Null Pointer!\n" )\

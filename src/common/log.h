@@ -5,38 +5,47 @@
 #include "cfg.h"
 #include "src.h"
 
-#define X_LOGS( X )\
-	X( WARN, LEX_BADCHAR,   "Unexpected char '%c'\n" )\
-	X( WARN, LEX_BADASSIGN, "Use ':' for assignments, not '='\n" )
+#define X_LOG_TYPES( X )\
+	X( WARN,  "warn",  "\033[33m" )\
+	X( FATAL, "fatal", "\033[1;31m" )
 
-#define X_LOG_LVLS( LEVEL, TYPE, FMT ) LOG_##LEVEL,
-#define X_LOG_TYPES( LEVEL, TYPE, FMT ) TYPE,
-#define X_LOG_FMTS( LEVEL, TYPE, FMT ) FMT,
-typedef enum LogLvl { LOG_WARN, LOG_FATAL } LogLvl;
-typedef enum LogType { X_LOGS( X_LOG_TYPES ) } LogType;
+#define X_LOGS( X )\
+	X( WARN, LEX_BADCHAR,   "unexpected char '%c'" )\
+	X( WARN, LEX_BADASSIGN, "use ':' for assignments, not '='" )
+
+#define X_LOG_LVL_ENUM( LEVEL, NAME, COL ) LOG_##LEVEL,
+#define X_LOG_MSG_TYPE_ENUM( LEVEL, TYPE, FMT ) TYPE,
+#define X_LOG_LVL_INIT( LEVEL, TYPE, FMT ) LOG_##LEVEL,
+#define X_LOG_FMT_INIT( LEVEL, TYPE, FMT ) ( u8* )FMT,
+#define X_LOG_NAME_INIT( LEVEL, NAME, COL ) ( u8* )NAME,
+#define X_LOG_COL_INIT( LEVEL, NAME, COL ) ( u8* )COL,
+typedef enum LogLvl { X_LOG_TYPES( X_LOG_LVL_ENUM ) } LogLvl;
+typedef enum LogMsgType { X_LOGS( X_LOG_MSG_TYPE_ENUM ) } LogMsgType;
+
+typedef struct LogPos {
+	SrcId src;			/* The source file it came from */
+	u32 ln;				/* The source line */
+	u32 col;			/* The source column */
+} LogPos;
 
 typedef struct LogEntry {
-	u8* path;
-	u32 ln, col;
-	LogType type;
-	u32 store_offset;
+	LogMsgType msg_type;/* Used for fmt and lvl lookup on Flushes */
+	LogPos pos;			/* Where it occured */
+	Offset msg;			/* The partially formatted message */
 } LogEntry;
 
 typedef struct LogList {
-	x8* store; /* stores the entire post-formatted strings here. */
-	u32 store_len;
-	u32 store_cap;
-
-	LogEntry* entries;
-	u32 entry_len;
-	u32 entry_cap;
-
-	u8 fatal;
+	SrcList* sources;	/* Shared from App. Needed for source lookups. */
+	LogEntry* entries;	/* Metadata for later lookups. */
+	Aob msgs;			/* formatted messages, not full entries. */
+	u32 len;			/* Entry length */
+	u32 cap;			/* Entry cap */
+	u8 fatal;			/* Prevent code execution or not. */
 } LogList;
 
-void LogInit( LogList* log, u32 store_cap, u32 entry_cap );
+void LogInit( LogList* log, SrcList* sources, u32 msg_cap, u32 entry_cap );
 void LogReset( LogList* log );
-void Log( LogList* log, Src* src, LogType type, ... );
+void Log( LogList* log, LogPos* pos, LogMsgType type, ... );
 void LogFlush( LogList* log );
 u8 LogIsFatal( LogList* log );
 void LogFree( LogList* log );

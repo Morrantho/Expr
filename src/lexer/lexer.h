@@ -52,13 +52,13 @@
 #define X_LEX_LABEL( LABEL, FN, ACTION ) LABEL:{ Lex##FN( lexer ); ACTION; }
 
 typedef struct Lexer {
-	Src* src;
-	LogList* log; /* App owned */
+	LogList* logs; /* App owned */
 	u8* text;
+	LogPos pos;
 	Tk tk;
 } Lexer;
 
-void LexInit( Lexer* lexer, LogList* log, Src* src );
+void LexInit( Lexer* lexer, LogList* log, SrcId src_id, u8* text );
 void LexReset( Lexer* lexer, u8* text );
 void Lex( Lexer* lexer );
 

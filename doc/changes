@@ -1,12 +1,34 @@
-cfg.h:
-* Renamed MAX suffixes to CAP for consistency.
-* Added: AOB_CAP. Defaults to size of a page on most systems.
-* Renamed: LOG_STORE_CAP to LOG_AOB_CAP.
+next steps:
+* implement interning. Allow tokens to store internid, or number.
+* begin parser work.
 
-aob.c/.h:
-* Basic AOB implementation. We will use these heavily. It is not an Arena
-	allocator. Alignment will always be 1 or sizeof( x8 ). We will be slowly
-	converting the Log, Src, and future modules like Intern to use them
-	exclusively. This will help us cut down on tons of micro-allocations.
-	The Log already does this with its .store, and Src should have it's own
-	too.
+general:
+* u8* is used over x8* everywhere. we only cast to x8* for c api functions.
+
+app.c:
+* We now call SrcInit before LogInit.
+
+log.c/h:
+* added: LogPos
+	Gives us a unified way to deal with logging across the board. Stores
+	SrcId, line, and column.
+* added: Log level names and colors.
+* added: LogGetName and LogGetCol statics.
+
+src.c/h:
+* SrcList now uses AOB api over rolling it's own.
+	All changes implement the AOB api over Mem api. This saves us a lot
+	of tiny allocations per source path and text. Everything is in one
+	big AOB now. Paths get stored before source text.
+* added: SrcGetPath( SrcList*, SrcId )
+	Resolves and returns source path pointer from its AOB.
+* added: SrcGetText( SrcList*, SrcId )
+	Resolves and returns source text pointer from its AOB.
+
+lexer.c/h:
+* Lexer now stores LogPos, and take SrcId and u8* text on init.
+	SrcId is stored in LogPos. The text pointer is stored and
+	used directly.
+
+token.c/h:
+* Tokens now store a LogPos over u32 ln, col.

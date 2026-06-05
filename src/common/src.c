@@ -1,25 +1,36 @@
 #include "src.h"
 
-void SrcInit( SrcList* list, u32 cap ){
-	list->data = MemAlloc( sizeof( Src ), cap );
-	list->cap = cap;
+void SrcInit( SrcList* list, u32 byte_cap, u32 source_cap ){
+	AobInit( &list->bytes, byte_cap );
+	list->sources = MemAlloc( sizeof( Src ), source_cap );
+	list->cap = source_cap;
 	list->len = 0;
 }
 
 static void SrcGrow( SrcList* list ){
 	list->cap <<= 1;
-	list->data = MemRealloc( list->data, sizeof( Src ), list->cap );
+	list->sources = MemRealloc( list->sources, sizeof( Src ), list->cap );
 }
 
 static SrcId SrcPush( SrcList* list ){
 	if( list->len >= list->cap ) SrcGrow( list );
 	SrcId id = list->len++;
-	list->data[ id ] = ( Src ){ 0 };
+	list->sources[ id ] = ( Src ){ 0 };
 	return id;
 }
 
-Src* SrcGet( SrcList* list, SrcId id ){
-	return &list->data[ id ];
+Src* SrcGet( SrcList* list, SrcId src_id ){
+	return &list->sources[ src_id ];
+}
+
+u8* SrcGetPath( SrcList* list, SrcId src_id ){
+	Src* src = SrcGet( list, src_id );
+	return AobGet( &list->bytes, src->path );
+}
+
+u8* SrcGetText( SrcList* list, SrcId src_id ){
+	Src* src = SrcGet( list, src_id );
+	return AobGet( &list->bytes, src->text );
 }
 
 static FILE* SrcOpen( u8* path, u32* out_len ){
@@ -34,39 +45,38 @@ static FILE* SrcOpen( u8* path, u32* out_len ){
 	return file;
 }
 
-static u8* SrcRead( u8* path, u32* out_len ){
+static Offset SrcRead( SrcList* list, u8* path, u32* out_len ){
 	FILE* file = SrcOpen( path, out_len );
-	u8* text = MemAlloc( 1, *out_len + 1 );
-	if( !path ) return text; /* file == stdin works too */
-	size_t bytes = fread( text, 1, *out_len, file );
+	Offset byte_off = AobPush( &list->bytes, *out_len + 1 );
+	if( !path ) return byte_off; /* file == stdin works too */
+	u8* text = AobGet( &list->bytes, byte_off );
+	size_t bytes_read = fread( text, 1, *out_len, file );
 	fclose( file );
-	if( bytes != *out_len ) Throw( ERR_FREAD, path );
+	if( bytes_read != *out_len ) Throw( ERR_FREAD, path );
 	text[ *out_len ] = '\0';
-	return text;
+	return byte_off;
 }
 
-static u8* SrcPath( u8* path ){
+static Offset SrcPath( SrcList* list, u8* path ){
 	if( !path ) path = ( u8*)"stdin";
 	size_t len = strlen( ( x8* )path );
-	u8* dst = MemAlloc( sizeof( u8 ), len + 1 );
+	Offset byte_off = AobPush( &list->bytes, len + 1 );
+	u8* dst = AobGet( &list->bytes, byte_off );
 	memcpy( dst, path, len + 1 ); /* Copy \0 */
-	return dst;
+	return byte_off;
 }
 
-Src* SrcLoad( SrcList* list, u8* path ){
-	Src* src = SrcGet( list, SrcPush( list ) );
-	src->path = SrcPath( path );
-	src->text = SrcRead( path, &src->len );
-	return src;
+SrcId SrcLoad( SrcList* list, u8* path ){
+	SrcId src_id = SrcPush( list );
+	Src* src = SrcGet( list, src_id );
+	src->path = SrcPath( list, path );
+	src->text = SrcRead( list, path, &src->len );
+	return src_id;
 }
 
 void SrcFree( SrcList* list ){
-	for( u32 i = 0; i < list->len; ++i ){
-		MemFree( list->data[ i ].path );
-		MemFree( list->data[ i ].text );
-		list->data[ i ] = ( Src ){ 0 };
-	}
-	MemFree( list->data );
-	list->data = 0;
+	AobFree( &list->bytes );
+	MemFree( list->sources );
+	list->sources = 0;
 	list->cap = list->len = 0;
 }

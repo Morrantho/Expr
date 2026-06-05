@@ -1,88 +1,93 @@
 #include "log.h"
 
-static x8* LogGetFmt( LogType type ){
-	static x8* fmts[ ] = { X_LOGS( X_LOG_FMTS ) };
-	return fmts[ type ];
-}
-
-static LogLvl LogGetLvl( LogType type ){
-	static LogLvl lvls[ ] = { X_LOGS( X_LOG_LVLS ) };
+static LogLvl LogGetLvl( LogMsgType type ){
+	static LogLvl lvls[ ] = { X_LOGS( X_LOG_LVL_INIT ) };
 	return lvls[ type ];
 }
 
-void LogInit( LogList* log, u32 store_cap, u32 entry_cap ){
-	log->store = MemAlloc( store_cap, sizeof( u8 ) );
-	log->store_len = 0;
-	log->store_cap = store_cap;
+static u8* LogGetFmt( LogMsgType type ){
+	static u8* fmts[ ] = { X_LOGS( X_LOG_FMT_INIT ) };
+	return fmts[ type ];
+}
 
-	log->entries = MemAlloc( entry_cap, sizeof( LogEntry ) );
-	log->entry_cap = entry_cap;
-	log->entry_len = 0;
+static u8* LogGetName( LogLvl lvl ){
+	static u8* names[ ] = { X_LOG_TYPES( X_LOG_NAME_INIT ) };
+	return names[ lvl ];
+}
+
+static u8* LogGetCol( LogLvl lvl ){
+	static u8* cols[ ] = { X_LOG_TYPES( X_LOG_COL_INIT ) };
+	return cols[ lvl ];
+}
+
+void LogInit( LogList* log, SrcList* sources, u32 msg_cap, u32 entry_cap ){
+	log->sources = sources;
+	log->entries = MemAlloc( sizeof( LogEntry ), entry_cap );
+	AobInit( &log->msgs, msg_cap );
+	log->len = 0;
+	log->cap = entry_cap;
+	log->fatal = 0;
 }
 
 void LogReset( LogList* log ){
-	log->entry_len = log->store_len = log->fatal = 0;
+	AobReset( &log->msgs );
+	log->len = log->fatal = 0;
 }
 
-static void LogStoreGrow( LogList* log, u32 total ){
-	while( log->store_cap < total ) log->store_cap <<= 1;
-	log->store = MemRealloc( log->store, sizeof( u8 ), log->store_cap );
-}
-
-static u32 LogStorePush( LogList* log, x8* src, u32 len ){
-	u32 off = log->store_len;
-	u32 total = off + len + 1;
-	if( total > log->store_cap ) LogStoreGrow( log, total );
-	x8* dst = log->store + off;
+static Offset LogMsgPush( LogList* log, u8* src, u32 len ){
+	Offset msg_off = AobPush( &log->msgs, len + 1 );
+	u8* dst = AobGet( &log->msgs, msg_off );
 	memcpy( dst, src, len );
 	dst[ len ] = '\0';
-	log->store_len = total;
-	return off;
+	return msg_off;
 }
 
 static void LogEntriesGrow( LogList* log ){
-	log->entry_cap <<= 1;
-	log->entries = MemRealloc( log->entries, sizeof( LogEntry ), log->entry_cap );
+	log->cap <<= 1;
+	log->entries = MemRealloc( log->entries, sizeof( LogEntry ), log->cap );
 }
 
-static void LogEntryPush( LogList* log, u32 store_offset, Src* src, LogType type ){
-	if( log->entry_len >= log->entry_cap ) LogEntriesGrow( log );
-	u32 entry_id = log->entry_len++;
-	LogEntry* entry = &log->entries[ entry_id ];
-	entry->ln = src->ln;
-	entry->col = src->col;
-	entry->path = src->path;
-	entry->type = type;
-	entry->store_offset = store_offset;
+static void LogEntryPush( LogList* log, Offset msg, LogPos* pos, LogMsgType msg_type ){
+	if( log->len >= log->cap ) LogEntriesGrow( log );
+	LogEntry* entry = &log->entries[ log->len++ ];
+	entry->msg_type = msg_type;
+	entry->pos = *pos; /* Copy the whole thing */
+	entry->msg = msg;
 }
 
-void Log( LogList* log, Src* src, LogType type, ... ){
-	x8 buf[ LOG_BUF_CAP ];
-	x8* fmt = LogGetFmt( type );
+void Log( LogList* log, LogPos* pos, LogMsgType type, ... ){
+	u8 buf[ LOG_BUF_CAP ];
+	u8* fmt = LogGetFmt( type );
 	va_list args;
 	va_start( args, type );
-	x32 len = vsnprintf( buf, sizeof( buf ), fmt, args );
+	x32 len = vsnprintf( ( x8* )buf, sizeof( buf ), ( x8* )fmt, args );
 	va_end( args );
 	if( len < 0 ){ Throw( ERR_LOGBUF, fmt ); return; }
 	if( len >= LOG_BUF_CAP ) len = LOG_BUF_CAP-1; /* Trunc it */
-	u32 off = LogStorePush( log, buf, ( u32 )len );
-	LogEntryPush( log, off, src, type );
+	Offset msg = LogMsgPush( log, buf, ( u32 )len );
+	LogEntryPush( log, msg, pos, type );
 	log->fatal |= LogGetLvl( type ) == LOG_FATAL; /* so we dont overwrite it if previously 1 */
 }
 
 u8 LogIsFatal( LogList* log ){ return log->fatal; }
 
 void LogFlush( LogList* log ){
-	for( u32 i = 0; i < log->entry_len; i++ ){
+	for( u32 i = 0; i < log->len; i++ ){
 		LogEntry* e = &log->entries[ i ];
-		x8* msg = log->store + e->store_offset;
-		fprintf( stderr, "%s:%u:%u: %s", e->path, e->ln, e->col, msg );
+		LogLvl lvl = LogGetLvl( e->msg_type );
+		u8* name = LogGetName( lvl );
+		u8* col = LogGetCol( lvl );
+		u8* path = SrcGetPath( log->sources, e->pos.src );
+		u8* msg = AobGet( &log->msgs, e->msg );
+		// fprintf( stderr, "%s%s:%u:%u: %s: %s\033[0m\n", col, path, e->pos.ln, e->pos.col, name, msg );
+		fprintf( stderr, "%s%s: %s:%u:%u: %s\033[0m\n", col, name, path, e->pos.ln, e->pos.col, msg );
 	}
-	log->entry_len = log->store_len = 0;
+	AobReset( &log->msgs );
+	log->len = 0;
 }
 
 void LogFree( LogList* log ){
+	AobFree( &log->msgs );
 	MemFree( log->entries );
-	MemFree( log->store );
 	*log = ( LogList){ 0 };
 }

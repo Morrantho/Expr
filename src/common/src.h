@@ -2,28 +2,31 @@
 #define SRC_H
 
 #include <string.h>
-#include "../common/typedefs.h"
-#include "../common/cfg.h"
-#include "../common/mem.h"
+#include "typedefs.h"
+#include "cfg.h"
+#include "mem.h"
+#include "aob.h"
 
 typedef u32 SrcId;
 
 typedef struct Src {
-	u8* path;
-	u8* text;
-	u32 len;
-	u32 ln, col;
+	Offset path;	/* filename */
+	Offset text;	/* source code */
+	u32 len;		/* source code length */
 } Src;
 
 typedef struct SrcList {
-	Src* data;
-	u32 len;
-	u32 cap;
+	Aob bytes;		/* raw file paths/names and source code go here. */
+	Src* sources;	/* vector. we store offsets for lookups. */
+	u32 len;		/* number of source files. used when we get to include()s. */
+	u32 cap;		/* current source file capacity before growing */
 } SrcList;
 
-void SrcInit( SrcList* list, u32 cap );
+void SrcInit( SrcList* list, u32 byte_cap, u32 source_cap );
 Src* SrcGet( SrcList* list, SrcId id );
-Src* SrcLoad( SrcList* list, u8* path );
+u8* SrcGetPath( SrcList* list, SrcId src_id );
+u8* SrcGetText( SrcList* list, SrcId src_id );
+SrcId SrcLoad( SrcList* list, u8* path );
 void SrcFree( SrcList* list );
 
 #endif

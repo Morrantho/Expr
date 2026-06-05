@@ -25,7 +25,7 @@ Offset AobPush( Aob* aob, u32 len ){
 	return off;
 }
 
-x8* AobGet( Aob* aob, Offset offset ){
+u8* AobGet( Aob* aob, Offset offset ){
 	return aob->bytes + offset;
 }
 
