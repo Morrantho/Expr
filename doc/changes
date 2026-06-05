@@ -1,35 +1,10 @@
 log.c:
-* Added basic logging. It manages 2 arrays. An AOB store / arena where fully
-formatted logs are stored, and an entry vector for the entries. It
-fully formats the log format string + args first, then pushes to
-the AOB, which returns the AOB offset. Then we push an entry, write the
-src file name, current line and column, log type, and AOB offset. We
-need those for later flushing. Flushing loops all entries, gets the
-formatted log from the AOB, and writes all the stored data to printf.
-We can add log level colors later. For now all we need is WARN and FATAL.
-Idk if Flushing is the term to use here, I'm just writing what I think
-makes sense. I've never written one of these, nor needed to, but we need
-one, so here it is.
-
-app.c:
-* Implemented logger. Calls LogInit, LogFree, and LogReset where necessary.
-We call LogFlush to display all logs, then check for fatal errors, which
-prevents executing bad code.
-
-token.h:
-* Added an error token. The parser might use it for logging later.
-
-cfg.h:
-* Added: LOG_BUF_MAX, LOG_STORE_MAX, and LOG_ENTRY_MAX. These are for startup before
-resizing, excluding LOG_BUF_MAX, that's stack allocated.
-
-err.h:
-* Added: ERR_LOGBUF. Throw()s when vsnprintf cant store the full log string.
-
-src.c:
-* Added: .ln and .col to Src struct. We might change this later.
+* No longer a singleton. Base pointer owned by app like everything else.
+	I wanted clean call sites, but it's not worth it at all. Ownership
+	issues already arose, and we're not gonna have that.
 
 lexer.c:
-* Removed .ln and .col from Lexer struct.
-* Lexer stores Src* for reporting.
-* LexInit takes Src*
+* Takes the log pointer on init as a dependency. App owned.
+
+app.c:
+* Updated log calls to pass the app's LogList.

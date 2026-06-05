@@ -34,11 +34,11 @@ typedef struct LogList {
 	u8 fatal;
 } LogList;
 
-void LogInit( u32 store_cap, u32 entry_cap );
-void LogReset( );
-void Log( Src* src, LogType type, ... );
-void LogFlush( );
-u8 LogIsFatal( );
-void LogFree( );
+void LogInit( LogList* log, u32 store_cap, u32 entry_cap );
+void LogReset( LogList* log );
+void Log( LogList* log, Src* src, LogType type, ... );
+void LogFlush( LogList* log );
+u8 LogIsFatal( LogList* log );
+void LogFree( LogList* log );
 
 #endif

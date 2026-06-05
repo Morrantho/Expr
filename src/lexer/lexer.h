@@ -53,11 +53,12 @@
 
 typedef struct Lexer {
 	Src* src;
+	LogList* log; /* App owned */
 	u8* text;
-	Tk tk; /* Much cleaner for us to just own it. */
+	Tk tk;
 } Lexer;
 
-void LexInit( Lexer* lexer, Src* src );
+void LexInit( Lexer* lexer, LogList* log, Src* src );
 void LexReset( Lexer* lexer, u8* text );
 void Lex( Lexer* lexer );
 

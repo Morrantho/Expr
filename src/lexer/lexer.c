@@ -1,7 +1,8 @@
 #include "lexer.h"
 
-void LexInit( Lexer* lexer, Src* src ){
+void LexInit( Lexer* lexer, LogList* log, Src* src ){
 	lexer->src = src;
+	lexer->log = log;
 	lexer->text = src->text;
 	lexer->src->ln = lexer->src->col = 1;
 }
@@ -130,7 +131,7 @@ static void LexLt( Lexer* lexer ){ /* < << <<= <= <== */
 
 static void LexEq( Lexer* lexer ){ /* == ==> */
 	LexChar( lexer, TK_EOS ); /* Intentional */
-	if( *lexer->text != '=' ){ Log( lexer->src, LEX_BADASSIGN ); return; }
+	if( *lexer->text != '=' ){ Log( lexer->log, lexer->src, LEX_BADASSIGN ); return; }
 	LexEat( lexer, TK_ISEQ );
 	if( *lexer->text == '>' ){ LexEat( lexer, TK_CONT ); return; }
 }

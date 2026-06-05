@@ -1,10 +1,5 @@
 #include "log.h"
 
-static LogList* LogGet( ){
-	static LogList log;
-	return &log;
-}
-
 static x8* LogGetFmt( LogType type ){
 	static x8* fmts[ ] = { X_LOGS( X_LOG_FMTS ) };
 	return fmts[ type ];
@@ -15,8 +10,7 @@ static LogLvl LogGetLvl( LogType type ){
 	return lvls[ type ];
 }
 
-void LogInit( u32 store_cap, u32 entry_cap ){
-	LogList* log = LogGet( );
+void LogInit( LogList* log, u32 store_cap, u32 entry_cap ){
 	log->store = MemAlloc( store_cap, sizeof( u8 ) );
 	log->store_len = 0;
 	log->store_cap = store_cap;
@@ -26,8 +20,7 @@ void LogInit( u32 store_cap, u32 entry_cap ){
 	log->entry_len = 0;
 }
 
-void LogReset( ){
-	LogList* log = LogGet( );
+void LogReset( LogList* log ){
 	log->entry_len = log->store_len = log->fatal = 0;
 }
 
@@ -63,8 +56,7 @@ static void LogEntryPush( LogList* log, u32 store_offset, Src* src, LogType type
 	entry->store_offset = store_offset;
 }
 
-void Log( Src* src, LogType type, ... ){
-	LogList* log = LogGet( );
+void Log( LogList* log, Src* src, LogType type, ... ){
 	x8 buf[ LOG_BUF_MAX ];
 	x8* fmt = LogGetFmt( type );
 	va_list args;
@@ -78,10 +70,9 @@ void Log( Src* src, LogType type, ... ){
 	log->fatal |= LogGetLvl( type ) == LOG_FATAL; /* so we dont overwrite it if previously 1 */
 }
 
-u8 LogIsFatal( ){ return LogGet( )->fatal; }
+u8 LogIsFatal( LogList* log ){ return log->fatal; }
 
-void LogFlush( ){
-	LogList* log = LogGet( );
+void LogFlush( LogList* log ){
 	for( u32 i = 0; i < log->entry_len; i++ ){
 		LogEntry* e = &log->entries[ i ];
 		x8* msg = log->store + e->store_offset;
@@ -90,8 +81,7 @@ void LogFlush( ){
 	log->entry_len = log->store_len = 0;
 }
 
-void LogFree( ){
-	LogList* log = LogGet( );
+void LogFree( LogList* log ){
 	MemFree( log->entries );
 	MemFree( log->store );
 	*log = ( LogList){ 0 };
