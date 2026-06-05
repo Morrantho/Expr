@@ -1,5 +1,6 @@
 #ifndef LEXER_H
 #define LEXER_H
+#include "../common/log.h"
 #include "../common/src.h"
 #include "ascii.h"
 #include "token.h"
@@ -51,12 +52,12 @@
 #define X_LEX_LABEL( LABEL, FN, ACTION ) LABEL:{ Lex##FN( lexer ); ACTION; }
 
 typedef struct Lexer {
+	Src* src;
 	u8* text;
-	u32 ln, col;
 	Tk tk; /* Much cleaner for us to just own it. */
 } Lexer;
 
-void LexInit( Lexer* lexer, u8* src );
+void LexInit( Lexer* lexer, Src* src );
 void LexReset( Lexer* lexer, u8* text );
 void Lex( Lexer* lexer );
 

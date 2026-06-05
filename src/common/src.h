@@ -12,6 +12,7 @@ typedef struct Src {
 	u8* path;
 	u8* text;
 	u32 len;
+	u32 ln, col;
 } Src;
 
 typedef struct SrcList {

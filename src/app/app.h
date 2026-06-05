@@ -2,6 +2,7 @@
 #define APP_H
 
 #include "../common/src.h"
+#include "../common/log.h"
 #include "../lexer/lexer.h"
 
 typedef struct App {

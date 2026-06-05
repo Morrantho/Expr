@@ -1,13 +1,14 @@
 #include "lexer.h"
 
-void LexInit( Lexer* lexer, u8* text ){
-	lexer->text = text;
-	lexer->ln = lexer->col = 1;
+void LexInit( Lexer* lexer, Src* src ){
+	lexer->src = src;
+	lexer->text = src->text;
+	lexer->src->ln = lexer->src->col = 1;
 }
 
 void LexReset( Lexer* lexer, u8* text ){
 	lexer->text = text;
-	lexer->ln = lexer->col = 1;
+	lexer->src->col = 1;
 }
 
 static u8 LexType( TkType type ){
@@ -17,14 +18,14 @@ static u8 LexType( TkType type ){
 
 static void LexNext( Lexer* lexer ){
 	++lexer->text;
-	++lexer->col;
+	++lexer->src->col;
 }
 
 /* Snapshots source position */
 static void LexSet( Lexer* lexer, TkType type ){
 	lexer->tk.type = type;
-	lexer->tk.ln = lexer->ln;
-	lexer->tk.col = lexer->col;
+	lexer->tk.ln = lexer->src->ln;
+	lexer->tk.col = lexer->src->col;
 }
 
 /* Single chars only. Multi-char ops can call this once. */
@@ -41,8 +42,8 @@ static void LexEat( Lexer* lexer, TkType type ){
 
 static void LexLine( Lexer* lexer ){
 	++lexer->text;
-	++lexer->ln;
-	lexer->col = 1;
+	++lexer->src->ln;
+	lexer->src->col = 1;
 }
 
 static void LexEos( Lexer* lexer ){ LexChar( lexer, TK_EOS ); }
@@ -129,7 +130,7 @@ static void LexLt( Lexer* lexer ){ /* < << <<= <= <== */
 
 static void LexEq( Lexer* lexer ){ /* == ==> */
 	LexChar( lexer, TK_EOS ); /* Intentional */
-	if( *lexer->text != '=' ){ Throw( ERR_LEXASSIGN ); return; }
+	if( *lexer->text != '=' ){ Log( lexer->src, LEX_BADASSIGN ); return; }
 	LexEat( lexer, TK_ISEQ );
 	if( *lexer->text == '>' ){ LexEat( lexer, TK_CONT ); return; }
 }

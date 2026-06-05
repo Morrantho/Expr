@@ -1,10 +1,12 @@
 #include "app.h"
 
 static void AppFree( App* app ){
+	LogFree( );
 	SrcFree( &app->sources );
 }
 
 static void AppReset( App* app, u8* text ){
+	LogReset( );
 	LexReset( &app->lexer, text );
 }
 
@@ -21,6 +23,8 @@ static void AppRepl( App* app ){
 			printf( "%s\n", TkGetType( &app->lexer.tk ) );
 		}
 
+		LogFlush( );
+		if( LogIsFatal( ) ) continue;
 		// Compile( app );
 		// Run( app );
 	}
@@ -29,15 +33,18 @@ static void AppRepl( App* app ){
 static void AppRun( App* app ){
 	if( !app->nargs ){ AppRepl( app ); return; }
 	// Compile( app );
+	LogFlush( );
+	if( LogIsFatal( ) ) return;
 	// Run( app );
 }
 
 static void AppInit( App* app, u32 nargs, u8** args ){
 	app->nargs = nargs - 1;
 	app->args = args;
+	LogInit( LOG_STORE_MAX, LOG_ENTRY_MAX );
 	SrcInit( &app->sources, SRC_LIST_MAX );
 	Src* src = SrcLoad( &app->sources, app->args[ 1 ] );
-	LexInit( &app->lexer, src->text );
+	LexInit( &app->lexer, src );
 }
 
 x32 main( x32 nargs, x8** args ){
