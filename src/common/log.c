@@ -57,14 +57,14 @@ static void LogEntryPush( LogList* log, u32 store_offset, Src* src, LogType type
 }
 
 void Log( LogList* log, Src* src, LogType type, ... ){
-	x8 buf[ LOG_BUF_MAX ];
+	x8 buf[ LOG_BUF_CAP ];
 	x8* fmt = LogGetFmt( type );
 	va_list args;
 	va_start( args, type );
 	x32 len = vsnprintf( buf, sizeof( buf ), fmt, args );
 	va_end( args );
 	if( len < 0 ){ Throw( ERR_LOGBUF, fmt ); return; }
-	if( len >= LOG_BUF_MAX ) len = LOG_BUF_MAX-1; /* Trunc it */
+	if( len >= LOG_BUF_CAP ) len = LOG_BUF_CAP-1; /* Trunc it */
 	u32 off = LogStorePush( log, buf, ( u32 )len );
 	LogEntryPush( log, off, src, type );
 	log->fatal |= LogGetLvl( type ) == LOG_FATAL; /* so we dont overwrite it if previously 1 */

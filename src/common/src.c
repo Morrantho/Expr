@@ -23,7 +23,7 @@ Src* SrcGet( SrcList* list, SrcId id ){
 }
 
 static FILE* SrcOpen( u8* path, u32* out_len ){
-	if( !path ){ *out_len = SRC_REPL_MAX; return stdin; }
+	if( !path ){ *out_len = SRC_REPL_CAP; return stdin; }
 	FILE* file = fopen( ( x8* )path, "rb" );
 	if( !file ) Throw( ERR_BADFILE, path );
 	fseek( file, 0, SEEK_END );

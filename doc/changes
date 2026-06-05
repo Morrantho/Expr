@@ -1,10 +1,12 @@
-log.c:
-* No longer a singleton. Base pointer owned by app like everything else.
-	I wanted clean call sites, but it's not worth it at all. Ownership
-	issues already arose, and we're not gonna have that.
+cfg.h:
+* Renamed MAX suffixes to CAP for consistency.
+* Added: AOB_CAP. Defaults to size of a page on most systems.
+* Renamed: LOG_STORE_CAP to LOG_AOB_CAP.
 
-lexer.c:
-* Takes the log pointer on init as a dependency. App owned.
-
-app.c:
-* Updated log calls to pass the app's LogList.
+aob.c/.h:
+* Basic AOB implementation. We will use these heavily. It is not an Arena
+	allocator. Alignment will always be 1 or sizeof( x8 ). We will be slowly
+	converting the Log, Src, and future modules like Intern to use them
+	exclusively. This will help us cut down on tons of micro-allocations.
+	The Log already does this with its .store, and Src should have it's own
+	too.

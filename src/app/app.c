@@ -14,7 +14,7 @@ static void AppRepl( App* app ){
 	u8* text = app->lexer.text; /* Lexer increments this, so copy it for resets. */
 	for( ;; ){
 		printf( "> " );
-		if( !fgets( ( x8* )text, SRC_REPL_MAX, stdin ) ) return;
+		if( !fgets( ( x8* )text, SRC_REPL_CAP, stdin ) ) return;
 		AppReset( app, text );
 		/* We'll get rid of this test soon. */
 		for( ;; ){
@@ -41,8 +41,8 @@ static void AppRun( App* app ){
 static void AppInit( App* app, u32 nargs, u8** args ){
 	app->nargs = nargs - 1;
 	app->args = args;
-	LogInit( &app->logs, LOG_STORE_MAX, LOG_ENTRY_MAX );
-	SrcInit( &app->sources, SRC_LIST_MAX );
+	LogInit( &app->logs, LOG_AOB_CAP, LOG_ENTRY_CAP );
+	SrcInit( &app->sources, SRC_LIST_CAP );
 	Src* src = SrcLoad( &app->sources, app->args[ 1 ] );
 	LexInit( &app->lexer, &app->logs, src );
 }
