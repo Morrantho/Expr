@@ -26,12 +26,11 @@ void LogInit( LogList* log, SrcList* sources, u32 msg_cap, u32 entry_cap ){
 	AobInit( &log->msgs, msg_cap );
 	log->len = 0;
 	log->cap = entry_cap;
-	log->fatal = 0;
 }
 
 void LogReset( LogList* log ){
 	AobReset( &log->msgs );
-	log->len = log->fatal = 0;
+	log->len = 0;
 }
 
 static Offset LogMsgPush( LogList* log, u8* src, u32 len ){
@@ -66,12 +65,10 @@ void Log( LogList* log, LogPos* pos, LogMsgType type, ... ){
 	if( len >= LOG_BUF_CAP ) len = LOG_BUF_CAP-1; /* Trunc it */
 	Offset msg = LogMsgPush( log, buf, ( u32 )len );
 	LogEntryPush( log, msg, pos, type );
-	log->fatal |= LogGetLvl( type ) == LOG_FATAL; /* so we dont overwrite it if previously 1 */
 }
 
-u8 LogIsFatal( LogList* log ){ return log->fatal; }
-
-void LogFlush( LogList* log ){
+u8 LogDump( LogList* log ){ /* nonzero = fatal */
+	u8 fatal = 0;
 	for( u32 i = 0; i < log->len; i++ ){
 		LogEntry* e = &log->entries[ i ];
 		LogLvl lvl = LogGetLvl( e->msg_type );
@@ -79,11 +76,12 @@ void LogFlush( LogList* log ){
 		u8* col = LogGetCol( lvl );
 		u8* path = SrcGetPath( log->sources, e->pos.src );
 		u8* msg = AobGet( &log->msgs, e->msg );
-		// fprintf( stderr, "%s%s:%u:%u: %s: %s\033[0m\n", col, path, e->pos.ln, e->pos.col, name, msg );
 		fprintf( stderr, "%s%s: %s:%u:%u: %s\033[0m\n", col, name, path, e->pos.ln, e->pos.col, msg );
+		fatal |= lvl == LOG_FATAL;
 	}
 	AobReset( &log->msgs );
 	log->len = 0;
+	return fatal;
 }
 
 void LogFree( LogList* log ){

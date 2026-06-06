@@ -40,14 +40,12 @@ typedef struct LogList {
 	Aob msgs;			/* formatted messages, not full entries. */
 	u32 len;			/* Entry length */
 	u32 cap;			/* Entry cap */
-	u8 fatal;			/* Prevent code execution or not. */
 } LogList;
 
 void LogInit( LogList* log, SrcList* sources, u32 msg_cap, u32 entry_cap );
 void LogReset( LogList* log );
 void Log( LogList* log, LogPos* pos, LogMsgType type, ... );
-void LogFlush( LogList* log );
-u8 LogIsFatal( LogList* log );
+u8 LogDump( LogList* log ); /* nonzero = fatal */
 void LogFree( LogList* log );
 
 #endif

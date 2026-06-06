@@ -2,33 +2,12 @@ next steps:
 * implement interning. Allow tokens to store internid, or number.
 * begin parser work.
 
-general:
-* u8* is used over x8* everywhere. we only cast to x8* for c api functions.
+log.c:
+* Renamed: LogFlush to LogDump.
+* Removed: LogIsFatal, and log.fatal.
+	These just dont need to exist. LogDump( ) now returns non-zero if
+	LOG_FATAL was seen. Less state and cleans up call sites.
+* Log level now prints before src, column, and line for clarity.
 
-app.c:
-* We now call SrcInit before LogInit.
-
-log.c/h:
-* added: LogPos
-	Gives us a unified way to deal with logging across the board. Stores
-	SrcId, line, and column.
-* added: Log level names and colors.
-* added: LogGetName and LogGetCol statics.
-
-src.c/h:
-* SrcList now uses AOB api over rolling it's own.
-	All changes implement the AOB api over Mem api. This saves us a lot
-	of tiny allocations per source path and text. Everything is in one
-	big AOB now. Paths get stored before source text.
-* added: SrcGetPath( SrcList*, SrcId )
-	Resolves and returns source path pointer from its AOB.
-* added: SrcGetText( SrcList*, SrcId )
-	Resolves and returns source text pointer from its AOB.
-
-lexer.c/h:
-* Lexer now stores LogPos, and take SrcId and u8* text on init.
-	SrcId is stored in LogPos. The text pointer is stored and
-	used directly.
-
-token.c/h:
-* Tokens now store a LogPos over u32 ln, col.
+lexer.c:
+* Added: lexer.tk is zero initialized.

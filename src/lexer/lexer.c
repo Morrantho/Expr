@@ -5,6 +5,7 @@ void LexInit( Lexer* lexer, LogList* logs, SrcId src_id, u8* text ){
 	lexer->pos.src = src_id;
 	lexer->pos.ln = lexer->pos.col = 1;
 	lexer->text = text;
+	lexer->tk = ( Tk ){ 0 };
 }
 
 void LexReset( Lexer* lexer, u8* text ){

@@ -23,8 +23,7 @@ static void AppRepl( App* app ){
 			printf( "%s\n", TkGetType( &app->lexer.tk ) );
 		}
 
-		LogFlush( &app->logs );
-		if( LogIsFatal( &app->logs ) ) continue;
+		if( LogDump( &app->logs ) ) continue;
 		// Compile( app );
 		// Run( app );
 	}
@@ -33,8 +32,7 @@ static void AppRepl( App* app ){
 static void AppRun( App* app ){
 	if( !app->nargs ){ AppRepl( app ); return; }
 	// Compile( app );
-	LogFlush( &app->logs );
-	if( LogIsFatal( &app->logs ) ) return;
+	if( LogDump( &app->logs ) ) return;
 	// Run( app );
 }
 
