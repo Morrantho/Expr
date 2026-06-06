@@ -42,7 +42,7 @@ typedef struct LogList {
 	u32 cap;			/* Entry cap */
 } LogList;
 
-void LogInit( LogList* log, SrcList* sources, u32 msg_cap, u32 entry_cap );
+void LogInit( LogList* log, SrcList* sources );
 void LogReset( LogList* log );
 void Log( LogList* log, LogPos* pos, LogMsgType type, ... );
 u8 LogDump( LogList* log ); /* nonzero = fatal */

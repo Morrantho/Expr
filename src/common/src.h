@@ -18,11 +18,11 @@ typedef struct Src {
 typedef struct SrcList {
 	Aob bytes;		/* raw file paths/names and source code go here. */
 	Src* sources;	/* vector. we store offsets for lookups. */
-	u32 len;		/* number of source files. used when we get to include()s. */
+	u32 len;		/* number of source files. useful when we get to include()s. */
 	u32 cap;		/* current source file capacity before growing */
 } SrcList;
 
-void SrcInit( SrcList* list, u32 byte_cap, u32 source_cap );
+void SrcInit( SrcList* list );
 Src* SrcGet( SrcList* list, SrcId id );
 u8* SrcGetPath( SrcList* list, SrcId src_id );
 u8* SrcGetText( SrcList* list, SrcId src_id );

@@ -14,7 +14,7 @@ void LexReset( Lexer* lexer, u8* text ){
 }
 
 static u8 LexType( TkType type ){
-	static u8 types[ ] = { X_LEX_TYPES( X_LEX_TYPE_INIT ) };
+	static u8 types[ ] = { X_ASCIIS( X_LEX_TYPE_INIT ) };
 	return types[ type ];
 }
 
@@ -51,7 +51,7 @@ static void LexLine( Lexer* lexer ){
 static void LexEos( Lexer* lexer ){ LexChar( lexer, TK_EOS ); }
 
 static void LexNot( Lexer* lexer ){ /* ! != */
-	LexChar( lexer, TK_ADD );
+	LexChar( lexer, TK_NOT );
 	if( *lexer->text == '=' ){ LexEat( lexer, TK_NOTEQ ); }
 }
 
@@ -146,6 +146,15 @@ static void LexGt( Lexer* lexer ){
 		return;
 	}
 	if( *lexer->text == '=' ){ LexEat( lexer, TK_GTE ); }
+}
+
+static void LexId( Lexer* lexer ){
+	LexSet( lexer, TK_ID );
+	while( LexType( *lexer->text ) == TK_ID ){
+		/* Add hashing here */
+		LexNext( lexer );
+	}
+	/* Intern here then assign */
 }
 
 static void LexBxor( Lexer* lexer ){ /* ^ ^^ ^= */

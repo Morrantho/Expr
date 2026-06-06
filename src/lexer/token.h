@@ -42,6 +42,7 @@
 	X( RSH,    SHIFT,  LEFT,  ERR,    INF,   ERR  ) /* >>  */\
 	X( GTE,    REL,    LEFT,  ERR,    INF,   ERR  ) /* >=  */\
 	X( RSHEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* >>= */\
+	X( ID,     NONE,   NONE,  PRE,    ERR,   ERR  ) /* id */\
 	X( BXOR,   BXOR,   LEFT,  ERR,    INF,   ERR  ) /* ^   */\
 	X( POW,    POW,    LEFT,  ERR,    INF,   ERR  ) /* ^^ */\
 	X( BXOREQ, ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* ^= */\

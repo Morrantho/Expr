@@ -1,14 +1,19 @@
 #ifndef CFG_H
 #define CFG_H
+/* Vectors use COUNT, Aobs use PAGE. Temp buffers use KB */
+#define COUNT( N )		( ( u32 )( N ) )
+#define KB( N )			( 1024u * ( N ) )
+#define PAGE( N )		( 4096u * ( N ) )
 
-#define AOB_CAP 4096
+#define SRC_REPL_CAP	KB( 1 )
+#define SRC_AOB_CAP		PAGE( 4 )
+#define SRC_CAP			COUNT( 16 )
 
-#define SRC_REPL_CAP 256
-#define SRC_AOB_CAP AOB_CAP
-#define SRC_LIST_CAP 8
+#define LOG_BUF_CAP		KB( 1 )
+#define LOG_AOB_CAP		PAGE( 1 )
+#define LOG_CAP			COUNT( 128 )
 
-#define LOG_BUF_CAP 512
-#define LOG_AOB_CAP AOB_CAP
-#define LOG_ENTRY_CAP 128
+#define INTERN_AOB_CAP	PAGE( 4 )
+#define INTERN_CAP		COUNT( 256 )
 
 #endif

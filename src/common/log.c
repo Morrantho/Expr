@@ -20,12 +20,12 @@ static u8* LogGetCol( LogLvl lvl ){
 	return cols[ lvl ];
 }
 
-void LogInit( LogList* log, SrcList* sources, u32 msg_cap, u32 entry_cap ){
+void LogInit( LogList* log, SrcList* sources ){
 	log->sources = sources;
-	log->entries = MemAlloc( sizeof( LogEntry ), entry_cap );
-	AobInit( &log->msgs, msg_cap );
+	log->entries = MemAlloc( sizeof( LogEntry ), LOG_CAP );
+	AobInit( &log->msgs, LOG_AOB_CAP );
 	log->len = 0;
-	log->cap = entry_cap;
+	log->cap = LOG_CAP;
 }
 
 void LogReset( LogList* log ){
@@ -62,7 +62,7 @@ void Log( LogList* log, LogPos* pos, LogMsgType type, ... ){
 	x32 len = vsnprintf( ( x8* )buf, sizeof( buf ), ( x8* )fmt, args );
 	va_end( args );
 	if( len < 0 ){ Throw( ERR_LOGBUF, fmt ); return; }
-	if( len >= LOG_BUF_CAP ) len = LOG_BUF_CAP-1; /* Trunc it */
+	if( ( u32 )len >= LOG_BUF_CAP ) len = LOG_BUF_CAP-1; /* Trunc it */
 	Offset msg = LogMsgPush( log, buf, ( u32 )len );
 	LogEntryPush( log, msg, pos, type );
 }

@@ -7,18 +7,6 @@
 /* Only control flow is allowed in dispatch: */
 #define JMP continue
 #define RET return
-
-#define X_LEX_TYPES( X )\
-	X( '0', NUM )\
-	X( '1', NUM )\
-	X( '2', NUM )\
-	X( '3', NUM )\
-	X( '4', NUM )\
-	X( '5', NUM )\
-	X( '6', NUM )\
-	X( '7', NUM )\
-	X( '8', NUM )\
-	X( '9', NUM )\
 /* computed goto version needs methods even for 1 char tokens. Its annoying, */
 /* but it's better than changing the api shape just for LexEat(). */
 /* for compatibility, we deal with it. */
@@ -44,11 +32,11 @@
 	X( BOR,     Bor,     RET )\
 	X( BNOT,    Bnot,    RET )
 
-#define X_LEX_TYPE_INIT( CH, TK ) [ CH ] = TK_##TK,
+#define X_LEX_TYPE_INIT( CHAR, TK, LABEL, FN, ACTION ) TK_##TK,
 /* Switch version. Ignores LABEL. */
-#define X_LEX_CASE( CHAR, LABEL, FN, ACTION ) case ASCII_##CHAR:{ Lex##FN( lexer ); ACTION; }
+#define X_LEX_CASE( CHAR, TK, LABEL, FN, ACTION ) case ASCII_##CHAR:{ Lex##FN( lexer ); ACTION; }
 /* Goto Version */
-#define X_LEX_LABEL_INIT( CHAR, LABEL, FN, ACTION ) [ ASCII_##CHAR ] = &&LABEL,
+#define X_LEX_LABEL_INIT( CHAR, TK, LABEL, FN, ACTION ) [ ASCII_##CHAR ] = &&LABEL,
 #define X_LEX_LABEL( LABEL, FN, ACTION ) LABEL:{ Lex##FN( lexer ); ACTION; }
 
 typedef struct Lexer {

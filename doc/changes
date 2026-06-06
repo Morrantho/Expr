@@ -1,13 +1,18 @@
-next steps:
-* implement interning. Allow tokens to store internid, or number.
-* begin parser work.
-
-log.c:
-* Renamed: LogFlush to LogDump.
-* Removed: LogIsFatal, and log.fatal.
-	These just dont need to exist. LogDump( ) now returns non-zero if
-	LOG_FATAL was seen. Less state and cleans up call sites.
-* Log level now prints before src, column, and line for clarity.
+general:
+* Module Inits no longer take capacities. They are set in their own Inits.
 
 lexer.c:
-* Added: lexer.tk is zero initialized.
+* Fixed: LexBnot was producing TK_ADD, not TK_NOT.
+* Added: Basic id lexing. We'll write an InternTable next commit,
+	then commit again after Interning works.
+
+cfg.h:
+* Added: Sensible defaults. KB, PAGE, and COUNT macros for quick readability.
+
+ascii.h:
+* Added TK column for NUM and ID classification. We could use the goto label
+	field, but it'd be dirty. Goto version might as well also use this
+	smaller table during num / id lexing for cache reasons.
+
+next steps:
+* implement interning. Allow tokens to store internid, or number.

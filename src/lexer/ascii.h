@@ -2,136 +2,136 @@
 #define _ASCII_H
 
 #define X_ASCIIS( X )\
-	X( NUL,       EOS,     Eos,     RET )		/* '\0' */\
-	X( SOH,       NEXT,    Next,    JMP )		/* 1 */\
-	X( STX,       NEXT,    Next,    JMP )		/* 2 */\
-	X( ETX,       NEXT,    Next,    JMP )		/* 3 */\
-	X( EOT,       NEXT,    Next,    JMP )		/* 4 */\
-	X( ENQ,       NEXT,    Next,    JMP )		/* 5 */\
-	X( ACK,       NEXT,    Next,    JMP )		/* 6 */\
-	X( BEL,       NEXT,    Next,    JMP )		/* 7 */\
-	X( BS,        NEXT,    Next,    JMP )		/* 8 */\
-	X( HT,        NEXT,    Next,    JMP )		/* 9 */\
-	X( LF,        LINE,    Line,    JMP )		/* '\n' */\
-	X( VT,        NEXT,    Next,    JMP )		/* '\t' */\
-	X( FF,        NEXT,    Next,    JMP )		/* '\f' */\
-	X( CR,        NEXT,    Next,    JMP )		/* '\r' */\
-	X( SO,        NEXT,    Next,    JMP )		/* 14 */\
-	X( SI,        NEXT,    Next,    JMP )		/* 15 */\
-	X( DLE,       NEXT,    Next,    JMP )		/* 16 */\
-	X( DC1,       NEXT,    Next,    JMP )		/* 17 */\
-	X( DC2,       NEXT,    Next,    JMP )		/* 18 */\
-	X( DC3,       NEXT,    Next,    JMP )		/* 19 */\
-	X( DC4,       NEXT,    Next,    JMP )		/* 20 */\
-	X( NAK,       NEXT,    Next,    JMP )		/* 21 */\
-	X( SYN,       NEXT,    Next,    JMP )		/* 22 */\
-	X( ETB,       NEXT,    Next,    JMP )		/* 23 */\
-	X( CAN,       NEXT,    Next,    JMP )		/* 24 */\
-	X( EM,        NEXT,    Next,    JMP )		/* 25 */\
-	X( SUB,       NEXT,    Next,    JMP )		/* 26 */\
-	X( ESC,       NEXT,    Next,    JMP )		/* 27 */\
-	X( FS,        NEXT,    Next,    JMP )		/* 28 */\
-	X( GS,        NEXT,    Next,    JMP )		/* 29 */\
-	X( RS,        NEXT,    Next,    JMP )		/* 30 */\
-	X( US,        NEXT,    Next,    JMP )		/* 31 */\
-	X( SPACE,     NEXT,    Next,    JMP )		/* ' ' */\
-	X( EXCL,      NOT,     Not,     RET )		/* '!' */\
-	X( DQUOTE,    NEXT,    Next,    JMP )		/* '"' */\
-	X( POUND,     NEXT,    Next,    JMP )		/* '#' */\
-	X( DOLLAR,    COMMENT, Comment, JMP )		/* '$' */\
-	X( PERCENT,   MOD,     Mod,     RET )		/* '%' */\
-	X( AMPER,     BAND,    Band,    RET )		/* '&' */\
-	X( SQUOTE,    NEXT,    Next,    JMP )		/* '\'' */\
-	X( LP,        LP,      Lp,      RET )		/* '(' */\
-	X( RP,        RP,      Rp,      RET )		/* ')' */\
-	X( ASTERISK,  MUL,     Mul,     RET )		/* '*' */\
-	X( PLUS,      ADD,     Add,     RET )		/* '+' */\
-	X( COMMA,     NEXT,    Next,    JMP )		/* ',' */\
-	X( HYPHEN,    SUB,     Sub,     RET )		/* '-' */\
-	X( PERIOD,    NEXT,    Next,    JMP )		/* '.' */\
-	X( FSLASH,    DIV,     Div,     RET )		/* '/' */\
-	X( ZERO,      NUM,     Num,     RET )		/* '0' */\
-	X( ONE,       NUM,     Num,     RET )		/* '1' */\
-	X( TWO,       NUM,     Num,     RET )		/* '2' */\
-	X( THREE,     NUM,     Num,     RET )		/* '3' */\
-	X( FOUR,      NUM,     Num,     RET )		/* '4' */\
-	X( FIVE,      NUM,     Num,     RET )		/* '5' */\
-	X( SIX,       NUM,     Num,     RET )		/* '6' */\
-	X( SEVEN,     NUM,     Num,     RET )		/* '7' */\
-	X( EIGHT,     NUM,     Num,     RET )		/* '8' */\
-	X( NINE,      NUM,     Num,     RET )		/* '9' */\
-	X( COLON,     NEXT,    Next,    JMP )		/* ':' */\
-	X( SEMICOLON, NEXT,    Next,    JMP )		/* ';' */\
-	X( LT,        LT,      Lt,      RET )		/* '<' */\
-	X( EQ,        EQ,      Eq,      RET )		/* '=' */\
-	X( GT,        GT,      Gt,      RET )		/* '>' */\
-	X( QUESTION,  NEXT,    Next,    JMP )		/* '?' */\
-	X( AT,        NEXT,    Next,    JMP )		/* '@' */\
-	X( UPPER_A,   NEXT,    Next,    JMP )		/* 'A' */\
-	X( UPPER_B,   NEXT,    Next,    JMP )		/* 'B' */\
-	X( UPPER_C,   NEXT,    Next,    JMP )		/* 'C' */\
-	X( UPPER_D,   NEXT,    Next,    JMP )		/* 'D' */\
-	X( UPPER_E,   NEXT,    Next,    JMP )		/* 'E' */\
-	X( UPPER_F,   NEXT,    Next,    JMP )		/* 'F' */\
-	X( UPPER_G,   NEXT,    Next,    JMP )		/* 'G' */\
-	X( UPPER_H,   NEXT,    Next,    JMP )		/* 'H' */\
-	X( UPPER_I,   NEXT,    Next,    JMP )		/* 'I' */\
-	X( UPPER_J,   NEXT,    Next,    JMP )		/* 'J' */\
-	X( UPPER_K,   NEXT,    Next,    JMP )		/* 'K' */\
-	X( UPPER_L,   NEXT,    Next,    JMP )		/* 'L' */\
-	X( UPPER_M,   NEXT,    Next,    JMP )		/* 'M' */\
-	X( UPPER_N,   NEXT,    Next,    JMP )		/* 'N' */\
-	X( UPPER_O,   NEXT,    Next,    JMP )		/* 'O' */\
-	X( UPPER_P,   NEXT,    Next,    JMP )		/* 'P' */\
-	X( UPPER_Q,   NEXT,    Next,    JMP )		/* 'Q' */\
-	X( UPPER_R,   NEXT,    Next,    JMP )		/* 'R' */\
-	X( UPPER_S,   NEXT,    Next,    JMP )		/* 'S' */\
-	X( UPPER_T,   NEXT,    Next,    JMP )		/* 'T' */\
-	X( UPPER_U,   NEXT,    Next,    JMP )		/* 'U' */\
-	X( UPPER_V,   NEXT,    Next,    JMP )		/* 'V' */\
-	X( UPPER_W,   NEXT,    Next,    JMP )		/* 'W' */\
-	X( UPPER_X,   NEXT,    Next,    JMP )		/* 'X' */\
-	X( UPPER_Y,   NEXT,    Next,    JMP )		/* 'Y' */\
-	X( UPPER_Z,   NEXT,    Next,    JMP )		/* 'Z' */\
-	X( LSB,       NEXT,    Next,    JMP )		/* '[' */\
-	X( BSLASH,    NEXT,    Next,    JMP )		/* '\\' */\
-	X( RSB,       NEXT,    Next,    JMP )		/* '}' */\
-	X( CARET,     BXOR,    Bxor,    RET )		/* '^' */\
-	X( USCORE,    NEXT,    Next,    JMP )		/* '_' */\
-	X( GRAVE,     NEXT,    Next,    JMP )		/* '`' */\
-	X( LOWER_A,   NEXT,    Next,    JMP )		/* 'a' */\
-	X( LOWER_B,   NEXT,    Next,    JMP )		/* 'b' */\
-	X( LOWER_C,   NEXT,    Next,    JMP )		/* 'c' */\
-	X( LOWER_D,   NEXT,    Next,    JMP )		/* 'd' */\
-	X( LOWER_E,   NEXT,    Next,    JMP )		/* 'e' */\
-	X( LOWER_F,   NEXT,    Next,    JMP )		/* 'f' */\
-	X( LOWER_G,   NEXT,    Next,    JMP )		/* 'g' */\
-	X( LOWER_H,   NEXT,    Next,    JMP )		/* 'h' */\
-	X( LOWER_I,   NEXT,    Next,    JMP )		/* 'i' */\
-	X( LOWER_J,   NEXT,    Next,    JMP )		/* 'j' */\
-	X( LOWER_K,   NEXT,    Next,    JMP )		/* 'k' */\
-	X( LOWER_L,   NEXT,    Next,    JMP )		/* 'l' */\
-	X( LOWER_M,   NEXT,    Next,    JMP )		/* 'm' */\
-	X( LOWER_N,   NEXT,    Next,    JMP )		/* 'n' */\
-	X( LOWER_O,   NEXT,    Next,    JMP )		/* 'o' */\
-	X( LOWER_P,   NEXT,    Next,    JMP )		/* 'p' */\
-	X( LOWER_Q,   NEXT,    Next,    JMP )		/* 'q' */\
-	X( LOWER_R,   NEXT,    Next,    JMP )		/* 'r' */\
-	X( LOWER_S,   NEXT,    Next,    JMP )		/* 's' */\
-	X( LOWER_T,   NEXT,    Next,    JMP )		/* 't' */\
-	X( LOWER_U,   NEXT,    Next,    JMP )		/* 'u' */\
-	X( LOWER_V,   NEXT,    Next,    JMP )		/* 'v' */\
-	X( LOWER_W,   NEXT,    Next,    JMP )		/* 'w' */\
-	X( LOWER_X,   NEXT,    Next,    JMP )		/* 'x' */\
-	X( LOWER_Y,   NEXT,    Next,    JMP )		/* 'y' */\
-	X( LOWER_Z,   NEXT,    Next,    JMP )		/* 'z' */\
-	X( LCB,       NEXT,    Next,    JMP )		/* '{' */\
-	X( VBAR,      BOR,     Bor,     RET )		/* '|' */\
-	X( RCB,       NEXT,    Next,    JMP )		/* '}' */\
-	X( TILDE,     BNOT,    Bnot,   RET )		/* '~' */\
-	X( DEL,       NEXT,    Next,    JMP )		/* 127 */
+	X( NUL,       EOS, EOS,     Eos,     RET )		/* '\0' */\
+	X( SOH,       EOS, NEXT,    Next,    JMP )		/* 1 */\
+	X( STX,       EOS, NEXT,    Next,    JMP )		/* 2 */\
+	X( ETX,       EOS, NEXT,    Next,    JMP )		/* 3 */\
+	X( EOT,       EOS, NEXT,    Next,    JMP )		/* 4 */\
+	X( ENQ,       EOS, NEXT,    Next,    JMP )		/* 5 */\
+	X( ACK,       EOS, NEXT,    Next,    JMP )		/* 6 */\
+	X( BEL,       EOS, NEXT,    Next,    JMP )		/* 7 */\
+	X( BS,        EOS, NEXT,    Next,    JMP )		/* 8 */\
+	X( HT,        EOS, NEXT,    Next,    JMP )		/* 9 */\
+	X( LF,        EOS, LINE,    Line,    JMP )		/* '\n' */\
+	X( VT,        EOS, NEXT,    Next,    JMP )		/* '\t' */\
+	X( FF,        EOS, NEXT,    Next,    JMP )		/* '\f' */\
+	X( CR,        EOS, NEXT,    Next,    JMP )		/* '\r' */\
+	X( SO,        EOS, NEXT,    Next,    JMP )		/* 14 */\
+	X( SI,        EOS, NEXT,    Next,    JMP )		/* 15 */\
+	X( DLE,       EOS, NEXT,    Next,    JMP )		/* 16 */\
+	X( DC1,       EOS, NEXT,    Next,    JMP )		/* 17 */\
+	X( DC2,       EOS, NEXT,    Next,    JMP )		/* 18 */\
+	X( DC3,       EOS, NEXT,    Next,    JMP )		/* 19 */\
+	X( DC4,       EOS, NEXT,    Next,    JMP )		/* 20 */\
+	X( NAK,       EOS, NEXT,    Next,    JMP )		/* 21 */\
+	X( SYN,       EOS, NEXT,    Next,    JMP )		/* 22 */\
+	X( ETB,       EOS, NEXT,    Next,    JMP )		/* 23 */\
+	X( CAN,       EOS, NEXT,    Next,    JMP )		/* 24 */\
+	X( EM,        EOS, NEXT,    Next,    JMP )		/* 25 */\
+	X( SUB,       EOS, NEXT,    Next,    JMP )		/* 26 */\
+	X( ESC,       EOS, NEXT,    Next,    JMP )		/* 27 */\
+	X( FS,        EOS, NEXT,    Next,    JMP )		/* 28 */\
+	X( GS,        EOS, NEXT,    Next,    JMP )		/* 29 */\
+	X( RS,        EOS, NEXT,    Next,    JMP )		/* 30 */\
+	X( US,        EOS, NEXT,    Next,    JMP )		/* 31 */\
+	X( SPACE,     EOS, NEXT,    Next,    JMP )		/* ' ' */\
+	X( EXCL,      EOS, NOT,     Not,     RET )		/* '!' */\
+	X( DQUOTE,    EOS, NEXT,    Next,    JMP )		/* '"' */\
+	X( POUND,     EOS, NEXT,    Next,    JMP )		/* '#' */\
+	X( DOLLAR,    EOS, COMMENT, Comment, JMP )		/* '$' */\
+	X( PERCENT,   EOS, MOD,     Mod,     RET )		/* '%' */\
+	X( AMPER,     EOS, BAND,    Band,    RET )		/* '&' */\
+	X( SQUOTE,    EOS, NEXT,    Next,    JMP )		/* '\'' */\
+	X( LP,        EOS, LP,      Lp,      RET )		/* '(' */\
+	X( RP,        EOS, RP,      Rp,      RET )		/* ')' */\
+	X( ASTERISK,  EOS, MUL,     Mul,     RET )		/* '*' */\
+	X( PLUS,      EOS, ADD,     Add,     RET )		/* '+' */\
+	X( COMMA,     EOS, NEXT,    Next,    JMP )		/* ',' */\
+	X( HYPHEN,    EOS, SUB,     Sub,     RET )		/* '-' */\
+	X( PERIOD,    EOS, NEXT,    Next,    JMP )		/* '.' */\
+	X( FSLASH,    EOS, DIV,     Div,     RET )		/* '/' */\
+	X( ZERO,      NUM, NUM,     Num,     RET )		/* '0' */\
+	X( ONE,       NUM, NUM,     Num,     RET )		/* '1' */\
+	X( TWO,       NUM, NUM,     Num,     RET )		/* '2' */\
+	X( THREE,     NUM, NUM,     Num,     RET )		/* '3' */\
+	X( FOUR,      NUM, NUM,     Num,     RET )		/* '4' */\
+	X( FIVE,      NUM, NUM,     Num,     RET )		/* '5' */\
+	X( SIX,       NUM, NUM,     Num,     RET )		/* '6' */\
+	X( SEVEN,     NUM, NUM,     Num,     RET )		/* '7' */\
+	X( EIGHT,     NUM, NUM,     Num,     RET )		/* '8' */\
+	X( NINE,      NUM, NUM,     Num,     RET )		/* '9' */\
+	X( COLON,     EOS, NEXT,    Next,    JMP )		/* ':' */\
+	X( SEMICOLON, EOS, NEXT,    Next,    JMP )		/* ';' */\
+	X( LT,        EOS, LT,      Lt,      RET )		/* '<' */\
+	X( EQ,        EOS, EQ,      Eq,      RET )		/* '=' */\
+	X( GT,        EOS, GT,      Gt,      RET )		/* '>' */\
+	X( QUESTION,  EOS, NEXT,    Next,    JMP )		/* '?' */\
+	X( AT,        EOS, NEXT,    Next,    JMP )		/* '@' */\
+	X( UPPER_A,   ID,  ID,      Id,      RET )		/* 'A' */\
+	X( UPPER_B,   ID,  ID,      Id,      RET )		/* 'B' */\
+	X( UPPER_C,   ID,  ID,      Id,      RET )		/* 'C' */\
+	X( UPPER_D,   ID,  ID,      Id,      RET )		/* 'D' */\
+	X( UPPER_E,   ID,  ID,      Id,      RET )		/* 'E' */\
+	X( UPPER_F,   ID,  ID,      Id,      RET )		/* 'F' */\
+	X( UPPER_G,   ID,  ID,      Id,      RET )		/* 'G' */\
+	X( UPPER_H,   ID,  ID,      Id,      RET )		/* 'H' */\
+	X( UPPER_I,   ID,  ID,      Id,      RET )		/* 'I' */\
+	X( UPPER_J,   ID,  ID,      Id,      RET )		/* 'J' */\
+	X( UPPER_K,   ID,  ID,      Id,      RET )		/* 'K' */\
+	X( UPPER_L,   ID,  ID,      Id,      RET )		/* 'L' */\
+	X( UPPER_M,   ID,  ID,      Id,      RET )		/* 'M' */\
+	X( UPPER_N,   ID,  ID,      Id,      RET )		/* 'N' */\
+	X( UPPER_O,   ID,  ID,      Id,      RET )		/* 'O' */\
+	X( UPPER_P,   ID,  ID,      Id,      RET )		/* 'P' */\
+	X( UPPER_Q,   ID,  ID,      Id,      RET )		/* 'Q' */\
+	X( UPPER_R,   ID,  ID,      Id,      RET )		/* 'R' */\
+	X( UPPER_S,   ID,  ID,      Id,      RET )		/* 'S' */\
+	X( UPPER_T,   ID,  ID,      Id,      RET )		/* 'T' */\
+	X( UPPER_U,   ID,  ID,      Id,      RET )		/* 'U' */\
+	X( UPPER_V,   ID,  ID,      Id,      RET )		/* 'V' */\
+	X( UPPER_W,   ID,  ID,      Id,      RET )		/* 'W' */\
+	X( UPPER_X,   ID,  ID,      Id,      RET )		/* 'X' */\
+	X( UPPER_Y,   ID,  ID,      Id,      RET )		/* 'Y' */\
+	X( UPPER_Z,   ID,  ID,      Id,      RET )		/* 'Z' */\
+	X( LSB,       EOS, ID,      Next,    JMP )		/* '[' */\
+	X( BSLASH,    EOS, ID,      Next,    JMP )		/* '\\' */\
+	X( RSB,       EOS, ID,      Next,    JMP )		/* '}' */\
+	X( CARET,     EOS, BXOR,    Bxor,    RET )		/* '^' */\
+	X( USCORE,    ID,  ID,      Id,      RET )		/* '_' */\
+	X( GRAVE,     EOS, NEXT,    Next,    JMP )		/* '`' */\
+	X( LOWER_A,   ID,  ID,      Id,      RET )		/* 'a' */\
+	X( LOWER_B,   ID,  ID,      Id,      RET )		/* 'b' */\
+	X( LOWER_C,   ID,  ID,      Id,      RET )		/* 'c' */\
+	X( LOWER_D,   ID,  ID,      Id,      RET )		/* 'd' */\
+	X( LOWER_E,   ID,  ID,      Id,      RET )		/* 'e' */\
+	X( LOWER_F,   ID,  ID,      Id,      RET )		/* 'f' */\
+	X( LOWER_G,   ID,  ID,      Id,      RET )		/* 'g' */\
+	X( LOWER_H,   ID,  ID,      Id,      RET )		/* 'h' */\
+	X( LOWER_I,   ID,  ID,      Id,      RET )		/* 'i' */\
+	X( LOWER_J,   ID,  ID,      Id,      RET )		/* 'j' */\
+	X( LOWER_K,   ID,  ID,      Id,      RET )		/* 'k' */\
+	X( LOWER_L,   ID,  ID,      Id,      RET )		/* 'l' */\
+	X( LOWER_M,   ID,  ID,      Id,      RET )		/* 'm' */\
+	X( LOWER_N,   ID,  ID,      Id,      RET )		/* 'n' */\
+	X( LOWER_O,   ID,  ID,      Id,      RET )		/* 'o' */\
+	X( LOWER_P,   ID,  ID,      Id,      RET )		/* 'p' */\
+	X( LOWER_Q,   ID,  ID,      Id,      RET )		/* 'q' */\
+	X( LOWER_R,   ID,  ID,      Id,      RET )		/* 'r' */\
+	X( LOWER_S,   ID,  ID,      Id,      RET )		/* 's' */\
+	X( LOWER_T,   ID,  ID,      Id,      RET )		/* 't' */\
+	X( LOWER_U,   ID,  ID,      Id,      RET )		/* 'u' */\
+	X( LOWER_V,   ID,  ID,      Id,      RET )		/* 'v' */\
+	X( LOWER_W,   ID,  ID,      Id,      RET )		/* 'w' */\
+	X( LOWER_X,   ID,  ID,      Id,      RET )		/* 'x' */\
+	X( LOWER_Y,   ID,  ID,      Id,      RET )		/* 'y' */\
+	X( LOWER_Z,   ID,  ID,      Id,      RET )		/* 'z' */\
+	X( LCB,       EOS, NEXT,    Next,    JMP )		/* '{' */\
+	X( VBAR,      EOS, BOR,     Bor,     RET )		/* '|' */\
+	X( RCB,       EOS, NEXT,    Next,    JMP )		/* '}' */\
+	X( TILDE,     EOS, BNOT,    Bnot,    RET )		/* '~' */\
+	X( DEL,       EOS, NEXT,    Next,    JMP )		/* 127 */
 
-#define X_ASCII_ENUM( ENUM, LABEL, FN, ACTION ) ASCII_##ENUM,
+#define X_ASCII_ENUM( ENUM, TK, LABEL, FN, ACTION ) ASCII_##ENUM,
 typedef enum Ascii { X_ASCIIS( X_ASCII_ENUM )  } Ascii;
 
 #endif

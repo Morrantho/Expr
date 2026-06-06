@@ -1,9 +1,9 @@
 #include "src.h"
 
-void SrcInit( SrcList* list, u32 byte_cap, u32 source_cap ){
-	AobInit( &list->bytes, byte_cap );
-	list->sources = MemAlloc( sizeof( Src ), source_cap );
-	list->cap = source_cap;
+void SrcInit( SrcList* list ){
+	AobInit( &list->bytes, SRC_AOB_CAP );
+	list->sources = MemAlloc( sizeof( Src ), SRC_CAP );
+	list->cap = SRC_CAP;
 	list->len = 0;
 }
 
