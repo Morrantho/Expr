@@ -1,8 +1,9 @@
 #include "app.h"
 
 static void AppFree( App* app ){
+	InternFree( &app->interns );
 	LogFree( &app->logs );
-	SrcFree( &app->sources );
+	SrcFree( &app->srcs );
 }
 
 static void AppReset( App* app, u8* text ){
@@ -39,11 +40,12 @@ static void AppRun( App* app ){
 static void AppInit( App* app, u32 nargs, u8** args ){
 	app->nargs = nargs - 1;
 	app->args = args;
-	SrcInit( &app->sources );
-	SrcId src_id = SrcLoad( &app->sources, app->args[ 1 ] );
-	u8* text = SrcGetText( &app->sources, src_id );
-	LogInit( &app->logs, &app->sources );
-	LexInit( &app->lexer, &app->logs, src_id, text );
+	SrcInit( &app->srcs );
+	SrcId src_id = SrcLoad( &app->srcs, app->args[ 1 ] );
+	u8* text = SrcGetText( &app->srcs, src_id );
+	LogInit( &app->logs, &app->srcs );
+	InternInit( &app->interns );
+	LexInit( &app->lexer, &app->logs, &app->interns, src_id, text );
 }
 
 x32 main( x32 nargs, x8** args ){

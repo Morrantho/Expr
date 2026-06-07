@@ -6,8 +6,9 @@
 #include "src.h"
 
 #define X_LOG_TYPES( X )\
-	X( WARN,  "warn",  "\033[33m" )\
-	X( FATAL, "fatal", "\033[1;31m" )
+	X( DEBUG, "debug", "\033[1;94m" )\
+	X( WARN,  "warn",  "\033[1;93m" )\
+	X( FATAL, "fatal", "\033[1;91m" )
 
 #define X_LOGS( X )\
 	X( WARN, LEX_BADCHAR,   "unexpected char '%c'" )\
@@ -35,18 +36,18 @@ typedef struct LogEntry {
 	Offset msg;			/* The partially formatted message */
 } LogEntry;
 
-typedef struct LogList {
-	SrcList* sources;	/* Shared from App. Needed for source lookups. */
+typedef struct Logs {
+	Srcs* sources;	/* Shared from App. Needed for source lookups. */
 	LogEntry* entries;	/* Metadata for later lookups. */
-	Aob msgs;			/* formatted messages, not full entries. */
+	Aob aob;			/* formatted messages, not full entries. */
 	u32 len;			/* Entry length */
 	u32 cap;			/* Entry cap */
-} LogList;
+} Logs;
 
-void LogInit( LogList* log, SrcList* sources );
-void LogReset( LogList* log );
-void Log( LogList* log, LogPos* pos, LogMsgType type, ... );
-u8 LogDump( LogList* log ); /* nonzero = fatal */
-void LogFree( LogList* log );
+void LogInit( Logs* logs, Srcs* sources );
+void LogReset( Logs* logs );
+void Log( Logs* logs, LogPos* pos, LogMsgType type, ... );
+u8 LogDump( Logs* logs ); /* nonzero = fatal */
+void LogFree( Logs* logs );
 
 #endif

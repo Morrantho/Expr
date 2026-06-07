@@ -8,8 +8,9 @@
 typedef struct App {
 	u32 nargs;
 	u8** args;
-	LogList logs;
-	SrcList sources;
+	Logs logs;
+	Srcs srcs;
+	Interns interns;
 	Lexer lexer;
 	// Parser parser;
 	// Compiler compiler;

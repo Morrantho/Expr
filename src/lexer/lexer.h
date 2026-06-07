@@ -1,11 +1,9 @@
 #ifndef LEXER_H
 #define LEXER_H
 #include "../common/log.h"
-#include "../common/src.h"
-#include "../common/hash.h"
+#include "../common/intern.h"
 #include "ascii.h"
 #include "token.h"
-
 /* Only control flow is allowed in dispatch: */
 #define JMP continue
 #define RET return
@@ -42,13 +40,14 @@
 #define X_LEX_LABEL( LABEL, FN, ACTION ) LABEL:{ Lex##FN( lexer ); ACTION; }
 
 typedef struct Lexer {
-	LogList* logs; /* App owned */
+	Logs* logs;		/* App owned */
+	Interns* interns;	/* App owned */
 	u8* text;
 	LogPos pos;
 	Tk tk;
 } Lexer;
 
-void LexInit( Lexer* lexer, LogList* log, SrcId src_id, u8* text );
+void LexInit( Lexer* lexer, Logs* logs, Interns* interns, SrcId src_id, u8* text );
 void LexReset( Lexer* lexer, u8* text );
 void Lex( Lexer* lexer );
 

@@ -1,7 +1,8 @@
 #include "lexer.h"
 
-void LexInit( Lexer* lexer, LogList* logs, SrcId src_id, u8* text ){
+void LexInit( Lexer* lexer, Logs* logs, Interns* interns, SrcId src_id, u8* text ){
 	lexer->logs = logs;
+	lexer->interns = interns;
 	lexer->pos.src = src_id;
 	lexer->pos.ln = lexer->pos.col = 1;
 	lexer->text = text;
@@ -150,7 +151,7 @@ static void LexGt( Lexer* lexer ){
 
 static void LexId( Lexer* lexer ){
 	LexSet( lexer, TK_ID );
-	// u8* start = lexer->text;
+	u8* start = lexer->text;
 	u32 hash = HashStart( HASH_ID );
 	for( ;; ){
 		TkType type = LexType( *lexer->text );
@@ -159,9 +160,8 @@ static void LexId( Lexer* lexer ){
 		LexNext( lexer );
 	}
 	hash = HashEnd( hash );
-	/* TODO: Implement Intern Table! */
-	// u32 len = ( u32 )( lexer->text - start );
-	// lexer->tk.intern = InternPut( lexer->interns, HASH_ID, start, len, hash );
+	u32 len = ( u32 )( lexer->text - start );
+	lexer->tk.intern = InternPutId( lexer->interns, start, len, hash );
 }
 
 static void LexBxor( Lexer* lexer ){ /* ^ ^^ ^= */
