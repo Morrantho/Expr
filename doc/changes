@@ -1,0 +1,5 @@
+intern.c/h:
+* Methods return InternOffset over Offset for clarity.
+
+token.h:
+* Tokens store InternOffset over u32 for clarity

@@ -47,16 +47,16 @@ static Intern* InternProbe( Interns* table, HashTag tag, u8* src, u32 len, u32 h
 	}
 }
 
-static Offset InternPush( Interns* table, u8* src, u32 len ){
+static InternOffset InternPush( Interns* table, u8* src, u32 len ){
 	Aob* aob = &table->aob;
-	Offset off = AobPush( aob, len + 1 );
+	InternOffset off = AobPush( aob, len + 1 );
 	u8* dst = AobGet( aob, off );
 	memcpy( dst, src, len );
 	dst[ len ] = '\0';
 	return off;
 }
 
-Offset InternPut( Interns* table, HashTag tag, u8* src, u32 len, u32 hash ){
+InternOffset InternPut( Interns* table, HashTag tag, u8* src, u32 len, u32 hash ){
 	Intern* entry = InternProbe( table, tag, src, len, hash );
 	if( entry->hash ) return entry->offset;
 	if( table->len >= table->half_cap ){
@@ -71,15 +71,15 @@ Offset InternPut( Interns* table, HashTag tag, u8* src, u32 len, u32 hash ){
 	return entry->offset;
 }
 
-Offset InternPutId( Interns* table, u8* src, u32 len, u32 hash ){
+InternOffset InternPutId( Interns* table, u8* src, u32 len, u32 hash ){
 	return InternPut( table, HASH_ID, src, len, hash );
 }
 
-Offset InternPutStr( Interns* table, u8* src, u32 len, u32 hash ){
+InternOffset InternPutStr( Interns* table, u8* src, u32 len, u32 hash ){
 	return InternPut( table, HASH_STR, src, len, hash );
 }
 
-u8* InternGetRaw( Interns* table, Offset off ){
+u8* InternGetRaw( Interns* table, InternOffset off ){
 	return AobGet( &table->aob, off );
 }
 

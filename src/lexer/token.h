@@ -1,8 +1,8 @@
 #ifndef TK_H
 #define TK_H
 
-#include "../common/typedefs.h"
 #include "../common/log.h"
+#include "../common/intern.h"
 
 #define X_TKS( X ) /* prefix, infix, and postfix point to a denotation type enum */\
 	/* ENUM    PREC    ASSOC  PREFIX  INFIX  POSTFIX */\
@@ -60,7 +60,7 @@ typedef struct Tk {
 	LogPos pos;
 	union {
 		f64 num;
-		u32 intern;
+		InternOffset intern;
 	};
 } Tk;
 

@@ -26,10 +26,10 @@ typedef struct Interns {
 } Interns;
 
 void InternInit( Interns* table );
-Offset InternPut( Interns* table, HashTag tag, u8* src, u32 len, u32 hash );
-Offset InternPutId( Interns* table, u8* src, u32 len, u32 hash );
-Offset InternPutStr( Interns* table, u8* src, u32 len, u32 hash );
-u8* InternGetRaw( Interns* table, Offset off );
+InternOffset InternPut( Interns* table, HashTag tag, u8* src, u32 len, u32 hash );
+InternOffset InternPutId( Interns* table, u8* src, u32 len, u32 hash );
+InternOffset InternPutStr( Interns* table, u8* src, u32 len, u32 hash );
+u8* InternGetRaw( Interns* table, InternOffset off );
 void InternFree( Interns* table );
 
 #endif
