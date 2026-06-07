@@ -2,8 +2,10 @@
 #define LEXER_H
 #include "../common/log.h"
 #include "../common/src.h"
+#include "../common/hash.h"
 #include "ascii.h"
 #include "token.h"
+
 /* Only control flow is allowed in dispatch: */
 #define JMP continue
 #define RET return

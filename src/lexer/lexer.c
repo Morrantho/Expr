@@ -150,11 +150,18 @@ static void LexGt( Lexer* lexer ){
 
 static void LexId( Lexer* lexer ){
 	LexSet( lexer, TK_ID );
-	while( LexType( *lexer->text ) == TK_ID ){
-		/* Add hashing here */
+	// u8* start = lexer->text;
+	u32 hash = HashStart( HASH_ID );
+	for( ;; ){
+		TkType type = LexType( *lexer->text );
+		if( type != TK_ID && type != TK_NUM ) break;
+		hash = HashU8( hash, *lexer->text );
 		LexNext( lexer );
 	}
-	/* Intern here then assign */
+	hash = HashEnd( hash );
+	/* TODO: Implement Intern Table! */
+	// u32 len = ( u32 )( lexer->text - start );
+	// lexer->tk.intern = InternPut( lexer->interns, HASH_ID, start, len, hash );
 }
 
 static void LexBxor( Lexer* lexer ){ /* ^ ^^ ^= */

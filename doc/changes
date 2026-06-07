@@ -1,18 +1,18 @@
-general:
-* Module Inits no longer take capacities. They are set in their own Inits.
+cfg.h:
+* Added: U32, HASH_OFFSET and HASH_PRIME
+
+hash.c:
+* Basic hash module. LexId calls these methods for interning. LexStr will do
+	the same. We will write the intern table next.
+* Added: functions: HashStart, HashU8, HashEnd. To be called in order.
+* Added: enum HashTag.
+	HashTag is a namespace for keys. All hashes encode the tag prior to the
+	payload bytes. This lets us use the same table without
+		id: hello
+		and
+		string: "hello"
+	colliding. They co-exist as separate entries. The tag is used during
+	hashing and for equality.
 
 lexer.c:
-* Fixed: LexBnot was producing TK_ADD, not TK_NOT.
-* Added: Basic id lexing. We'll write an InternTable next commit,
-	then commit again after Interning works.
-
-cfg.h:
-* Added: Sensible defaults. KB, PAGE, and COUNT macros for quick readability.
-
-ascii.h:
-* Added TK column for NUM and ID classification. We could use the goto label
-	field, but it'd be dirty. Goto version might as well also use this
-	smaller table during num / id lexing for cache reasons.
-
-next steps:
-* implement interning. Allow tokens to store internid, or number.
+* LexId: implemented hashing functions.
