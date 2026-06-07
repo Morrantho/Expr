@@ -6,9 +6,9 @@
 #include "src.h"
 
 #define X_LOG_TYPES( X )\
-	X( DEBUG, "debug", "\033[1;94m" )\
-	X( WARN,  "warn",  "\033[1;93m" )\
-	X( FATAL, "fatal", "\033[1;91m" )
+	X( DEBUG, "debug", "\033[0;34m" )\
+	X( WARN,  "warn",  "\033[0;33m" )\
+	X( FATAL, "fatal", "\033[0;31m" )
 
 #define X_LOGS( X )\
 	X( WARN, LEX_BADCHAR,   "unexpected char '%c'" )\

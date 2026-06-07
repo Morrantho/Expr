@@ -21,7 +21,8 @@ static void AppRepl( App* app ){
 		for( ;; ){
 			Lex( &app->lexer );
 			if( app->lexer.tk.type == TK_EOS ) break;
-			printf( "%s\n", TkGetType( &app->lexer.tk ) );
+			printf( "%u\n", app->lexer.tk.intern );
+			//printf( "%s\n", TkGetType( &app->lexer.tk ) );
 		}
 
 		if( LogDump( &app->logs ) ) continue;

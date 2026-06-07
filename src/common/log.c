@@ -10,10 +10,10 @@ static u8* LogGetFmt( LogMsgType type ){
 	return fmts[ type ];
 }
 
-static u8* LogGetName( LogLvl lvl ){
-	static u8* names[ ] = { X_LOG_TYPES( X_LOG_NAME_INIT ) };
-	return names[ lvl ];
-}
+// static u8* LogGetName( LogLvl lvl ){
+// 	static u8* names[ ] = { X_LOG_TYPES( X_LOG_NAME_INIT ) };
+// 	return names[ lvl ];
+// }
 
 static u8* LogGetCol( LogLvl lvl ){
 	static u8* cols[ ] = { X_LOG_TYPES( X_LOG_COL_INIT ) };
@@ -72,11 +72,11 @@ u8 LogDump( Logs* logs ){ /* nonzero = fatal */
 	for( u32 i = 0; i < logs->len; i++ ){
 		LogEntry* e = &logs->entries[ i ];
 		LogLvl lvl = LogGetLvl( e->msg_type );
-		u8* name = LogGetName( lvl );
+		// u8* name = LogGetName( lvl );
 		u8* col = LogGetCol( lvl );
 		u8* path = SrcGetPath( logs->sources, e->pos.src );
 		u8* msg = AobGet( &logs->aob, e->msg );
-		fprintf( stderr, "%s%s: %s:%u:%u: %s\033[0m\n", col, name, path, e->pos.ln, e->pos.col, msg );
+		fprintf( stderr, "%s%s:%u:%u: %s\033[0m\n", col, path, e->pos.ln, e->pos.col, msg );
 		fatal |= lvl == LOG_FATAL;
 	}
 	AobReset( &logs->aob );
