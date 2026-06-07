@@ -10,6 +10,7 @@
 	X( ERR,    NONE,   NONE,  NONE,   NONE,  NONE ) /* For parser / compiler hints */\
 	X( NOT,    UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* !   */\
 	X( NOTEQ,  EQUAL,  LEFT,  ERR,    INF,   ERR  ) /* !=  */\
+	X( STR,    NONE,   NONE,  PRE,    NONE,  ERR  ) /* "" */\
 	X( MOD,    FACTOR, LEFT,  ERR,    INF,   ERR  ) /* %   */\
 	X( ROUND,  UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* %%  */\
 	X( MODEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* %=  */\

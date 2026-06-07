@@ -36,7 +36,7 @@
 	X( US,        EOS, NEXT,    Next,    JMP )		/* 31 */\
 	X( SPACE,     EOS, NEXT,    Next,    JMP )		/* ' ' */\
 	X( EXCL,      EOS, NOT,     Not,     RET )		/* '!' */\
-	X( DQUOTE,    EOS, NEXT,    Next,    JMP )		/* '"' */\
+	X( DQUOTE,    EOS, STR,     Str,     RET )		/* '"' */\
 	X( POUND,     EOS, NEXT,    Next,    JMP )		/* '#' */\
 	X( DOLLAR,    EOS, COMMENT, Comment, JMP )		/* '$' */\
 	X( PERCENT,   EOS, MOD,     Mod,     RET )		/* '%' */\

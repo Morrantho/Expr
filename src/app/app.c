@@ -17,6 +17,7 @@ static void AppRepl( App* app ){
 		printf( "> " );
 		if( !fgets( ( x8* )text, SRC_REPL_CAP, stdin ) ) return;
 		AppReset( app, text );
+		
 		/* We'll get rid of this test soon. */
 		for( ;; ){
 			Lex( &app->lexer );
@@ -25,8 +26,8 @@ static void AppRepl( App* app ){
 			//printf( "%s\n", TkGetType( &app->lexer.tk ) );
 		}
 
-		if( LogDump( &app->logs ) ) continue;
 		// Compile( app );
+		if( LogDump( &app->logs ) ) continue;
 		// Run( app );
 	}
 }

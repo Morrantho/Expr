@@ -11,8 +11,9 @@
 	X( FATAL, "fatal", "\033[0;31m" )
 
 #define X_LOGS( X )\
-	X( WARN, LEX_BADCHAR,   "unexpected char '%c'" )\
-	X( WARN, LEX_BADASSIGN, "use ':' for assignments, not '='" )
+	X( WARN,  LEX_BADCHAR,		"unexpected char '%c'" )\
+	X( WARN,  LEX_BADASSIGN,	"use ':' for assignments, not '='" )\
+	X( FATAL, LEX_BADSTR,		"unterminated string" )
 
 #define X_LOG_LVL_ENUM( LEVEL, NAME, COL ) LOG_##LEVEL,
 #define X_LOG_MSG_TYPE_ENUM( LEVEL, TYPE, FMT ) TYPE,

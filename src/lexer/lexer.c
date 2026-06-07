@@ -56,6 +56,26 @@ static void LexNot( Lexer* lexer ){ /* ! != */
 	if( *lexer->text == '=' ){ LexEat( lexer, TK_NOTEQ ); }
 }
 
+static void LexStr( Lexer* lexer ){ /* "anything in between" */
+	LogPos pos = lexer->pos;
+	LexChar( lexer, TK_STR ); /* " */
+	u8* start = lexer->text;
+	u32 hash = HashStart( HASH_STR );
+	while( *lexer->text && *lexer->text != '"' ){
+		hash = HashU8( hash, *lexer->text );
+		LexNext( lexer );
+	}
+	if( !*lexer->text ){
+		Log( lexer->logs, &pos, LEX_BADSTR );
+		LexSet( lexer, TK_ERR );
+		return;
+	}
+	hash = HashEnd( hash );
+	u32 len = ( u32 )( lexer->text - start );
+	lexer->tk.intern = InternPutStr( lexer->interns, start, len, hash );
+	LexNext( lexer ); /* " */
+}
+
 static void LexComment( Lexer* lexer ){ /* $ */
 	LexNext( lexer );
 	for( ; *lexer->text != '\n'; LexNext( lexer ) )
