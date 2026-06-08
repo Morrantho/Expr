@@ -4,7 +4,7 @@
 #include "common/src.c"
 #include "common/log.c"
 #include "common/hash.c"
-#include "common/intern.c"
+#include "intern/intern.c"
 
 #include "lexer/token.c"
 #include "lexer/lexer.c"

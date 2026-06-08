@@ -1,7 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 #include "../common/log.h"
-#include "../common/intern.h"
+#include "../intern/intern.h"
 #include "ascii.h"
 #include "token.h"
 /* Only control flow is allowed in dispatch: */
