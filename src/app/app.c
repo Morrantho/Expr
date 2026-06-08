@@ -17,15 +17,6 @@ static void AppRepl( App* app ){
 		printf( "> " );
 		if( !fgets( ( x8* )text, SRC_REPL_CAP, stdin ) ) return;
 		AppReset( app, text );
-		
-		/* We'll get rid of this test soon. */
-		for( ;; ){
-			Lex( &app->lexer );
-			if( app->lexer.tk.type == TK_EOS ) break;
-			printf( "%u\n", app->lexer.tk.intern );
-			//printf( "%s\n", TkGetType( &app->lexer.tk ) );
-		}
-
 		// Compile( app );
 		if( LogDump( &app->logs ) ) continue;
 		// Run( app );
@@ -48,6 +39,7 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	LogInit( &app->logs, &app->srcs );
 	InternInit( &app->interns );
 	LexInit( &app->lexer, &app->logs, &app->interns, src_id, text );
+	ParserInit( &app->parser, &app->logs, &app->lexer );
 }
 
 x32 main( x32 nargs, x8** args ){

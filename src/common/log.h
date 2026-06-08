@@ -13,7 +13,8 @@
 #define X_LOGS( X )\
 	X( WARN,  LEX_BADCHAR,		"unexpected char '%c'" )\
 	X( WARN,  LEX_BADASSIGN,	"use ':' for assignments, not '='" )\
-	X( FATAL, LEX_BADSTR,		"unterminated string" )
+	X( FATAL, LEX_BADSTR,		"unterminated string" )\
+	X( FATAL, PARSE_EXPECT,		"expected: %d, got: %d" )
 
 #define X_LOG_LVL_ENUM( LEVEL, NAME, COL ) LOG_##LEVEL,
 #define X_LOG_MSG_TYPE_ENUM( LEVEL, TYPE, FMT ) TYPE,

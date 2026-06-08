@@ -1,9 +1,7 @@
 #ifndef APP_H
 #define APP_H
 
-#include "../common/src.h"
-#include "../common/log.h"
-#include "../lexer/lexer.h"
+#include "../parser/parser.h"
 
 typedef struct App {
 	u32 nargs;
@@ -12,7 +10,7 @@ typedef struct App {
 	Srcs srcs;
 	Interns interns;
 	Lexer lexer;
-	// Parser parser;
+	Parser parser;
 	// Compiler compiler;
 	// Vm vm;
 } App;

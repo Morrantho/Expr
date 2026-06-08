@@ -7,10 +7,10 @@
 #define X_TKS( X ) /* prefix, infix, and postfix point to a denotation type enum */\
 	/* ENUM    PREC    ASSOC  PREFIX  INFIX  POSTFIX */\
 	X( EOS,    NONE,   NONE,  NOP,    ERR,   ERR  ) /* \0  */\
-	X( ERR,    NONE,   NONE,  NONE,   NONE,  NONE ) /* For parser / compiler hints */\
+	X( ERR,    NONE,   NONE,  ERR,    ERR,   ERR  ) /* For parser / compiler hints */\
 	X( NOT,    UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* !   */\
 	X( NOTEQ,  EQUAL,  LEFT,  ERR,    INF,   ERR  ) /* !=  */\
-	X( STR,    NONE,   NONE,  PRE,    NONE,  ERR  ) /* "" */\
+	X( STR,    NONE,   NONE,  PRE,    ERR,   ERR  ) /* "" */\
 	X( MOD,    FACTOR, LEFT,  ERR,    INF,   ERR  ) /* %   */\
 	X( ROUND,  UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* %%  */\
 	X( MODEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* %=  */\
@@ -54,7 +54,7 @@
 
 #define X_TK_ENUMS( ENUM, PREC, ASSOC, PRE, INF, POST ) TK_##ENUM,
 #define X_TK_STRS( ENUM, PREC, ASSOC, PRE, INF, POST ) ( u8*)#ENUM,
-typedef enum TkType { X_TKS( X_TK_ENUMS ) } TkType;
+typedef enum TkType { X_TKS( X_TK_ENUMS ) TK_COUNT } TkType;
 
 typedef struct Tk {
 	TkType type;
@@ -65,6 +65,6 @@ typedef struct Tk {
 	};
 } Tk;
 
-u8* TkGetType( Tk* tk );
+u8* TkGetName( TkType type );
 
 #endif

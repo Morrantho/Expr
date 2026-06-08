@@ -9,12 +9,12 @@
 #define X_ERR_ENUMS( ENUM, FMT ) ERR_##ENUM,
 #define X_ERR_FMTS( ENUM, FMT ) ( u8* )FMT,
 #define X_ERRS( X )\
-	X( OOM, "Failed To Allocate Block: %d. Out Of Memory.\n" )\
-	X( FREE, "Tried To Free A Null Pointer!\n" )\
-	X( BADFILE, "File Not Found: %s\n" )\
-	X( FTELL, "Failed To Read File Size For File: %s\n" )\
-	X( FREAD, "Failed To Read Bytes From File: %s\n" )\
-	X( LOGBUF, "Log Buffer Failed To Allocate Format String: %s\n" )
+	X( OOM, "failed to allocate block: %d. out of memory.\n" )\
+	X( FREE, "tried to free a null pointer\n" )\
+	X( BADFILE, "file not found: %s\n" )\
+	X( FTELL, "failed to read file size from file: %s\n" )\
+	X( FREAD, "failed to read file: %s\n" )\
+	X( LOGBUF, "log buffer failed to allocate format string: %s\n" )
 
 typedef enum ErrType { X_ERRS( X_ERR_ENUMS ) } ErrType;
 void Throw( ErrType err, ... );
