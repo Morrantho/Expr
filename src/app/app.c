@@ -1,6 +1,7 @@
 #include "app.h"
 
 static void AppFree( App* app ){
+	CompilerFree( &app->compiler );
 	InternFree( &app->interns );
 	LogFree( &app->logs );
 	SrcFree( &app->srcs );
@@ -9,6 +10,7 @@ static void AppFree( App* app ){
 static void AppReset( App* app, u8* text ){
 	LogReset( &app->logs );
 	LexReset( &app->lexer, text );
+	CompilerReset( &app->compiler );
 }
 
 static void AppRepl( App* app ){
@@ -17,7 +19,8 @@ static void AppRepl( App* app ){
 		printf( "> " );
 		if( !fgets( ( x8* )text, SRC_REPL_CAP, stdin ) ) return;
 		AppReset( app, text );
-		// Compile( app );
+		Reg r = Compile( &app->compiler );
+		printf( "reg: %d\n", r );
 		if( LogDump( &app->logs ) ) continue;
 		// Run( app );
 	}
@@ -39,7 +42,7 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	LogInit( &app->logs, &app->srcs );
 	InternInit( &app->interns );
 	LexInit( &app->lexer, &app->logs, &app->interns, src_id, text );
-	// ParserInit( &app->parser, &app->logs, &app->lexer );
+	CompilerInit( &app->compiler, &app->logs, &app->lexer );
 }
 
 x32 main( x32 nargs, x8** args ){

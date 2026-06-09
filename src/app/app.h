@@ -4,7 +4,7 @@
 #include "../base/src/src.h"
 #include "../base/diag/log.h"
 #include "../lexer/lexer.h"
-// #include "../parser/parser.h"
+#include "../compiler/compiler.h"
 
 typedef struct App {
 	u32 nargs;
@@ -13,8 +13,7 @@ typedef struct App {
 	Srcs srcs;
 	Interns interns;
 	Lexer lexer;
-	// Compiler compiler;
-	// Parser parser;
+	Compiler compiler;
 	// Vm vm;
 } App;
 

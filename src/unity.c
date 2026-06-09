@@ -13,6 +13,7 @@
 #include "parser/prec.c"
 #include "parser/assoc.c"
 #include "parser/deno.c"
-// #include "parser/parser.c"
+
+#include "compiler/compiler.c"
 
 #include "app/app.c"
