@@ -14,6 +14,7 @@
 #include "parser/assoc.c"
 #include "parser/deno.c"
 
+#include "base/const/const.c"
 #include "compiler/compiler.c"
 
 #include "app/app.c"

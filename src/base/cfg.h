@@ -20,6 +20,8 @@
 #define INTERN_AOB_CAP	PAGE( 4 )
 #define INTERN_CAP		COUNT( 256 )
 
+#define CONST_CAP		COUNT( 256 )
+
 #define CMP_REG_CAP		COUNT( 256 )
 #define CMP_CODE_CAP	PAGE( 1 )
 
