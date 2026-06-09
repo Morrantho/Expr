@@ -1,11 +1,11 @@
-#include "common/err.c"
-#include "common/mem.c"
-#include "common/aob.c"
-#include "common/src.c"
-#include "common/log.c"
-#include "common/hash.c"
+#include "base/diag/err.c"
+#include "base/mem/mem.c"
+#include "base/aob/aob.c"
+#include "base/src/src.c"
+#include "base/diag/log.c"
+#include "base/hash/hash.c"
 
-#include "intern/intern.c"
+#include "base/intern/intern.c"
 
 #include "lexer/token.c"
 #include "lexer/lexer.c"
@@ -13,6 +13,6 @@
 #include "parser/prec.c"
 #include "parser/assoc.c"
 #include "parser/deno.c"
-#include "parser/parser.c"
+// #include "parser/parser.c"
 
 #include "app/app.c"

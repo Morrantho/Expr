@@ -1,9 +1,9 @@
 #ifndef AOB_H
 #define AOB_H
 
-#include "typedefs.h"
-#include "cfg.h"
-#include "mem.h"
+#include "../typedefs.h"
+#include "../cfg.h"
+#include "../mem/mem.h"
 
 typedef u32 Offset;
 

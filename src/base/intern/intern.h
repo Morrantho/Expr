@@ -2,9 +2,9 @@
 #define INTERN_H
 
 #include <string.h>
-#include "../common/typedefs.h"
-#include "../common/aob.h"
-#include "../common/hash.h"
+#include "../typedefs.h"
+#include "../aob/aob.h"
+#include "../hash/hash.h"
 typedef u32 InternId;
 /* Only exists so internal calls arent 30 args long. */
 typedef struct InternKey {

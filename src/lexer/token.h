@@ -1,8 +1,8 @@
 #ifndef TK_H
 #define TK_H
 
-#include "../common/log.h"
-#include "../intern/intern.h"
+#include "../base/diag/log.h"
+#include "../base/intern/intern.h"
 
 #define X_TKS( X ) /* prefix, infix, and postfix point to a denotation type enum */\
 	/* ENUM    PREC    ASSOC  PREFIX  INFIX  POSTFIX */\

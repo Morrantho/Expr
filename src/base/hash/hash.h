@@ -1,8 +1,8 @@
 #ifndef HASH_H
 #define HASH_H
 
-#include "typedefs.h"
-#include "cfg.h"
+#include "../typedefs.h"
+#include "../cfg.h"
 
 /* HashTag is a namespace for keys. */
 /* All hashes encode one prior to the payload. */

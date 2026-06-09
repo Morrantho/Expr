@@ -2,8 +2,8 @@
 #define LOG_H
 
 #include <stdarg.h>
-#include "cfg.h"
-#include "src.h"
+#include "../cfg.h"
+#include "../src/src.h"
 
 #define X_LOG_TYPES( X )\
 	X( DEBUG, "debug", "\033[0;34m" )\
@@ -14,6 +14,7 @@
 	X( WARN,  LEX_BADCHAR,		"unexpected char '%c'" )\
 	X( WARN,  LEX_BADASSIGN,	"use ':' for assignments, not '='" )\
 	X( FATAL, LEX_BADSTR,		"unterminated string" )\
+	X( FATAL, PARSE_BADPRE,     "bad expr prefix: %s for token type: %s" )\
 	X( FATAL, PARSE_EXPECT,		"expected: %d, got: %d" )
 
 #define X_LOG_LVL_ENUM( LEVEL, NAME, COL ) LOG_##LEVEL,

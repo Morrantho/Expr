@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "typedefs.h"
+#include "../typedefs.h"
 
 #define X_ERR_ENUMS( ENUM, FMT ) ERR_##ENUM,
 #define X_ERR_FMTS( ENUM, FMT ) ( u8* )FMT,

@@ -39,7 +39,7 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	LogInit( &app->logs, &app->srcs );
 	InternInit( &app->interns );
 	LexInit( &app->lexer, &app->logs, &app->interns, src_id, text );
-	ParserInit( &app->parser, &app->logs, &app->lexer );
+	// ParserInit( &app->parser, &app->logs, &app->lexer );
 }
 
 x32 main( x32 nargs, x8** args ){

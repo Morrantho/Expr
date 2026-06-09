@@ -2,10 +2,7 @@
 #define SRC_H
 
 #include <string.h>
-#include "typedefs.h"
-#include "cfg.h"
-#include "mem.h"
-#include "aob.h"
+#include "../aob/aob.h"
 
 typedef u32 SrcId;
 
