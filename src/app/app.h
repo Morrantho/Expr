@@ -4,6 +4,7 @@
 #include "../base/src/src.h"
 #include "../base/diag/log.h"
 #include "../lexer/lexer.h"
+#include "../base/const/const.h"
 #include "../compiler/compiler.h"
 
 typedef struct App {
@@ -12,6 +13,7 @@ typedef struct App {
 	Logs logs;
 	Srcs srcs;
 	Interns interns;
+	Consts consts;
 	Lexer lexer;
 	Compiler compiler;
 	// Vm vm;

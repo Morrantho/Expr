@@ -14,7 +14,8 @@
 	X( BADFILE, "file not found: %s\n" )\
 	X( FTELL, "failed to read file size from file: %s\n" )\
 	X( FREAD, "failed to read file: %s\n" )\
-	X( LOGBUF, "log buffer failed to allocate format string: %s\n" )
+	X( LOGBUF, "log buffer failed to allocate format string: %s\n" )\
+	X( REGALLOC, "ran out of registers. aborting.\n")
 
 typedef enum ErrType { X_ERRS( X_ERR_ENUMS ) } ErrType;
 void Throw( ErrType err, ... );

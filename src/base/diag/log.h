@@ -17,9 +17,8 @@
 	X( FATAL, PARSE_BADPRE,		"bad expr prefix: %s for token type: %s" )\
 	X( FATAL, PARSE_BADINF,		"bad expr infix: %s for token type: %s" )\
 	X( FATAL, PARSE_BADPOST,	"bad expr postfix: %s for token type: %s" )\
-	X( FATAL, PARSE_EXPECT,		"expected: %d, got: %d" )\
-	X( FATAL, CMP_REGALLOC,		"ran out of registers" )
-
+	X( FATAL, PARSE_EXPECT,		"expected: %d, got: %d" )
+	
 #define X_LOG_LVL_ENUM( LEVEL, NAME, COL ) LOG_##LEVEL,
 #define X_LOG_MSG_TYPE_ENUM( LEVEL, TYPE, FMT ) TYPE,
 #define X_LOG_LVL_INIT( LEVEL, TYPE, FMT ) LOG_##LEVEL,

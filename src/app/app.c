@@ -2,6 +2,7 @@
 
 static void AppFree( App* app ){
 	CompilerFree( &app->compiler );
+	ConstFree( &app->consts );
 	InternFree( &app->interns );
 	LogFree( &app->logs );
 	SrcFree( &app->srcs );
@@ -42,7 +43,8 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	LogInit( &app->logs, &app->srcs );
 	InternInit( &app->interns );
 	LexInit( &app->lexer, &app->logs, &app->interns, src_id, text );
-	CompilerInit( &app->compiler, &app->logs, &app->lexer );
+	ConstInit( &app->consts );
+	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->consts );
 }
 
 x32 main( x32 nargs, x8** args ){
