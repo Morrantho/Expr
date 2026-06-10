@@ -14,6 +14,20 @@ typedef struct Inst {
 	u8 a, b, c;
 } Inst;
 
+typedef enum ExprType {
+	EXPR_NONE, /* for nops */
+	EXPR_ERR,
+	EXPR_NUM,
+	EXPR_STR,
+	EXPR_REF,
+	EXPR_UNKNOWN
+} ExprType;
+
+typedef struct Expr { /* 8 bytes max. If we need more metadata, use u8s for these. */
+	ExprType type;
+	Reg reg;
+} Expr;
+
 typedef struct Compiler {
 	Logs* logs;
 	Lexer* lexer;
@@ -23,12 +37,12 @@ typedef struct Compiler {
 	u32 len;
 	u32 cap;
 
-	u32 reg; /* trivial register counter / allocator */
+	Reg reg; /* trivial register counter / allocator */
 } Compiler;
 
 void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts );
 void CompilerReset( Compiler* compiler );
-Reg Compile( Compiler* compiler );
+Expr Compile( Compiler* compiler );
 void CompilerFree( Compiler* compiler );
 
 #endif

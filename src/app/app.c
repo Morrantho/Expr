@@ -20,8 +20,8 @@ static void AppRepl( App* app ){
 		printf( "> " );
 		if( !fgets( ( x8* )text, SRC_REPL_CAP, stdin ) ) return;
 		AppReset( app, text );
-		Reg r = Compile( &app->compiler );
-		printf( "reg: %d\n", r );
+		Expr e = Compile( &app->compiler );
+		printf( "reg: %d\n", e.reg );
 		if( LogDump( &app->logs ) ) continue;
 		// Run( app );
 	}

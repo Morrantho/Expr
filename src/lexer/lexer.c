@@ -137,6 +137,8 @@ static void LexNum( Lexer* lexer ){
 	lexer->tk.num = n;
 }
 
+static void LexColon( Lexer* lexer ){ LexChar( lexer, TK_COLON ); }
+
 static void LexLt( Lexer* lexer ){ /* < << <<= <= <== */
 	LexChar( lexer, TK_LT );
 	if( *lexer->text == '<' ){

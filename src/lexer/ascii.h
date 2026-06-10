@@ -60,7 +60,7 @@
 	X( SEVEN,     NUM, NUM,     Num,     RET )		/* '7' */\
 	X( EIGHT,     NUM, NUM,     Num,     RET )		/* '8' */\
 	X( NINE,      NUM, NUM,     Num,     RET )		/* '9' */\
-	X( COLON,     EOS, NEXT,    Next,    JMP )		/* ':' */\
+	X( COLON,     EOS, NEXT,    Colon,   RET )		/* ':' */\
 	X( SEMICOLON, EOS, NEXT,    Next,    JMP )		/* ';' */\
 	X( LT,        EOS, LT,      Lt,      RET )		/* '<' */\
 	X( EQ,        EOS, EQ,      Eq,      RET )		/* '=' */\

@@ -1,6 +1,6 @@
 #include "compiler.h"
 
-static Reg CompileExpr( Compiler* compiler, Prec min );
+static Expr CompileExpr( Compiler* compiler, Prec min );
 
 void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts ){
 	compiler->logs = logs;
@@ -16,6 +16,11 @@ void CompilerReset( Compiler* compiler ){
 	compiler->len = 0;
 	compiler->reg = 0;
 }
+
+static Expr ExprGen( ExprType type, Reg reg ){
+	return ( Expr ){ .type = type, .reg = reg };
+}
+
 /* Temporary until we deal with blocks, scopes, functions, etc. */
 static Reg RegAlloc( Compiler* compiler ){
 	if( compiler->reg >= CMP_REG_CAP ){
@@ -34,59 +39,59 @@ static void CompilerMatch( Compiler* compiler, TkType expected ){
 	Lex( lexer );
 }
 
-static Reg CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
+static Expr CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
 	u8 *deno_name = DenoGetName( deno );
 	u8 *tk_name = TkGetName( tk->type );
 	Log( compiler->logs, &tk->pos, PARSE_BADPRE, deno_name, tk_name );
-	return CMP_REG_CAP;
+	return ExprGen( EXPR_ERR, CMP_REG_ERR );
 }
 
-static Reg CompileGroup( Compiler* compiler ){
-	Reg src = CompileExpr( compiler, PREC_NONE );
+static Expr CompileGroup( Compiler* compiler ){
+	Expr src = CompileExpr( compiler, PREC_NONE );
 	CompilerMatch( compiler, TK_RP );
 	return src;
 }
 
-static Reg CompileUnary( Compiler* compiler, Tk* tk ){
-	Reg src = CompileExpr( compiler, PREC_UNARY );
-	Reg dst = RegAlloc( compiler );
-	printf( "CompileUnary: tk: %d src: %d dst: %d\n", tk->type, src, dst );
+static Expr CompileUnary( Compiler* compiler, Tk* tk ){
+	Expr src = CompileExpr( compiler, PREC_UNARY );
+	Expr dst = ExprGen( EXPR_UNKNOWN, RegAlloc( compiler ) );
+	printf( "CompileUnary: tk: %d src: %d dst: %d\n", tk->type, src.reg, dst.reg );
 	/* Emit( &compiler->code, OpGet( POS_PRE, tk->type ), dst, src,  ); */
 	return dst;
 }
 
-static Reg CompileNum( Compiler* compiler, Tk* tk ){
-	Reg dst = RegAlloc( compiler );
+static Expr CompileNum( Compiler* compiler, Tk* tk ){
+	Expr dst = ExprGen( EXPR_NUM, RegAlloc( compiler ) );
 	ConstId cid = ConstPutNum( compiler->consts, tk->num );
 	printf( "const num: %d\n", cid ); /* no emission yet, just log consts. */
 	/* EmitABC( compiler, OP_LOADC, dst, cid, 0 ); */
 	return dst;
 }
 
-static Reg CompileStr( Compiler* compiler, Tk* tk ){
-	Reg dst = RegAlloc( compiler );
+static Expr CompileStr( Compiler* compiler, Tk* tk ){
+	Expr dst = ExprGen( EXPR_STR, RegAlloc( compiler ) );
 	ConstId cid = ConstPutStr( compiler->consts, tk->intern );
 	printf( "const str: %d\n", cid );
 	/* EmitABC( compiler, OP_LOADC, dst, cid, 0 ); */
 	return dst;
 }
 
-static Reg CompileRef( Compiler* compiler, Tk* tk ){
-	Reg dst = RegAlloc( compiler );
+static Expr CompileRef( Compiler* compiler, Tk* tk ){
+	Expr dst = ExprGen( EXPR_REF, RegAlloc( compiler ) );
 	/* Sym sym = SymbolGet( compiler->symbols, tk->intern ); */
 	printf( "load ref: %d\n", tk->intern );
 	/* EmitABC( compiler, OP_LOADLOCAL | OP_LOADGLOBAL | OP_LOADUPVAL, dst, sym ) */
 	return dst;
 }
 
-static Reg CompilePrefix( Compiler* compiler ){
+static Expr CompilePrefix( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
 	Tk tk = lexer->tk; /* copy */
 	Deno deno = DenoGet( PARSEPOS_PRE, tk.type );
 	Lex( lexer );
 	switch( deno ){
 		default: return CompileBadPrefix( compiler, deno, &tk );
-		case DENO_NOP: return CMP_REG_CAP;
+		case DENO_NOP: return ExprGen( EXPR_NONE, CMP_REG_ERR );
 		case DENO_NOPPRE: return CompileExpr( compiler, PREC_UNARY );
 		case DENO_GRP: return CompileGroup( compiler );
 		case DENO_PRE: return CompileUnary( compiler, &tk );
@@ -96,15 +101,15 @@ static Reg CompilePrefix( Compiler* compiler ){
 	}
 }
 
-static Reg CompilePostUnary( Compiler* compiler, Lexer* lexer, Reg src, Tk* tk ){
+static Expr CompilePostUnary( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	Lex( lexer );
-	Reg dst = RegAlloc( compiler );
-	printf( "CompilePostUnary: src: %d dst: %d tk: %d\n", src, dst, tk->type );
+	Expr dst = ExprGen( EXPR_UNKNOWN, RegAlloc( compiler ) );
+	printf( "CompilePostUnary: src: %d dst: %d tk: %d\n", src.reg, dst.reg, tk->type );
 	/* Emit( &compiler->code, OpGet( POS_POST, tk->type ), dst, src,  ); */
 	return dst;
 }
 
-static Reg CompilePostfix( Compiler* compiler, Reg src ){
+static Expr CompilePostfix( Compiler* compiler, Expr src ){
 	Lexer* lexer = compiler->lexer;
 	for( ;; ){ /* member access + calls can chain. not yet implemented. */
 		Tk tk = lexer->tk; /* copy required */
@@ -116,17 +121,17 @@ static Reg CompilePostfix( Compiler* compiler, Reg src ){
 	}
 }
 
-static Reg CompileBinary( Compiler* compiler, Lexer* lexer, Reg lhs, Prec prec, Tk* tk ){
+static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec, Tk* tk ){
 	Lex( lexer );
-	Reg rhs = CompileExpr( compiler, prec );
-	Reg dst = RegAlloc( compiler );
-	printf( "CompileBinary: lhs: %d tk: %d rhs: %d\n", lhs, tk->type, rhs );
+	Expr rhs = CompileExpr( compiler, prec );
+	Expr dst = ExprGen( EXPR_UNKNOWN, RegAlloc( compiler ) );
+	printf( "CompileBinary: lhs: %d tk: %d rhs: %d\n", lhs.reg, tk->type, rhs.reg );
 	return dst;
 }
 
-static Reg CompileInfix( Compiler* compiler, Reg lhs, Prec min ){
+static Expr CompileInfix( Compiler* compiler, Expr lhs, Prec min ){
 	Lexer* lexer = compiler->lexer;
-	Tk tk = lexer->tk;
+	Tk tk = lexer->tk; /* copy */
 	while( DenoGet( PARSEPOS_INF, tk.type ) == DENO_INF ){
 		Prec prec = PrecGet( tk.type );
 		Assoc assoc = AssocGet( tk.type );
@@ -137,18 +142,49 @@ static Reg CompileInfix( Compiler* compiler, Reg lhs, Prec min ){
 	return lhs;
 }
 
-static Reg CompileExpr( Compiler* compiler, Prec min ){
-	Reg reg = CompilePrefix( compiler );
-	reg = CompilePostfix( compiler, reg );
-	reg = CompileInfix( compiler, reg, min );
-	return reg;
+static Expr CompileExpr( Compiler* compiler, Prec min ){
+	Expr expr = CompilePrefix( compiler );
+	expr = CompilePostfix( compiler, expr );
+	expr = CompileInfix( compiler, expr, min );
+	return expr;
 }
 
-Reg Compile( Compiler* compiler ){
+static Expr CompileDecl( Compiler* compiler, Lexer* lexer, Tk* tk ){
+	Lex( lexer ); /* eat colon */
+	printf( "CompileDecl: %d\n", tk->intern );
+	Expr rhs = CompileExpr( compiler, PREC_NONE );
+	return rhs;
+}
+
+static Expr CompileId( Compiler* compiler ){
+	Lexer* lexer = compiler->lexer;
+	Tk tk = lexer->tk;
+	Lex( lexer );
+	if( lexer->tk.type == TK_COLON ) return CompileDecl( compiler, lexer, &tk );
+	Expr ref = CompileRef( compiler, &tk ); /* continue parsing as expr. syntax is ambiguous. */
+	ref = CompilePostfix( compiler, ref );
+	ref = CompileInfix( compiler, ref, PREC_NONE );
+	return ref;
+}
+
+static Expr CompileStmt( Compiler* compiler ){
+	Lexer* lexer = compiler->lexer;
+	switch( lexer->tk.type ){
+		default: return CompileExpr( compiler, PREC_NONE );
+		case TK_EOS: return ExprGen( EXPR_NONE, CMP_REG_ERR );
+		case TK_ID: return CompileId( compiler );
+		// case TK_IF: return CompileIf( compiler );
+		// case TK_RET: return CompileReturn( compiler );
+		// case TK_BREAK: return CompileBreak( compiler );
+		// case TK_CONT: return CompileCont( compiler );
+	}
+}
+
+Expr Compile( Compiler* compiler ){
 	Lex( compiler->lexer );
-	Reg dst = CompileExpr( compiler, PREC_NONE );
+	Expr e = CompileStmt( compiler );
 	// Emit( &compiler->code, OP_HALT, 0, 0, 0 );
-	return dst;
+	return e;
 }
 
 void CompilerFree( Compiler* compiler ){

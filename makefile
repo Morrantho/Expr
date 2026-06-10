@@ -34,7 +34,7 @@ calls:
 	@objdump -drwC -Mintel ./a.out | awk "/call/ { print }"
 
 syms:
-	@nm -C ./a.out | grep -E " Lex| Parse| Compile| Run| Vm| Mem| Src"
+	@nm -C ./a.out | grep -E ""
 
 clean:
 	rm -f a.out a.s
