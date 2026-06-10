@@ -23,6 +23,7 @@
 #define CONST_CAP		COUNT( 256 )
 
 #define CMP_REG_CAP		COUNT( 256 )
+#define CMP_REG_ERR		CMP_REG_CAP
 #define CMP_CODE_CAP	COUNT( 1024 )
 
 #endif

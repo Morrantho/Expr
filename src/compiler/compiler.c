@@ -47,6 +47,14 @@ static Reg CompileGroup( Compiler* compiler ){
 	return src;
 }
 
+static Reg CompileUnary( Compiler* compiler, Tk* tk ){
+	Reg src = CompileExpr( compiler, PREC_UNARY );
+	Reg dst = RegAlloc( compiler );
+	printf( "CompileUnary: tk: %d src: %d dst: %d\n", tk->type, src, dst );
+	/* Emit( &compiler->code, OpGet( POS_PRE, tk->type ), dst, src,  ); */
+	return dst;
+}
+
 static Reg CompileNum( Compiler* compiler, Tk* tk ){
 	Reg dst = RegAlloc( compiler );
 	ConstId cid = ConstPutNum( compiler->consts, tk->num );
@@ -55,11 +63,19 @@ static Reg CompileNum( Compiler* compiler, Tk* tk ){
 	return dst;
 }
 
-static Reg CompileUnary( Compiler* compiler, Tk* tk ){
-	Reg src = CompileExpr( compiler, PREC_UNARY );
+static Reg CompileStr( Compiler* compiler, Tk* tk ){
 	Reg dst = RegAlloc( compiler );
-	printf( "CompileUnary: tk: %d src: %d dst: %d\n", tk->type, src, dst );
-	/* Emit( &compiler->code, OpGet( POS_PRE, tk->type ), dst, src,  ); */
+	ConstId cid = ConstPutStr( compiler->consts, tk->intern );
+	printf( "const str: %d\n", cid );
+	/* EmitABC( compiler, OP_LOADC, dst, cid, 0 ); */
+	return dst;
+}
+
+static Reg CompileRef( Compiler* compiler, Tk* tk ){
+	Reg dst = RegAlloc( compiler );
+	/* Sym sym = SymbolGet( compiler->symbols, tk->intern ); */
+	printf( "load ref: %d\n", tk->intern );
+	/* EmitABC( compiler, OP_LOADLOCAL | OP_LOADGLOBAL | OP_LOADUPVAL, dst, sym ) */
 	return dst;
 }
 
@@ -75,6 +91,8 @@ static Reg CompilePrefix( Compiler* compiler ){
 		case DENO_GRP: return CompileGroup( compiler );
 		case DENO_PRE: return CompileUnary( compiler, &tk );
 		case DENO_NUM: return CompileNum( compiler, &tk );
+		case DENO_STR: return CompileStr( compiler, &tk );
+		case DENO_REF: return CompileRef( compiler, &tk );
 	}
 }
 
