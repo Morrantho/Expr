@@ -19,7 +19,7 @@ void CompilerReset( Compiler* compiler ){
 /* Temporary until we deal with blocks, scopes, functions, etc. */
 static Reg RegAlloc( Compiler* compiler ){
 	if( compiler->reg >= CMP_REG_CAP ){
-		Throw( CMP_REG_CAP );
+		Throw( ERR_REGALLOC );
 		return 0;
 	}
 	return compiler->reg++;

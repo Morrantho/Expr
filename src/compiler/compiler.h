@@ -7,11 +7,11 @@
 #include "../parser/deno.h"
 #include "../base/const/const.h"
 
-typedef u8 Reg;
+typedef u32 Reg;
 
 typedef struct Inst {
-	Reg op;
-	Reg a, b, c;
+	u8 op;
+	u8 a, b, c;
 } Inst;
 
 typedef struct Compiler {
