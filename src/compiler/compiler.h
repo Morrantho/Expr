@@ -2,9 +2,9 @@
 #define COMPILER_H
 
 #include "../lexer/lexer.h"
-#include "../parser/prec.h"
-#include "../parser/assoc.h"
-#include "../parser/deno.h"
+#include "../parsing/prec.h"
+#include "../parsing/assoc.h"
+#include "../parsing/deno.h"
 #include "../base/const/const.h"
 
 typedef u32 Reg;

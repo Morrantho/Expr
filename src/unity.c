@@ -10,9 +10,9 @@
 #include "lexer/token.c"
 #include "lexer/lexer.c"
 
-#include "parser/prec.c"
-#include "parser/assoc.c"
-#include "parser/deno.c"
+#include "parsing/prec.c"
+#include "parsing/assoc.c"
+#include "parsing/deno.c"
 
 #include "base/const/const.c"
 #include "compiler/compiler.c"
