@@ -1,36 +1,30 @@
 #ifndef OPCODE_H
 #define OPCODE_H
 
+#include "expr.h"
+#include "../lexer/token.h"
+
 #define X_OPS_CORE( X )\
-	X( NOP,   _, _, _, )\
-	X( HALT,  _, _, _, )\
-	X( LOADC, _, _, _, ) /* General */
+	X( ERR,   _, _, _, _ )\
+	X( NOP,   _, _, _, _ )\
+	X( HALT,  _, _, _, _ )\
+	X( LOADC, _, _, _, _ ) /* General */
 
 #define X_OPS_UNA_NUM_C( X )\
 	X( NOT_NUM,	 NOT,  NUM, _, NUM ) /* !a */\
-	X( NEG_NUM,	 NEG,  NUM, _, NUM ) /* -a */\
+	X( NEG_NUM,	 SUB,  NUM, _, NUM ) /* -a */\
 	X( BNOT_NUM, BNOT, NUM, _, NUM ) /* ~a */
-	
-#define X_OPS_UNA_NUM_MUT_PRE_C( X )\
+#define X_OPS_UNA_NUM_MUT_C( X )\
 	X( PREINC_NUM, INC, NUM, _, NUM ) /* ++a */\
 	X( PREDEC_NUM, DEC, NUM, _, NUM ) /* --a */
-
-#define X_OPS_UNA_NUM_MUT_POST_C( X )\
-	X( POSTINC_NUM, INC, NUM, _, NUM ) /* a++ */\
-	X( POSTDEC_NUM, DEC, NUM, _, NUM ) /* a-- */
-
 #define X_OPS_UNA_NUM_NO_C( X )\
 	X( ROUND_NUM, ROUND, NUM, _, NUM ) /* %%a */\
 	X( CEIL_NUM,  CEIL,  NUM, _, NUM ) /* **a */\
 	X( FLOOR_NUM, FLOOR, NUM, _, NUM ) /* //a */
 
-#define X_OPS_UNA( X )\
-	X_OPS_UNA_NUM_C( X )\
-	X_OPS_UNA_NUM_MUT_PRE_C( X )\
-	X_OPS_UNA_NUM_NO_C( X )
-	
-#define X_OPS_POST( X )\
-	X_OPS_UNA_NUM_MUT_POST_C( X )
+#define X_OPS_POST_NUM_MUT_C( X )\
+	X( POSTINC_NUM, INC, NUM, _, NUM ) /* a++ */\
+	X( POSTDEC_NUM, DEC, NUM, _, NUM ) /* a-- */
 
 #define X_OPS_BIN_NUM_C( X )\
 	X( NOTEQ_NUM, NOTEQ, NUM, NUM, NUM ) /* a != b */\
@@ -51,7 +45,6 @@
 	X( BXOR_NUM,  BXOR,  NUM, NUM, NUM ) /* a ^ b */\
 	X( BOR_NUM,   BOR,   NUM, NUM, NUM ) /* a | b */\
 	X( OR_NUM,    OR,    NUM, NUM, NUM ) /* a || b */
-
 #define X_OPS_BIN_NUM_MUT_C( X )\
 	X( MODEQ_NUM,  MODEQ,  NUM, NUM, NUM ) /*  a %= b */\
 	X( BANDEQ_NUM, BANDEQ, NUM, NUM, NUM ) /* a &= b */\
@@ -62,15 +55,19 @@
 	X( RSHEQ_NUM,  RSHEQ,  NUM, NUM, NUM ) /* a >>= b */\
 	X( BXOREQ_NUM, BXOREQ, NUM, NUM, NUM ) /* a ^= b */\
 	X( BOREQ_NUM,  BOREQ,  NUM, NUM, NUM ) /* a |= b */
-
 #define X_OPS_BIN_NO_C( X )\
 	X( POW_NUM, POW, NUM, NUM, NUM ) /* a ^^ b */
 
+#define X_OPS_UNA( X )\
+	X_OPS_UNA_NUM_C( X )\
+	X_OPS_UNA_NUM_MUT_C( X )\
+	X_OPS_UNA_NUM_NO_C( X )
+#define X_OPS_POST( X )\
+	X_OPS_POST_NUM_MUT_C( X )
 #define X_OPS_BIN( X )\
 	X_OPS_BIN_NUM_C( X )\
 	X_OPS_BIN_NUM_MUT_C( X )\
 	X_OPS_BIN_NO_C( X )
-
 #define X_OPS( X )\
 	X_OPS_CORE( X )\
 	X_OPS_UNA( X )\
@@ -78,6 +75,22 @@
 	X_OPS_BIN( X )
 
 #define X_OP_ENUMS( OP, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE ) OP_##OP,
+#define X_OP_UNA_INIT( OP, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
+	[ EXPR_##LHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
+#define X_OP_POST_INIT( OP, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
+	[ EXPR_##LHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
+#define X_OP_BIN_INIT( OP, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
+	[ EXPR_##LHS_TYPE ][ EXPR_##RHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
+
 typedef enum OpCode { X_OPS( X_OP_ENUMS ) OP_COUNT } OpCode;
+
+typedef struct Op { /* keep these u8 for small tables */
+	u8 code;
+	u8 type;
+} Op;
+
+Op OpGetUnary( ExprType rhs_type, TkType tk_type );
+Op OpGetPost( ExprType lhs_type, TkType tk_type );
+Op OpGetBinary( ExprType lhs_type, ExprType rhs_type, TkType tk_type );
 
 #endif

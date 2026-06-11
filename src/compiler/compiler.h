@@ -6,28 +6,13 @@
 #include "../parsing/assoc.h"
 #include "../parsing/deno.h"
 #include "../base/const/const.h"
-
-typedef u32 Reg;
+#include "expr.h"
+#include "opcode.h"
 
 typedef struct Inst {
 	u8 op;
 	u8 a, b, c;
 } Inst;
-
-typedef enum ExprType {
-	EXPR_NONE, /* for nops */
-	EXPR_ERR,
-	EXPR_NUM,
-	EXPR_STR,
-	EXPR_REF,
-	EXPR_UNKNOWN,
-	EXPR_COUNT
-} ExprType;
-
-typedef struct Expr { /* 8 bytes max. If we need more metadata, use u8s for these. */
-	ExprType type;
-	Reg reg;
-} Expr;
 
 typedef struct Compiler {
 	Logs* logs;

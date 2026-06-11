@@ -6,7 +6,6 @@
 
 #define X_DENOS( X )\
 	X( ERR )\
-	X( NOP )\
 	X( NOPPRE )\
 	X( GRP )\
 	X( PRE )\

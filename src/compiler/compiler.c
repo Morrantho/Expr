@@ -17,10 +17,6 @@ void CompilerReset( Compiler* compiler ){
 	compiler->reg = 0;
 }
 
-static Expr ExprGen( ExprType type, Reg reg ){
-	return ( Expr ){ .type = type, .reg = reg };
-}
-
 /* Temporary until we deal with blocks, scopes, functions, etc. */
 static Reg RegAlloc( Compiler* compiler ){
 	if( compiler->reg >= CMP_REG_CAP ){
@@ -54,7 +50,7 @@ static Expr CompileGroup( Compiler* compiler ){
 
 static Expr CompileUnary( Compiler* compiler, Tk* tk ){
 	Expr src = CompileExpr( compiler, PREC_UNARY );
-	Expr dst = ExprGen( EXPR_UNKNOWN, RegAlloc( compiler ) );
+	Expr dst = ExprGen( EXPR_ERR, RegAlloc( compiler ) );
 	printf( "CompileUnary: tk: %d src: %d dst: %d\n", tk->type, src.reg, dst.reg );
 	/* Emit( &compiler->code, OpGet( POS_PRE, tk->type ), dst, src,  ); */
 	return dst;
@@ -91,7 +87,6 @@ static Expr CompilePrefix( Compiler* compiler ){
 	Lex( lexer );
 	switch( deno ){
 		default: return CompileBadPrefix( compiler, deno, &tk );
-		case DENO_NOP: return ExprGen( EXPR_NONE, CMP_REG_ERR );
 		case DENO_NOPPRE: return CompileExpr( compiler, PREC_UNARY );
 		case DENO_GRP: return CompileGroup( compiler );
 		case DENO_PRE: return CompileUnary( compiler, &tk );
@@ -103,7 +98,7 @@ static Expr CompilePrefix( Compiler* compiler ){
 
 static Expr CompilePostUnary( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	Lex( lexer );
-	Expr dst = ExprGen( EXPR_UNKNOWN, RegAlloc( compiler ) );
+	Expr dst = ExprGen( EXPR_ERR, RegAlloc( compiler ) );
 	printf( "CompilePostUnary: src: %d dst: %d tk: %d\n", src.reg, dst.reg, tk->type );
 	/* Emit( &compiler->code, OpGet( POS_POST, tk->type ), dst, src,  ); */
 	return dst;
@@ -124,7 +119,7 @@ static Expr CompilePostfix( Compiler* compiler, Expr src ){
 static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec, Tk* tk ){
 	Lex( lexer );
 	Expr rhs = CompileExpr( compiler, prec );
-	Expr dst = ExprGen( EXPR_UNKNOWN, RegAlloc( compiler ) );
+	Expr dst = ExprGen( EXPR_ERR, RegAlloc( compiler ) );
 	printf( "CompileBinary: lhs: %d tk: %d rhs: %d\n", lhs.reg, tk->type, rhs.reg );
 	return dst;
 }
@@ -171,7 +166,7 @@ static Expr CompileStmt( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
 	switch( lexer->tk.type ){
 		default: return CompileExpr( compiler, PREC_NONE );
-		case TK_EOS: return ExprGen( EXPR_NONE, CMP_REG_ERR );
+		case TK_EOS: return ExprGen( EXPR_NULL, CMP_REG_ERR );
 		case TK_ID: return CompileId( compiler );
 		// case TK_IF: return CompileIf( compiler );
 		// case TK_RET: return CompileReturn( compiler );

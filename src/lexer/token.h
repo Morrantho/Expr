@@ -6,7 +6,7 @@
 
 #define X_TKS( X ) /* prefix, infix, and postfix point to a denotation type enum */\
 	/* ENUM    PREC    ASSOC  PREFIX  INFIX  POSTFIX */\
-	X( EOS,    NONE,   NONE,  NOP,    ERR,   ERR  ) /* \0  */\
+	X( EOS,    NONE,   NONE,  ERR,    ERR,   ERR  ) /* \0  */\
 	X( ERR,    NONE,   NONE,  ERR,    ERR,   ERR  ) /* For parser / compiler hints */\
 	X( NOT,    UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* !   */\
 	X( NOTEQ,  EQUAL,  LEFT,  ERR,    INF,   ERR  ) /* !=  */\
