@@ -55,6 +55,7 @@
 
 #define X_TK_ENUMS( ENUM, PREC, ASSOC, PRE, INF, POST ) TK_##ENUM,
 #define X_TK_STRS( ENUM, PREC, ASSOC, PRE, INF, POST ) ( u8*)#ENUM,
+
 typedef enum TkType { X_TKS( X_TK_ENUMS ) TK_COUNT } TkType;
 
 typedef struct Tk {

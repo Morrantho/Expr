@@ -26,8 +26,8 @@
 #define X_LOG_NAME_INIT( LEVEL, NAME, COL ) ( u8* )NAME,
 #define X_LOG_COL_INIT( LEVEL, NAME, COL ) ( u8* )COL,
 
-typedef enum LogLvl { X_LOG_TYPES( X_LOG_LVL_ENUM ) } LogLvl;
-typedef enum LogMsgType { X_LOGS( X_LOG_MSG_TYPE_ENUM ) } LogMsgType;
+typedef enum LogLvl { X_LOG_TYPES( X_LOG_LVL_ENUM ) LOGLVL_COUNT } LogLvl;
+typedef enum LogMsgType { X_LOGS( X_LOG_MSG_TYPE_ENUM ) LOGMSGTYPE_COUNT } LogMsgType;
 
 typedef struct LogPos {
 	SrcId src;			/* The source file it came from */

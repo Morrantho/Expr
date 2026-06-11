@@ -2,6 +2,7 @@
 #define _ASCII_H
 
 #define X_ASCIIS( X )\
+	/* ENUM       TK    LABEL    FN       ACTION */\
 	X( NUL,       EOS, EOS,     Eos,     RET )		/* '\0' */\
 	X( SOH,       EOS, NEXT,    Next,    JMP )		/* 1 */\
 	X( STX,       EOS, NEXT,    Next,    JMP )		/* 2 */\

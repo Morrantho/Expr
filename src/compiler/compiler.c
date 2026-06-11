@@ -27,7 +27,7 @@ static Reg RegAlloc( Compiler* compiler ){
 		Throw( ERR_REGALLOC );
 		return 0;
 	}
-	return compiler->reg++;
+	return ( Reg )compiler->reg++;
 }
 
 static void CompilerMatch( Compiler* compiler, TkType expected ){

@@ -17,7 +17,7 @@
 	X( LOGBUF, "log buffer failed to allocate format string: %s\n" )\
 	X( REGALLOC, "ran out of registers. aborting.\n")
 
-typedef enum ErrType { X_ERRS( X_ERR_ENUMS ) } ErrType;
+typedef enum ErrType { X_ERRS( X_ERR_ENUMS ) ERR_COUNT } ErrType;
 void Throw( ErrType err, ... );
 
 #endif

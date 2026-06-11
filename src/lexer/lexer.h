@@ -40,7 +40,7 @@
 #define X_LEX_LABEL( LABEL, FN, ACTION ) LABEL:{ Lex##FN( lexer ); ACTION; }
 
 typedef struct Lexer {
-	Logs* logs;		/* App owned */
+	Logs* logs;			/* App owned */
 	Interns* interns;	/* App owned */
 	u8* text;
 	LogPos pos;

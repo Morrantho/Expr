@@ -10,6 +10,7 @@ typedef u32 ConstId;
 typedef enum ConstType {
 	CONST_NUM,
 	CONST_STR,
+	CONST_COUNT
 } ConstType;
 
 typedef struct Const{

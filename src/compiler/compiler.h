@@ -20,7 +20,8 @@ typedef enum ExprType {
 	EXPR_NUM,
 	EXPR_STR,
 	EXPR_REF,
-	EXPR_UNKNOWN
+	EXPR_UNKNOWN,
+	EXPR_COUNT
 } ExprType;
 
 typedef struct Expr { /* 8 bytes max. If we need more metadata, use u8s for these. */
@@ -37,7 +38,7 @@ typedef struct Compiler {
 	u32 len;
 	u32 cap;
 
-	Reg reg; /* trivial register counter / allocator */
+	u32 reg; /* trivial register counter / allocator */
 } Compiler;
 
 void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts );
