@@ -18,9 +18,9 @@
 	X( FATAL, PARSE_BADINF,		"bad expr infix: %s for token type: %s" )\
 	X( FATAL, PARSE_BADPOST,	"bad expr postfix: %s for token type: %s" )\
 	X( FATAL, PARSE_EXPECT,		"expected: %d, got: %d" )\
-	X( FATAL, CMP_BADUNARY,     "cannot %s a %s" )\
-	X( FATAL, CMP_BADPOST,      "cannot %s a %s" )\
-	X( FATAL, CMP_BADBINARY,    "cannot %s a %s with a %s" )
+	X( FATAL, CMP_BADUNARY,     "cannot use %s on %s" )\
+	X( FATAL, CMP_BADPOST,      "cannot use %s on %s" )\
+	X( FATAL, CMP_BADBINARY,    "cannot use %s on %s and %s" )
 	
 #define X_LOG_LVL_ENUM( LEVEL, NAME, COL ) LOG_##LEVEL,
 #define X_LOG_MSG_TYPE_ENUM( LEVEL, TYPE, FMT ) TYPE,
