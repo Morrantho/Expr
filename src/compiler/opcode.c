@@ -20,3 +20,24 @@ Op* OpGetBinary( ExprType lhs_type, ExprType rhs_type, TkType tk_type ){
 	};
 	return &binarys[ lhs_type ][ rhs_type ][ tk_type ];
 }
+
+u8* OpGetUnaryName( TkType tk_type ){
+	switch( tk_type ){
+		default: return ( u8* )"unknown operator";
+		X_OPS_UNA( X_OP_NAME_CASE )
+	}
+}
+
+u8* OpGetPostName( TkType tk_type ){
+	switch( tk_type ){
+		default: return ( u8* )"unknown operator";
+		X_OPS_POST( X_OP_NAME_CASE )
+	}
+}
+
+u8* OpGetBinaryName( TkType tk_type ){
+	switch( tk_type ){
+		default: return ( u8* )"unknown operator";
+		X_OPS_BIN( X_OP_NAME_CASE )
+	}
+}

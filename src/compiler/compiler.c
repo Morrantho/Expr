@@ -47,8 +47,8 @@ static Expr CompileGroup( Compiler* compiler ){
 
 static Expr CompileBadUnary( Compiler* c, Expr* expr, Tk* tk ){
 	u8* expr_name = ExprGetName( expr->type );
-	u8 *tk_name = TkGetName( tk->type );
-	Log( c->logs, &tk->pos, CMP_BADUNARY, tk_name, expr_name );
+	u8* unary_name = OpGetUnaryName( tk->type );
+	Log( c->logs, &tk->pos, CMP_BADUNARY, unary_name, expr_name );
 	return ExprGen( EXPR_ERR, CMP_REG_ERR );
 }
 
@@ -101,8 +101,8 @@ static Expr CompilePrefix( Compiler* compiler ){
 
 static Expr CompileBadPost( Compiler* c, Expr* expr, Tk* tk ){
 	u8* expr_name = ExprGetName( expr->type );
-	u8 *tk_name = TkGetName( tk->type );
-	Log( c->logs, &tk->pos, CMP_BADPOST, tk_name, expr_name );
+	u8* post_name = OpGetPostName( tk->type );
+	Log( c->logs, &tk->pos, CMP_BADPOST, post_name, expr_name );
 	return ExprGen( EXPR_ERR, CMP_REG_ERR );
 }
 
@@ -130,8 +130,8 @@ static Expr CompilePostfix( Compiler* compiler, Expr src ){
 static Expr CompileBadBinary( Compiler* c, Expr* lhs, Expr* rhs, Tk* tk ){
 	u8* lhs_type = ExprGetName( lhs->type );
 	u8* rhs_type = ExprGetName( rhs->type );
-	u8 *tk_name = TkGetName( tk->type );
-	Log( c->logs, &tk->pos, CMP_BADBINARY, tk_name, lhs_type, rhs_type );
+	u8* bin_name = OpGetBinaryName( tk->type );
+	Log( c->logs, &tk->pos, CMP_BADBINARY, bin_name, lhs_type, rhs_type );
 	return ExprGen( EXPR_ERR, CMP_REG_ERR );
 }
 
