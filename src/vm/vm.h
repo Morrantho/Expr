@@ -1,7 +1,11 @@
 #ifndef VM_H
 #define VM_H
 
+#include "../compiler/opcode.h"
 #include "../compiler/inst.h"
+
+#define X_OP_VM_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE, NAME )\
+case OP_##OP:{ Vm##FN( vm, i ); continue; }
 
 typedef struct Vm {
 	Insts* insts;

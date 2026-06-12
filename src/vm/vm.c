@@ -1,4 +1,5 @@
 #include "vm.h"
+#include "ops/ops.h"
 
 void VmInit( Vm* vm, Insts* insts ){
 	vm->insts = insts;
@@ -10,12 +11,11 @@ Reg VmRun( Vm* vm ){
 	for( ;; ){
 		i = ip++;
 		switch( ( OpCode )i->op ){
-			case OP_HALT: return i->a;
-			default:{
-				u8* op_name = OpGetName( i->op );
-				printf( "%s %d %d %d\n", op_name, i->a, i->b, i->c );
-				continue;
-			}
+			default: return 0;
+			X_OPS_CORE( X_OP_VM_CASE )
+			// X_OPS_UNA( X_OP_VM_CASE )
+			// X_OPS_POST( X_OP_VM_CASE )
+			// X_OPS_BIN( X_OP_VM_CASE )
 		}
 	}
 }
