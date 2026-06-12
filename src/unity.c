@@ -17,6 +17,7 @@
 #include "base/const/const.c"
 #include "compiler/expr.c"
 #include "compiler/opcode.c"
+#include "compiler/inst.c"
 #include "compiler/compiler.c"
 
 #include "app/app.c"

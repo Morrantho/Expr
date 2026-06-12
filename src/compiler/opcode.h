@@ -9,7 +9,7 @@
 	X( NOP,   _, _, _, _ )\
 	X( HALT,  _, _, _, _ )\
 	X( LOADC, _, _, _, _ ) /* General */
-
+/* UNARY */
 #define X_OPS_UNA_NUM_C( X )\
 	X( NOT_NUM,	 NOT,  NUM, _, NUM ) /* !a */\
 	X( NEG_NUM,	 SUB,  NUM, _, NUM ) /* -a */\
@@ -21,11 +21,11 @@
 	X( ROUND_NUM, ROUND, NUM, _, NUM ) /* %%a */\
 	X( CEIL_NUM,  CEIL,  NUM, _, NUM ) /* **a */\
 	X( FLOOR_NUM, FLOOR, NUM, _, NUM ) /* //a */
-
+/* POSTFIX */
 #define X_OPS_POST_NUM_MUT_C( X )\
 	X( POSTINC_NUM, INC, NUM, _, NUM ) /* a++ */\
 	X( POSTDEC_NUM, DEC, NUM, _, NUM ) /* a-- */
-
+/* BINARY */
 #define X_OPS_BIN_NUM_C( X )\
 	X( NOTEQ_NUM, NOTEQ, NUM, NUM, NUM ) /* a != b */\
 	X( MOD_NUM,   MOD,   NUM, NUM, NUM ) /* a % b */\

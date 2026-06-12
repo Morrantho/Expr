@@ -1,7 +1,8 @@
 #include "app.h"
 
 static void AppFree( App* app ){
-	CompilerFree( &app->compiler );
+	// CompilerFree( &app->compiler );
+	InstFree( &app->insts );
 	ConstFree( &app->consts );
 	InternFree( &app->interns );
 	LogFree( &app->logs );
@@ -11,6 +12,7 @@ static void AppFree( App* app ){
 static void AppReset( App* app, u8* text ){
 	LogReset( &app->logs );
 	LexReset( &app->lexer, text );
+	InstReset( &app->insts );
 	CompilerReset( &app->compiler );
 }
 
@@ -44,7 +46,8 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	InternInit( &app->interns );
 	LexInit( &app->lexer, &app->logs, &app->interns, src_id, text );
 	ConstInit( &app->consts );
-	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->consts );
+	InstInit( &app->insts );
+	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->consts, &app->insts );
 }
 
 x32 main( x32 nargs, x8** args ){

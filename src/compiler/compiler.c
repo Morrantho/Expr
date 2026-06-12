@@ -2,18 +2,15 @@
 
 static Expr CompileExpr( Compiler* compiler, Prec min );
 
-void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts ){
+void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts, Insts* insts ){
 	compiler->logs = logs;
 	compiler->lexer = lexer;
 	compiler->consts = consts;
-	compiler->code = MemAlloc( sizeof( Inst ), CMP_CODE_CAP );
-	compiler->len = 0;
-	compiler->cap = CMP_CODE_CAP;
+	compiler->insts = insts;
 	compiler->reg = 0;
 }
 
 void CompilerReset( Compiler* compiler ){
-	compiler->len = 0;
 	compiler->reg = 0;
 }
 
@@ -50,9 +47,10 @@ static Expr CompileGroup( Compiler* compiler ){
 
 static Expr CompileUnary( Compiler* compiler, Tk* tk ){
 	Expr src = CompileExpr( compiler, PREC_UNARY );
-	Expr dst = ExprGen( EXPR_ERR, RegAlloc( compiler ) );
-	printf( "CompileUnary: tk: %d src: %d dst: %d\n", tk->type, src.reg, dst.reg );
-	/* Emit( &compiler->code, OpGet( POS_PRE, tk->type ), dst, src,  ); */
+	Op op = OpGetUnary( src.type, tk->type );
+	Expr dst = ExprGen( op.type, RegAlloc( compiler ) );
+	// printf( "CompileUnary: tk: %d src: %d dst: %d\n", tk->type, src.reg, dst.reg );
+	/* Emit( &compiler->code, op.code, dst.reg, src.reg,  ); */
 	return dst;
 }
 
@@ -182,6 +180,6 @@ Expr Compile( Compiler* compiler ){
 	return e;
 }
 
-void CompilerFree( Compiler* compiler ){
-	MemFree( compiler->code );
-}
+// void CompilerFree( Compiler* compiler ){
+
+// }

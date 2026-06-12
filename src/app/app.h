@@ -14,6 +14,7 @@ typedef struct App {
 	Srcs srcs;
 	Interns interns;
 	Consts consts;
+	Insts insts;
 	Lexer lexer;
 	Compiler compiler;
 	// Vm vm;

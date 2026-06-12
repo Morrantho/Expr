@@ -8,27 +8,19 @@
 #include "../base/const/const.h"
 #include "expr.h"
 #include "opcode.h"
-
-typedef struct Inst {
-	u8 op;
-	u8 a, b, c;
-} Inst;
+#include "inst.h"
 
 typedef struct Compiler {
 	Logs* logs;
 	Lexer* lexer;
 	Consts* consts;
-
-	Inst* code;
-	u32 len;
-	u32 cap;
-
+	Insts* insts;
 	u32 reg; /* trivial register counter / allocator */
 } Compiler;
 
-void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts );
+void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts, Insts* insts );
 void CompilerReset( Compiler* compiler );
 Expr Compile( Compiler* compiler );
-void CompilerFree( Compiler* compiler );
+// void CompilerFree( Compiler* compiler );
 
 #endif
