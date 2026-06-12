@@ -1,6 +1,7 @@
 #include "app.h"
 
 static void AppFree( App* app ){
+	// VmFree( &app->vm );
 	// CompilerFree( &app->compiler );
 	InstFree( &app->insts );
 	ConstFree( &app->consts );
@@ -24,20 +25,15 @@ static void AppRepl( App* app ){
 		AppReset( app, text );
 		Compile( &app->compiler );
 		if( LogDump( &app->logs ) ) continue;
-		for( u32 i = 0; i < app->insts.len; i++ ){
-			Inst* inst = &app->insts.code[ i ];
-			u8* op_name = OpGetName( inst->op );
-			printf( "op:%s dst:%d src1:%d src2:%d\n", op_name, inst->a, inst->b, inst->c );
-		}
-		// Run( app );
+		VmRun( &app->vm );
 	}
 }
 
 static void AppRun( App* app ){
 	if( !app->nargs ){ AppRepl( app ); return; }
-	// Compile( app );
+	Compile( &app->compiler );
 	if( LogDump( &app->logs ) ) return;
-	// Run( app );
+	VmRun( &app->vm );
 }
 
 static void AppInit( App* app, u32 nargs, u8** args ){
@@ -52,6 +48,7 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	ConstInit( &app->consts );
 	InstInit( &app->insts );
 	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->consts, &app->insts );
+	VmInit( &app->vm, &app->insts );
 }
 
 x32 main( x32 nargs, x8** args ){

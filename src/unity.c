@@ -20,4 +20,6 @@
 #include "compiler/inst.c"
 #include "compiler/compiler.c"
 
+#include "vm/vm.c"
+
 #include "app/app.c"
