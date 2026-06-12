@@ -89,8 +89,8 @@ typedef struct Op { /* keep these u8 for small tables */
 	u8 type;
 } Op;
 
-Op OpGetUnary( ExprType rhs_type, TkType tk_type );
-Op OpGetPost( ExprType lhs_type, TkType tk_type );
-Op OpGetBinary( ExprType lhs_type, ExprType rhs_type, TkType tk_type );
+Op* OpGetUnary( ExprType rhs_type, TkType tk_type );
+Op* OpGetPost( ExprType lhs_type, TkType tk_type );
+Op* OpGetBinary( ExprType lhs_type, ExprType rhs_type, TkType tk_type );
 
 #endif

@@ -45,28 +45,33 @@ static Expr CompileGroup( Compiler* compiler ){
 	return src;
 }
 
+static Expr CompileBadUnary( Compiler* c, Expr* expr, Tk* tk ){
+	u8* expr_name = ExprGetName( expr->type );
+	u8 *tk_name = TkGetName( tk->type );
+	Log( c->logs, &tk->pos, CMP_BADUNARY, tk_name, expr_name );
+	return ExprGen( EXPR_ERR, CMP_REG_ERR );
+}
+
 static Expr CompileUnary( Compiler* compiler, Tk* tk ){
 	Expr src = CompileExpr( compiler, PREC_UNARY );
-	Op op = OpGetUnary( src.type, tk->type );
-	Expr dst = ExprGen( op.type, RegAlloc( compiler ) );
-	// printf( "CompileUnary: tk: %d src: %d dst: %d\n", tk->type, src.reg, dst.reg );
-	/* Emit( &compiler->code, op.code, dst.reg, src.reg,  ); */
+	Op* op = OpGetUnary( src.type, tk->type );
+	if( !op->code ) return CompileBadUnary( compiler, &src, tk );
+	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
+	InstABC( compiler->insts, op->code, ( u8 )dst.reg, ( u8 )src.reg, 0 );
 	return dst;
 }
 
 static Expr CompileNum( Compiler* compiler, Tk* tk ){
 	Expr dst = ExprGen( EXPR_NUM, RegAlloc( compiler ) );
 	ConstId cid = ConstPutNum( compiler->consts, tk->num );
-	printf( "const num: %d\n", cid ); /* no emission yet, just log consts. */
-	/* EmitABC( compiler, OP_LOADC, dst, cid, 0 ); */
+	InstAB( compiler->insts, OP_LOADC, ( u8 )dst.reg, ( u16 )cid );
 	return dst;
 }
 
 static Expr CompileStr( Compiler* compiler, Tk* tk ){
 	Expr dst = ExprGen( EXPR_STR, RegAlloc( compiler ) );
 	ConstId cid = ConstPutStr( compiler->consts, tk->intern );
-	printf( "const str: %d\n", cid );
-	/* EmitABC( compiler, OP_LOADC, dst, cid, 0 ); */
+	InstAB( compiler->insts, OP_LOADC, ( u8 )dst.reg, ( u16 )cid );
 	return dst;
 }
 
@@ -74,7 +79,7 @@ static Expr CompileRef( Compiler* compiler, Tk* tk ){
 	Expr dst = ExprGen( EXPR_REF, RegAlloc( compiler ) );
 	/* Sym sym = SymbolGet( compiler->symbols, tk->intern ); */
 	printf( "load ref: %d\n", tk->intern );
-	/* EmitABC( compiler, OP_LOADLOCAL | OP_LOADGLOBAL | OP_LOADUPVAL, dst, sym ) */
+	// InstAB( compiler->insts, sym.loadtype, sym.id, sym.src  );
 	return dst;
 }
 
@@ -94,11 +99,19 @@ static Expr CompilePrefix( Compiler* compiler ){
 	}
 }
 
+static Expr CompileBadPost( Compiler* c, Expr* expr, Tk* tk ){
+	u8* expr_name = ExprGetName( expr->type );
+	u8 *tk_name = TkGetName( tk->type );
+	Log( c->logs, &tk->pos, CMP_BADPOST, tk_name, expr_name );
+	return ExprGen( EXPR_ERR, CMP_REG_ERR );
+}
+
 static Expr CompilePostUnary( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	Lex( lexer );
-	Expr dst = ExprGen( EXPR_ERR, RegAlloc( compiler ) );
-	printf( "CompilePostUnary: src: %d dst: %d tk: %d\n", src.reg, dst.reg, tk->type );
-	/* Emit( &compiler->code, OpGet( POS_POST, tk->type ), dst, src,  ); */
+	Op* op = OpGetPost( src.type, tk->type );
+	if( !op->code ) return CompileBadPost( compiler, &src, tk );
+	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
+	InstABC( compiler->insts, op->code, dst.reg, src.reg, 0 );
 	return dst;
 }
 
@@ -114,11 +127,21 @@ static Expr CompilePostfix( Compiler* compiler, Expr src ){
 	}
 }
 
+static Expr CompileBadBinary( Compiler* c, Expr* lhs, Expr* rhs, Tk* tk ){
+	u8* lhs_type = ExprGetName( lhs->type );
+	u8* rhs_type = ExprGetName( rhs->type );
+	u8 *tk_name = TkGetName( tk->type );
+	Log( c->logs, &tk->pos, CMP_BADBINARY, tk_name, lhs_type, rhs_type );
+	return ExprGen( EXPR_ERR, CMP_REG_ERR );
+}
+
 static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec, Tk* tk ){
 	Lex( lexer );
 	Expr rhs = CompileExpr( compiler, prec );
-	Expr dst = ExprGen( EXPR_ERR, RegAlloc( compiler ) );
-	printf( "CompileBinary: lhs: %d tk: %d rhs: %d\n", lhs.reg, tk->type, rhs.reg );
+	Op* op = OpGetBinary( lhs.type, rhs.type, tk->type );
+	if( !op->code ) return CompileBadBinary( compiler, &lhs, &rhs, tk );
+	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
+	InstABC( compiler->insts, op->code, ( u8 )dst.reg, ( u8 )lhs.reg, ( u8 )rhs.reg );
 	return dst;
 }
 
@@ -176,7 +199,7 @@ static Expr CompileStmt( Compiler* compiler ){
 Expr Compile( Compiler* compiler ){
 	Lex( compiler->lexer );
 	Expr e = CompileStmt( compiler );
-	// Emit( &compiler->code, OP_HALT, 0, 0, 0 );
+	InstABC( compiler->insts, OP_HALT, 0, 0, 0 );
 	return e;
 }
 

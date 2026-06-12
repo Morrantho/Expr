@@ -29,7 +29,7 @@ void InstABC( Insts* insts, OpCode op, u8 a, u8 b, u8 c ){
 }
 
 void InstAB( Insts* insts, OpCode op, u8 a, u16 bc ){
-	InstABC( insts, op, a, ( u8 )bc >> 8, ( u8 )bc );
+	InstABC( insts, op, a, ( u8 )( bc >> 8 ), ( u8 )bc );
 }
 
 void InstFree( Insts* insts ){
