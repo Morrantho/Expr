@@ -106,12 +106,12 @@ static Expr CompileBadPost( Compiler* c, Expr* expr, Tk* tk ){
 	return ExprGen( EXPR_ERR, CMP_REG_ERR );
 }
 
-static Expr CompilePostUnary( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
+static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	Lex( lexer );
 	Op* op = OpGetPost( src.type, tk->type );
 	if( !op->code ) return CompileBadPost( compiler, &src, tk );
 	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
-	InstABC( compiler->insts, op->code, dst.reg, src.reg, 0 );
+	InstABC( compiler->insts, op->code, ( u8 )dst.reg, ( u8 )src.reg, 0 );
 	return dst;
 }
 
@@ -122,7 +122,7 @@ static Expr CompilePostfix( Compiler* compiler, Expr src ){
 		Deno deno = DenoGet( PARSEPOS_POST, tk.type );
 		switch( deno ){
 			default: return src;
-			case DENO_POST: src = CompilePostUnary( compiler, lexer, src, &tk ); break;
+			case DENO_POST: src = CompilePost( compiler, lexer, src, &tk ); break;
 		}
 	}
 }
