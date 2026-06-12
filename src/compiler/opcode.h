@@ -76,6 +76,7 @@
 	X_OPS_BIN( X )
 
 #define X_OP_ENUMS( OP, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE, NAME ) OP_##OP,
+#define X_OP_STRS( OP, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE, NAME ) ( u8* )#OP,
 #define X_OP_UNA_INIT( OP, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE, NAME )\
 	[ EXPR_##LHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
 #define X_OP_POST_INIT( OP, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE, NAME )\
@@ -95,6 +96,7 @@ typedef struct Op { /* keep these u8 for small tables */
 Op* OpGetUnary( ExprType rhs_type, TkType tk_type );
 Op* OpGetPost( ExprType lhs_type, TkType tk_type );
 Op* OpGetBinary( ExprType lhs_type, ExprType rhs_type, TkType tk_type );
+u8* OpGetName( OpCode opcode );
 u8* OpGetUnaryName( TkType tk_type );
 u8* OpGetPostName( TkType tk_type );
 u8* OpGetBinaryName( TkType tk_type );

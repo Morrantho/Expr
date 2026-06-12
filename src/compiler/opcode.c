@@ -21,6 +21,11 @@ Op* OpGetBinary( ExprType lhs_type, ExprType rhs_type, TkType tk_type ){
 	return &binarys[ lhs_type ][ rhs_type ][ tk_type ];
 }
 
+u8* OpGetName( OpCode opcode ){
+	static u8* ops[ ] = { X_OPS( X_OP_STRS ) };
+	return ops[ opcode ];
+}
+
 u8* OpGetUnaryName( TkType tk_type ){
 	switch( tk_type ){
 		default: return ( u8* )"unknown operator";

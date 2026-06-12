@@ -199,7 +199,7 @@ static Expr CompileStmt( Compiler* compiler ){
 Expr Compile( Compiler* compiler ){
 	Lex( compiler->lexer );
 	Expr e = CompileStmt( compiler );
-	InstABC( compiler->insts, OP_HALT, 0, 0, 0 );
+	InstABC( compiler->insts, OP_HALT, e.reg, 0, 0 );
 	return e;
 }
 

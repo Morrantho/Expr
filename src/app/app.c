@@ -22,9 +22,13 @@ static void AppRepl( App* app ){
 		printf( "> " );
 		if( !fgets( ( x8* )text, SRC_REPL_CAP, stdin ) ) return;
 		AppReset( app, text );
-		Expr e = Compile( &app->compiler );
-		printf( "reg: %d\n", e.reg );
+		Compile( &app->compiler );
 		if( LogDump( &app->logs ) ) continue;
+		for( u32 i = 0; i < app->insts.len; i++ ){
+			Inst* inst = &app->insts.code[ i ];
+			u8* op_name = OpGetName( inst->op );
+			printf( "op:%s dst:%d src1:%d src2:%d\n", op_name, inst->a, inst->b, inst->c );
+		}
 		// Run( app );
 	}
 }
