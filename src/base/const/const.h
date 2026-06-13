@@ -10,7 +10,6 @@ typedef u32 ConstId;
 typedef enum ConstType {
 	CONST_NUM,
 	CONST_STR,
-	CONST_COUNT
 } ConstType;
 
 typedef struct Const{
@@ -30,6 +29,7 @@ typedef struct Consts {
 void ConstInit( Consts* consts );
 ConstId ConstPutNum( Consts* consts, f64 num );
 ConstId ConstPutStr( Consts* consts, InternId str );
+Const* ConstGet( Consts* consts, ConstId idx );
 void ConstFree( Consts* consts );
 
 #endif

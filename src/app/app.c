@@ -25,7 +25,9 @@ static void AppRepl( App* app ){
 		AppReset( app, text );
 		Compile( &app->compiler );
 		if( LogDump( &app->logs ) ) continue;
-		VmRun( &app->vm );
+		Value* value = VmRun( &app->vm );
+		if( !value->type ) continue;
+		VmPrintValue( &app->vm, value );
 	}
 }
 
@@ -48,7 +50,7 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	ConstInit( &app->consts );
 	InstInit( &app->insts );
 	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->consts, &app->insts );
-	VmInit( &app->vm, &app->insts );
+	VmInit( &app->vm, &app->interns, &app->consts, &app->insts );
 }
 
 x32 main( x32 nargs, x8** args ){

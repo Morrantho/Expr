@@ -84,6 +84,11 @@ InternId InternPutStr( Interns* interns, u8* src, u32 len, u32 hash ){
 	return InternPut( interns, &key );
 }
 
+u8* InternGet( Interns* interns, InternId id ){
+	Intern* entry = &interns->entries[ id ];
+	return AobGet( &interns->aob, entry->offset );
+}
+
 void InternFree( Interns* interns ){
 	AobFree( &interns->aob );
 	MemFree( interns->slots );

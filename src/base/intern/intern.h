@@ -37,6 +37,7 @@ typedef struct Interns {
 void InternInit( Interns* interns );
 InternId InternPutId( Interns* interns, u8* src, u32 len, u32 hash );
 InternId InternPutStr( Interns* interns, u8* src, u32 len, u32 hash );
+u8* InternGet( Interns* interns, InternId id );
 void InternFree( Interns* interns );
 
 #endif
