@@ -3,7 +3,7 @@ STD=-std=gnu23
 SRC=src/unity.c
 EXCLUDES=-not -name "unity.c" -not -name "main.c"
 SRCS=$(shell find src/ -name "*.c" -type f $(EXCLUDES))
-LIB=-lm
+LIB=
 WARN=-Wall -Wextra -Werror -Wpedantic -Winline
 NOWARN=
 DBG=-O0 -ggdb3 -fno-omit-frame-pointer -DDEBUG
@@ -32,6 +32,9 @@ asm:
 
 calls:
 	@objdump -drwC -Mintel ./a.out | awk "/call/ { print }"
+
+vmdump:
+	@objdump -d -M intel --no-show-raw-insn --disassemble=VmRun ./a.out > vmrun.txt
 
 syms:
 	@nm -C ./a.out | grep -E ""

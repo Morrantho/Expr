@@ -137,8 +137,9 @@ static inline void VmBorEqNum( Vm* vm, Inst* i ){
 }
 
 static inline void VmPowNum( Vm* vm, Inst* i ){
-	f64 r = pow( VmGetNum( vm, i->b ), VmGetNum( vm, i->c ) );
-	VmSetNum( vm, i->a, r );
+	x64 base = VmGetX64( vm, i->b );
+	x64 exp = VmGetX64( vm, i->c );
+	VmSetX64( vm, i->a, VmPowX64( base, exp ) );
 }
 
 #endif
