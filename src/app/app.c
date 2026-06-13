@@ -15,6 +15,7 @@ static void AppReset( App* app, u8* text ){
 	LexReset( &app->lexer, text );
 	InstReset( &app->insts );
 	CompilerReset( &app->compiler );
+	VmReset( &app->vm );
 }
 
 static void AppRepl( App* app ){

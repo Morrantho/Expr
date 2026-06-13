@@ -15,7 +15,9 @@
 	X( FTELL, "failed to read file size from file: %s\n" )\
 	X( FREAD, "failed to read file: %s\n" )\
 	X( LOGBUF, "log buffer failed to allocate format string: %s\n" )\
-	X( REGALLOC, "ran out of registers. aborting.\n")
+	X( REGALLOC, "ran out of registers. aborting.\n")\
+	X( FRAMEOVERFLOW, "max frames reached. aborting.\n" )\
+	X( BADFRAME, "bad frame span. aborting\n" )
 
 typedef enum ErrType { X_ERRS( X_ERR_ENUMS ) ERR_COUNT } ErrType;
 void Throw( ErrType err, ... );

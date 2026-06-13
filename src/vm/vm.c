@@ -4,6 +4,17 @@ void VmInit( Vm* vm, Interns* interns, Consts* consts, Insts* insts ){
 	vm->interns = interns;
 	vm->consts = consts;
 	vm->insts = insts;
+	vm->frame = 0;
+	Frame* root = &vm->frames[ 0 ];
+	root->start = 0;
+	root->end = CMP_REG_CAP-1;
+}
+
+void VmReset( Vm* vm ){
+	vm->frame = 0;
+	Frame* root = &vm->frames[ 0 ];
+	root->start = 0;
+	root->end = CMP_REG_CAP-1;
 }
 
 #include "ops/ops.h"
