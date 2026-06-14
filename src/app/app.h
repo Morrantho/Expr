@@ -19,6 +19,7 @@ typedef struct App {
 	Consts consts;
 	Funcs funcs;
 	Syms syms;
+	// Syms fn_syms;
 	Insts insts;
 	Lexer lexer;
 	Compiler compiler;
