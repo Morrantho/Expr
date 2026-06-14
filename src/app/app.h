@@ -5,6 +5,8 @@
 #include "../base/diag/log.h"
 #include "../lexer/lexer.h"
 #include "../base/const/const.h"
+#include "../compiler/func.h"
+#include "../compiler/sym.h"
 #include "../compiler/compiler.h"
 #include "../vm/vm.h"
 
@@ -15,6 +17,8 @@ typedef struct App {
 	Srcs srcs;
 	Interns interns;
 	Consts consts;
+	Funcs funcs;
+	Syms syms;
 	Insts insts;
 	Lexer lexer;
 	Compiler compiler;

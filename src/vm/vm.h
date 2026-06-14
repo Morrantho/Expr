@@ -21,11 +21,12 @@ typedef struct Vm {
 	Frame frames[ CMP_REG_CAP ];
 	Interns* interns;
 	Consts* consts;
+	Funcs* funcs;
 	Insts* insts;
 	u8 frame; /* current frame */
 } Vm;
 
-void VmInit( Vm* vm, Interns* interns, Consts* consts, Insts* insts );
+void VmInit( Vm* vm, Interns* interns, Consts* consts, Funcs* funcs, Insts* insts );
 void VmReset( Vm* vm );
 void VmPrintValue( Vm* vm, Value* value );
 Value* VmRun( Vm* vm );

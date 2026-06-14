@@ -10,6 +10,7 @@ typedef u32 Reg;
 	X( NULL, "null" )\
 	X( NUM,  "number" )\
 	X( STR,  "string" )\
+	X( FUNC, "function" )\
 	X( REF,  "reference" )
 
 #define X_EXPR_ENUMS( ENUM, STR ) EXPR_##ENUM,
@@ -21,7 +22,6 @@ typedef struct Expr { /* 8 bytes max. If we need more metadata, use u8s for thes
 	ExprType type;
 	Reg reg;
 } Expr;
-
 
 u8* ExprGetName( ExprType type );
 Expr ExprGen( ExprType type, Reg reg );

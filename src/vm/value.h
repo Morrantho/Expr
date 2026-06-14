@@ -3,11 +3,13 @@
 
 #include "../base/typedefs.h"
 #include "../base/intern/intern.h"
+#include "../compiler/func.h"
 
 typedef enum ValueType {
 	VALUE_NULL,
 	VALUE_NUM,
 	VALUE_STR,
+	VALUE_FUNC
 } ValueType;
 
 typedef struct Value { /* 4 bytes of waste */
@@ -15,6 +17,7 @@ typedef struct Value { /* 4 bytes of waste */
 	union {
 		f64 num;
 		InternId str;
+		FuncId func;
 	};
 } Value;
 

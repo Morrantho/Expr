@@ -2,10 +2,12 @@
 
 static Expr CompileExpr( Compiler* compiler, Prec min );
 
-void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts, Insts* insts ){
+void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts, Funcs* funcs, Syms* syms, Insts* insts ){
 	compiler->logs = logs;
 	compiler->lexer = lexer;
 	compiler->consts = consts;
+	compiler->funcs = funcs;
+	compiler->syms = syms;
 	compiler->insts = insts;
 	compiler->reg = 0;
 }

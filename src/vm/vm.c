@@ -1,20 +1,15 @@
 #include "vm.h"
 
-void VmInit( Vm* vm, Interns* interns, Consts* consts, Insts* insts ){
+void VmInit( Vm* vm, Interns* interns, Consts* consts, Funcs* funcs, Insts* insts ){
 	vm->interns = interns;
 	vm->consts = consts;
+	vm->funcs = funcs;
 	vm->insts = insts;
 	vm->frame = 0;
-	Frame* root = &vm->frames[ 0 ];
-	root->start = 0;
-	root->end = CMP_REG_CAP-1;
 }
 
 void VmReset( Vm* vm ){
 	vm->frame = 0;
-	Frame* root = &vm->frames[ 0 ];
-	root->start = 0;
-	root->end = CMP_REG_CAP-1;
 }
 
 #include "ops/ops.h"
@@ -27,6 +22,8 @@ void VmPrintValue( Vm* vm, Value* value ){
 			printf( "%.15g\n", value->num ); break;
 		case VALUE_STR:
 			printf( "\"%s\"\n", InternGet( vm->interns, value->str ) ); break;
+		case VALUE_FUNC: break;
+			// printf( "\n", FuncGet( vm->funcs ) );
 	}
 }
 

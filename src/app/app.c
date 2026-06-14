@@ -1,9 +1,9 @@
 #include "app.h"
 
 static void AppFree( App* app ){
-	// VmFree( &app->vm );
-	// CompilerFree( &app->compiler );
 	InstFree( &app->insts );
+	SymFree( &app->syms );
+	FuncFree( &app->funcs );
 	ConstFree( &app->consts );
 	InternFree( &app->interns );
 	LogFree( &app->logs );
@@ -49,9 +49,11 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	InternInit( &app->interns );
 	LexInit( &app->lexer, &app->logs, &app->interns, src_id, text );
 	ConstInit( &app->consts );
+	FuncInit( &app->funcs );
+	SymInit( &app->syms );
 	InstInit( &app->insts );
-	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->consts, &app->insts );
-	VmInit( &app->vm, &app->interns, &app->consts, &app->insts );
+	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->consts, &app->funcs, &app->syms, &app->insts );
+	VmInit( &app->vm, &app->interns, &app->consts, &app->funcs, &app->insts );
 }
 
 x32 main( x32 nargs, x8** args ){

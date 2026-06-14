@@ -8,6 +8,8 @@
 #include "../base/const/const.h"
 #include "expr.h"
 #include "opcode.h"
+#include "func.h"
+#include "sym.h"
 #include "inst.h"
 
 typedef struct Compiler {
@@ -15,10 +17,12 @@ typedef struct Compiler {
 	Lexer* lexer;
 	Consts* consts;
 	Insts* insts;
+	Funcs* funcs;
+	Syms* syms;
 	u32 reg; /* trivial register counter / allocator */
 } Compiler;
 
-void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts, Insts* insts );
+void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts, Funcs* funcs, Syms* syms, Insts* insts );
 void CompilerReset( Compiler* compiler );
 Expr Compile( Compiler* compiler );
 // void CompilerFree( Compiler* compiler );
