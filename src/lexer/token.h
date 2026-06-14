@@ -35,7 +35,7 @@
 	X( FLOOR,  UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* //  */\
 	X( DIVEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* /=  */\
 	X( NUM,    NONE,   NONE,  NUM,    ERR,   ERR  ) /* 0-9 */\
-	X( COLON,  ASSIGN, NONE,  ERR,    ERR,   ERR  ) /* :   */\
+	X( ASSIGN, ASSIGN, NONE,  ERR,    ERR,   ERR  ) /* :   */\
 	X( END,    NONE,   NONE,  ERR,    ERR,   ERR  ) /* ::  */\
 	X( THEN,   NONE,   NONE,  ERR,    ERR,   ERR  ) /* :.  */\
 	X( LOOP,   NONE,   NONE,  ERR,    ERR,   ERR  ) /* ;;  */\

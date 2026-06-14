@@ -191,7 +191,7 @@ static Expr CompileId( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
 	Tk tk = lexer->tk;
 	Lex( lexer );
-	if( lexer->tk.type == TK_COLON ) return CompileDecl( compiler, lexer, &tk );
+	if( lexer->tk.type == TK_ASSIGN ) return CompileDecl( compiler, lexer, &tk );
 	Expr ref = CompileRef( compiler, &tk ); /* continue parsing as expr. syntax is ambiguous. */
 	ref = CompilePostfix( compiler, ref );
 	ref = CompileInfix( compiler, ref, PREC_NONE );

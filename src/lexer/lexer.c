@@ -144,7 +144,7 @@ static void LexNum( Lexer* lexer ){
 }
 
 static void LexColon( Lexer* lexer ){ /* : :: :. */
-	LexChar( lexer, TK_COLON );
+	LexChar( lexer, TK_ASSIGN );
 	if( *lexer->text == ':' ){ LexEat( lexer, TK_END ); return; }
 	if( *lexer->text == '.' ){ LexEat( lexer, TK_THEN ); return; }
 }
