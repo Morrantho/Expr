@@ -115,6 +115,12 @@ static void LexSub( Lexer* lexer ){ /* - -- -= */
 	if( *lexer->text == '=' ){ LexEat( lexer, TK_SUBEQ ); return; }
 }
 
+static void LexPeriod( Lexer* lexer ){ /* . .. .: */
+	LexChar( lexer, TK_MEMBER );
+	if( *lexer->text == '.' ){ LexEat( lexer, TK_ELSE ); return; }
+	if( *lexer->text == ':' ){ LexEat( lexer, TK_IF ); return; }
+}
+
 static void LexDiv( Lexer* lexer ){ /* / // /= */
 	LexChar( lexer, TK_DIV );
 	if( *lexer->text == '/' ){ LexEat( lexer, TK_FLOOR ); return; }
@@ -137,7 +143,18 @@ static void LexNum( Lexer* lexer ){
 	lexer->tk.num = n;
 }
 
-static void LexColon( Lexer* lexer ){ LexChar( lexer, TK_COLON ); }
+static void LexColon( Lexer* lexer ){ /* : :: :. */
+	LexChar( lexer, TK_COLON );
+	if( *lexer->text == ':' ){ LexEat( lexer, TK_END ); return; }
+	if( *lexer->text == '.' ){ LexEat( lexer, TK_THEN ); return; }
+}
+
+static void LexSemi( Lexer* lexer ){ /* ;; */
+	LogPos pos = lexer->pos;
+	LexChar( lexer, TK_EOS ); /* Intentional */
+	if( *lexer->text != ';' ){ Log( lexer->logs, &pos, LEX_BADLOOP ); return; }
+	LexEat( lexer, TK_LOOP );
+}
 
 static void LexLt( Lexer* lexer ){ /* < << <<= <= <== */
 	LexChar( lexer, TK_LT );
@@ -170,6 +187,8 @@ static void LexGt( Lexer* lexer ){
 	}
 	if( *lexer->text == '=' ){ LexEat( lexer, TK_GTE ); }
 }
+
+static void LexAt( Lexer* lexer ){ LexChar( lexer, TK_RET ); }
 
 static void LexId( Lexer* lexer ){
 	LexSet( lexer, TK_ID );

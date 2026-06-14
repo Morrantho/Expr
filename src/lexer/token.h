@@ -28,11 +28,17 @@
 	X( SUB,    TERM,   LEFT,  PRE,    INF,   ERR  ) /* -   */\
 	X( DEC,    UNARY,  LEFT,  PRE,    ERR,   POST ) /* --  */\
 	X( SUBEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* -=  */\
+	X( MEMBER, NONE,   NONE,  ERR,    ERR,   POST ) /* .   */\
+	X( ELSE,   NONE,   NONE,  ERR,    ERR,   ERR  ) /* ..  */\
+	X( IF,     NONE,   NONE,  ERR,    ERR,   ERR  ) /* .:  */\
 	X( DIV,    FACTOR, LEFT,  ERR,    INF,   ERR  ) /* /   */\
 	X( FLOOR,  UNARY,  RIGHT, PRE,    ERR,   ERR  ) /* //  */\
 	X( DIVEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* /=  */\
 	X( NUM,    NONE,   NONE,  NUM,    ERR,   ERR  ) /* 0-9 */\
 	X( COLON,  ASSIGN, NONE,  ERR,    ERR,   ERR  ) /* :   */\
+	X( END,    NONE,   NONE,  ERR,    ERR,   ERR  ) /* ::  */\
+	X( THEN,   NONE,   NONE,  ERR,    ERR,   ERR  ) /* :.  */\
+	X( LOOP,   NONE,   NONE,  ERR,    ERR,   ERR  ) /* ;;  */\
 	X( LT,     REL,    LEFT,  ERR,    INF,   ERR  ) /* <   */\
 	X( LSH,    SHIFT,  LEFT,  ERR,    INF,   ERR  ) /* <<  */\
 	X( LTE,    REL,    LEFT,  ERR,    INF,   ERR  ) /* <=  */\
@@ -44,6 +50,7 @@
 	X( RSH,    SHIFT,  LEFT,  ERR,    INF,   ERR  ) /* >>  */\
 	X( GTE,    REL,    LEFT,  ERR,    INF,   ERR  ) /* >=  */\
 	X( RSHEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* >>= */\
+	X( RET,    NONE,   NONE,  PRE,    ERR,   ERR  ) /* @ */\
 	X( ID,     NONE,   NONE,  REF,    ERR,   ERR  ) /* id */\
 	X( BXOR,   BXOR,   LEFT,  ERR,    INF,   ERR  ) /* ^   */\
 	X( POW,    POW,    LEFT,  ERR,    INF,   ERR  ) /* ^^ */\

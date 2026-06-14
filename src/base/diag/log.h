@@ -13,6 +13,7 @@
 #define X_LOGS( X )\
 	X( WARN,  LEX_BADCHAR,		"unexpected char '%c'" )\
 	X( WARN,  LEX_BADASSIGN,	"use ':' for assignments, not '='" )\
+	X( WARN,  LEX_BADLOOP,		"use ';;' for loops." )\
 	X( FATAL, LEX_BADSTR,		"unterminated string" )\
 	X( FATAL, PARSE_BADPRE,		"bad expr prefix: %s for token type: %s" )\
 	X( FATAL, PARSE_BADINF,		"bad expr infix: %s for token type: %s" )\

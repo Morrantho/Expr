@@ -49,7 +49,7 @@
 	X( PLUS,      EOS, ADD,     Add,     RET )		/* '+' */\
 	X( COMMA,     EOS, NEXT,    Next,    JMP )		/* ',' */\
 	X( HYPHEN,    EOS, SUB,     Sub,     RET )		/* '-' */\
-	X( PERIOD,    EOS, NEXT,    Next,    JMP )		/* '.' */\
+	X( PERIOD,    EOS, PERIOD,  Period,  RET )		/* '.' */\
 	X( FSLASH,    EOS, DIV,     Div,     RET )		/* '/' */\
 	X( ZERO,      NUM, NUM,     Num,     RET )		/* '0' */\
 	X( ONE,       NUM, NUM,     Num,     RET )		/* '1' */\
@@ -61,13 +61,13 @@
 	X( SEVEN,     NUM, NUM,     Num,     RET )		/* '7' */\
 	X( EIGHT,     NUM, NUM,     Num,     RET )		/* '8' */\
 	X( NINE,      NUM, NUM,     Num,     RET )		/* '9' */\
-	X( COLON,     EOS, NEXT,    Colon,   RET )		/* ':' */\
-	X( SEMICOLON, EOS, NEXT,    Next,    JMP )		/* ';' */\
+	X( COLON,     EOS, COLON,   Colon,   RET )		/* ':' */\
+	X( SEMICOLON, EOS, SEMI,    Semi,    RET )		/* ';' */\
 	X( LT,        EOS, LT,      Lt,      RET )		/* '<' */\
 	X( EQ,        EOS, EQ,      Eq,      RET )		/* '=' */\
 	X( GT,        EOS, GT,      Gt,      RET )		/* '>' */\
 	X( QUESTION,  EOS, NEXT,    Next,    JMP )		/* '?' */\
-	X( AT,        EOS, NEXT,    Next,    JMP )		/* '@' */\
+	X( AT,        EOS, AT,      At,      RET )		/* '@' */\
 	X( UPPER_A,   ID,  ID,      Id,      RET )		/* 'A' */\
 	X( UPPER_B,   ID,  ID,      Id,      RET )		/* 'B' */\
 	X( UPPER_C,   ID,  ID,      Id,      RET )		/* 'C' */\
