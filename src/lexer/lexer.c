@@ -89,7 +89,11 @@ static void LexMod( Lexer* lexer ){ /* % %% %= */
 }
 
 static void LexLp( Lexer* lexer ){ LexChar( lexer, TK_LP ); }
-static void LexRp( Lexer* lexer ){ LexChar( lexer, TK_RP ); }
+
+static void LexRp( Lexer* lexer ){
+	LexChar( lexer, TK_RP );
+	if( *lexer->text == '>' ){ LexEat( lexer, TK_FNCLOSE ); return; }
+}
 
 static void LexBand( Lexer* lexer ){ /* & && &= */
 	LexChar( lexer, TK_BAND );
@@ -156,11 +160,15 @@ static void LexSemi( Lexer* lexer ){ /* ;; */
 	LexEat( lexer, TK_LOOP );
 }
 
-static void LexLt( Lexer* lexer ){ /* < << <<= <= <== */
+static void LexLt( Lexer* lexer ){ /* < << <<= <= <( <== */
 	LexChar( lexer, TK_LT );
 	if( *lexer->text == '<' ){
 		LexEat( lexer, TK_LSH );
 		if( *lexer->text == '=' ){ LexEat( lexer, TK_LSHEQ ); return; }
+		return;
+	}
+	if( *lexer->text == '(' ){
+		LexEat( lexer, TK_FNOPEN );
 		return;
 	}
 	if( *lexer->text == '=' ){
