@@ -4,6 +4,8 @@
 #include "../base/typedefs.h"
 #include "inst.h"
 
+#define FUNC_NONE UINT16_MAX
+
 typedef u16 FuncId;
 
 typedef struct Func {

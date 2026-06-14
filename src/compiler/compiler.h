@@ -10,6 +10,7 @@
 #include "opcode.h"
 #include "func.h"
 #include "sym.h"
+#include "fnsym.h"
 #include "inst.h"
 
 typedef struct Compiler {
@@ -20,12 +21,13 @@ typedef struct Compiler {
 	Insts* insts;
 	Funcs* funcs;
 	Syms* syms;
+	FnSyms* fn_syms;
 	u32 reg; /* trivial register counter / allocator */
 } Compiler;
 
-void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Interns* interns, Consts* consts, Funcs* funcs, Syms* syms, Insts* insts );
+void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Interns* interns, Consts* consts, Funcs* funcs, Syms* syms, FnSyms* fn_syms, Insts* insts );
 void CompilerReset( Compiler* compiler );
-Expr Compile( Compiler* compiler );
+FuncId Compile( Compiler* compiler );
 // void CompilerFree( Compiler* compiler );
 
 #endif

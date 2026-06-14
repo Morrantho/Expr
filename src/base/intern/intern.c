@@ -56,7 +56,7 @@ static void InternGrowEntries( Interns* interns ){
 	interns->entries = MemRealloc( interns->entries, sizeof( Intern ), interns->entry_cap );
 }
 
-static InternId InternPut( Interns* interns, InternKey* key ){
+static InternId InternPutInternal( Interns* interns, InternKey* key ){
 	InternId entry_idx = 0;
 	u32 slot_idx = InternProbe( interns, key, &entry_idx );
 	if( entry_idx ) return entry_idx - 1; 
@@ -76,12 +76,21 @@ static InternId InternPut( Interns* interns, InternKey* key ){
 
 InternId InternPutId( Interns* interns, u8* src, u32 len, u32 hash ){
 	InternKey key = { HASH_ID, src, len, hash };
-	return InternPut( interns, &key );
+	return InternPutInternal( interns, &key );
 }
 
 InternId InternPutStr( Interns* interns, u8* src, u32 len, u32 hash ){
 	InternKey key = { HASH_STR, src, len, hash };
-	return InternPut( interns, &key );
+	return InternPutInternal( interns, &key );
+}
+
+InternId InternPut( Interns* interns, u8* src ){
+	u32 len = 0;
+	u32 hash = HashStart( HASH_ID );
+	for( ; src[ len ]; len++ ){ hash = HashU8( hash, src[ len ] ); }
+	hash = HashEnd( hash );
+	InternKey key = { HASH_ID, src, len, hash };
+	return InternPutInternal( interns, &key );
 }
 
 u8* InternGet( Interns* interns, InternId id ){

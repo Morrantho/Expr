@@ -23,7 +23,8 @@
 	X( FATAL, CMP_BADPOST,      "cannot use %s on %s" )\
 	X( FATAL, CMP_BADBINARY,    "cannot use %s on %s and %s" )\
 	X( FATAL, CMP_BADREF,		"undefined reference: %s" )\
-	X( FATAL, CMP_BADREFTYPE,	"cannot reference a function: %s" )
+	X( FATAL, CMP_BADREFTYPE,	"cannot reference a function: %s" )\
+	X( FATAL, CMP_NOMAIN,       "no Main<()> entry point")
 	
 #define X_LOG_LVL_ENUM( LEVEL, NAME, COL ) LOG_##LEVEL,
 #define X_LOG_MSG_TYPE_ENUM( LEVEL, TYPE, FMT ) TYPE,

@@ -27,14 +27,19 @@ void VmPrintValue( Vm* vm, Value* value ){
 	}
 }
 
-Value* VmRun( Vm* vm ){
-	Inst* ip = vm->insts->code;
+Value* VmRun( Vm* vm, FuncId entry ){
+	Func* fn = FuncGet( vm->funcs, entry );
+	vm->frame = 0;
+	Frame* frame = &vm->frames[ 0 ];
+	frame->start = 0;
+	frame->end = fn->nregs;
+	Inst* ip = &vm->insts->code[ fn->start ];
 	Inst* i;
 	for( ;; ){
 		i = ip++;
 		switch( ( OpCode )i->op ){
-			default: case OP_ERR: return 0;
-			case OP_HALT: return &vm->regs[ i->a ];
+			default: return 0;
+			case OP_HALT: case OP_RET: return VmGetValue( vm, i->a );
 			X_OPS_CORE( X_OP_VM_CASE )
 			X_OPS_UNA( X_OP_VM_CASE )
 			X_OPS_POST( X_OP_VM_CASE )

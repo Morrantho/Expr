@@ -19,6 +19,7 @@
 #include "compiler/func.c"
 #include "compiler/expr.c"
 #include "compiler/sym.c"
+#include "compiler/fnsym.c"
 #include "compiler/opcode.c"
 #include "compiler/inst.c"
 #include "compiler/compiler.c"

@@ -7,6 +7,7 @@
 #include "../base/const/const.h"
 #include "../compiler/func.h"
 #include "../compiler/sym.h"
+#include "../compiler/fnsym.h"
 #include "../compiler/compiler.h"
 #include "../vm/vm.h"
 
@@ -19,7 +20,7 @@ typedef struct App {
 	Consts consts;
 	Funcs funcs;
 	Syms syms;
-	// Syms fn_syms;
+	FnSyms fn_syms;
 	Insts insts;
 	Lexer lexer;
 	Compiler compiler;

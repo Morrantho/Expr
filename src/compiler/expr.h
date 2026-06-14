@@ -19,8 +19,8 @@ typedef u32 Reg;
 typedef enum ExprType { X_EXPRS( X_EXPR_ENUMS )  EXPR_COUNT } ExprType;
 
 typedef struct Expr { /* 8 bytes max. If we need more metadata, use u8s for these. */
-	ExprType type;
-	Reg reg;
+	u8 type;
+	u8 reg;
 } Expr;
 
 u8* ExprGetName( ExprType type );

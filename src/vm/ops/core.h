@@ -11,5 +11,4 @@ static void VmLoadConst( Vm* vm, Inst* i ){
 		case CONST_STR: VmSetStr( vm, i->a, c->str ); return;
 	}
 }
-
 #endif

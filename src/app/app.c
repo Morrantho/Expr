@@ -2,6 +2,7 @@
 
 static void AppFree( App* app ){
 	InstFree( &app->insts );
+	FnSymFree( &app->fn_syms );
 	SymFree( &app->syms );
 	FuncFree( &app->funcs );
 	ConstFree( &app->consts );
@@ -24,9 +25,9 @@ static void AppRepl( App* app ){
 		printf( "> " );
 		if( !fgets( ( x8* )text, SRC_REPL_CAP, stdin ) ) return;
 		AppReset( app, text );
-		Compile( &app->compiler );
+		FuncId entry = Compile( &app->compiler );
 		if( LogDump( &app->logs ) ) continue;
-		Value* value = VmRun( &app->vm );
+		Value* value = VmRun( &app->vm, entry );
 		if( !value->type ) continue;
 		VmPrintValue( &app->vm, value );
 	}
@@ -34,9 +35,10 @@ static void AppRepl( App* app ){
 
 static void AppRun( App* app ){
 	if( !app->nargs ){ AppRepl( app ); return; }
-	Compile( &app->compiler );
+	FuncId entry = Compile( &app->compiler );
 	if( LogDump( &app->logs ) ) return;
-	VmRun( &app->vm );
+	Value* value = VmRun( &app->vm, entry );
+	VmPrintValue( &app->vm, value );
 }
 
 static void AppInit( App* app, u32 nargs, u8** args ){
@@ -51,8 +53,9 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	ConstInit( &app->consts );
 	FuncInit( &app->funcs );
 	SymInit( &app->syms );
+	FnSymInit( &app->fn_syms );
 	InstInit( &app->insts );
-	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->interns, &app->consts, &app->funcs, &app->syms, &app->insts );
+	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->interns, &app->consts, &app->funcs, &app->syms, &app->fn_syms, &app->insts );
 	VmInit( &app->vm, &app->interns, &app->consts, &app->funcs, &app->insts );
 }
 

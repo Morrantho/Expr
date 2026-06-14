@@ -16,12 +16,8 @@ typedef enum SymType {
 
 typedef struct Sym {
 	InternId name;
-	union {
-		u8 reg;
-		FuncId func;
-	};
 	u8 expr_type;
-	u8 sym_type;
+	u8 reg;
 } Sym;
 
 typedef struct Syms {
@@ -32,8 +28,7 @@ typedef struct Syms {
 
 void SymInit( Syms* syms );
 Sym* SymGet( Syms* syms, InternId name );
-void SymPutVar( Syms* syms, InternId name, ExprType type, u8 reg );
-void SymPutFunc( Syms* syms, InternId name, FuncId funcid );
+void SymPut( Syms* syms, InternId name, ExprType type, u8 reg );
 void SymFree( Syms* syms );
 
 #endif

@@ -27,18 +27,10 @@ static Sym* SymPush( Syms* syms, InternId name ){
 	return sym;
 }
 
-void SymPutVar( Syms* syms, InternId name, ExprType type, u8 reg ){
+void SymPut( Syms* syms, InternId name, ExprType type, u8 reg ){
 	Sym* sym = SymPush( syms, name );
 	sym->expr_type = type;
-	sym->sym_type = SYM_VAR;
 	sym->reg = reg;
-}
-
-void SymPutFunc( Syms* syms, InternId name, FuncId funcid ){
-	Sym* sym = SymPush( syms, name );
-	sym->expr_type = EXPR_FUNC;
-	sym->sym_type = SYM_FUNC;
-	sym->func = funcid;
 }
 
 void SymFree( Syms* syms ){

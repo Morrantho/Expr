@@ -29,7 +29,7 @@ typedef struct Vm {
 void VmInit( Vm* vm, Interns* interns, Consts* consts, Funcs* funcs, Insts* insts );
 void VmReset( Vm* vm );
 void VmPrintValue( Vm* vm, Value* value );
-Value* VmRun( Vm* vm );
+Value* VmRun( Vm* vm, FuncId entry );
 // void VmFree( Vm* vm );
 
 #endif
