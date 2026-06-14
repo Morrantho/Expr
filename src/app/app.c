@@ -52,7 +52,7 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 	FuncInit( &app->funcs );
 	SymInit( &app->syms );
 	InstInit( &app->insts );
-	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->consts, &app->funcs, &app->syms, &app->insts );
+	CompilerInit( &app->compiler, &app->logs, &app->lexer, &app->interns, &app->consts, &app->funcs, &app->syms, &app->insts );
 	VmInit( &app->vm, &app->interns, &app->consts, &app->funcs, &app->insts );
 }
 

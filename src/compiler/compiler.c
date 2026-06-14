@@ -2,9 +2,10 @@
 
 static Expr CompileExpr( Compiler* compiler, Prec min );
 
-void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts, Funcs* funcs, Syms* syms, Insts* insts ){
+void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Interns* interns, Consts* consts, Funcs* funcs, Syms* syms, Insts* insts ){
 	compiler->logs = logs;
 	compiler->lexer = lexer;
+	compiler->interns = interns;
 	compiler->consts = consts;
 	compiler->funcs = funcs;
 	compiler->syms = syms;
@@ -13,7 +14,7 @@ void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts,
 }
 
 void CompilerReset( Compiler* compiler ){
-	compiler->reg = 0;
+	compiler->reg = compiler->syms->len;
 }
 
 /* Temporary until we deal with blocks, scopes, functions, etc. */
@@ -77,12 +78,23 @@ static Expr CompileStr( Compiler* compiler, Tk* tk ){
 	return dst;
 }
 
+static Expr CompileBadRef( Compiler* compiler, Tk* tk ){
+	u8* ref = InternGet( compiler->interns, tk->intern );
+	Log( compiler->logs, &tk->pos, CMP_BADREF, ref );
+	return ExprGen( EXPR_ERR, CMP_REG_ERR );
+}
+
+static Expr CompileBadRefType( Compiler* compiler, Tk* tk ){
+	u8* fn_ref = InternGet( compiler->interns, tk->intern );
+	Log( compiler->logs, &tk->pos, CMP_BADREFTYPE, fn_ref );
+	return ExprGen( EXPR_ERR, CMP_REG_ERR );
+}
+
 static Expr CompileRef( Compiler* compiler, Tk* tk ){
-	Expr dst = ExprGen( EXPR_REF, RegAlloc( compiler ) );
-	/* Sym sym = SymbolGet( compiler->symbols, tk->intern ); */
-	printf( "load ref: %d\n", tk->intern );
-	// InstAB( compiler->insts, sym.loadtype, sym.id, sym.src  );
-	return dst;
+	Sym* sym = SymGet( compiler->syms, tk->intern );
+	if( !sym ) return CompileBadRef( compiler, tk );
+	if( sym->sym_type != SYM_VAR ) return CompileBadRefType( compiler, tk );
+	return ExprGen( sym->expr_type, sym->reg );
 }
 
 static Expr CompilePrefix( Compiler* compiler ){
@@ -169,8 +181,9 @@ static Expr CompileExpr( Compiler* compiler, Prec min ){
 
 static Expr CompileDecl( Compiler* compiler, Lexer* lexer, Tk* tk ){
 	Lex( lexer ); /* eat colon */
-	printf( "CompileDecl: %d\n", tk->intern );
 	Expr rhs = CompileExpr( compiler, PREC_NONE );
+	if( rhs.type == EXPR_ERR ) return rhs;
+	SymPutVar( compiler->syms, tk->intern, rhs.type, ( u8 )rhs.reg );
 	return rhs;
 }
 

@@ -5,7 +5,7 @@
 #include "../cfg.h"
 #include "../intern/intern.h"
 
-typedef u32 ConstId;
+typedef u16 ConstId;
 
 typedef enum ConstType {
 	CONST_NUM,

@@ -31,7 +31,7 @@ typedef struct Syms {
 } Syms;
 
 void SymInit( Syms* syms );
-SymId SymGet( Syms* syms, InternId name );
+Sym* SymGet( Syms* syms, InternId name );
 void SymPutVar( Syms* syms, InternId name, ExprType type, u8 reg );
 void SymPutFunc( Syms* syms, InternId name, FuncId funcid );
 void SymFree( Syms* syms );

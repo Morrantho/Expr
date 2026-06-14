@@ -6,12 +6,13 @@ void SymInit( Syms* syms ){
 	syms->len = 0;
 }
 
-SymId SymGet( Syms* syms, InternId name ){
+Sym* SymGet( Syms* syms, InternId name ){
 	for( SymId i = syms->len; i; ){
 		i--;
-		if( syms->data[ i ].name == name ) return i;
+		Sym* sym = &syms->data[ i ];
+		if( sym->name == name ) return sym;
 	}
-	return SYM_NONE;
+	return NULL;
 }
 
 static void SymGrow( Syms* syms ){

@@ -15,6 +15,7 @@
 typedef struct Compiler {
 	Logs* logs;
 	Lexer* lexer;
+	Interns* interns;
 	Consts* consts;
 	Insts* insts;
 	Funcs* funcs;
@@ -22,7 +23,7 @@ typedef struct Compiler {
 	u32 reg; /* trivial register counter / allocator */
 } Compiler;
 
-void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Consts* consts, Funcs* funcs, Syms* syms, Insts* insts );
+void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Interns* interns, Consts* consts, Funcs* funcs, Syms* syms, Insts* insts );
 void CompilerReset( Compiler* compiler );
 Expr Compile( Compiler* compiler );
 // void CompilerFree( Compiler* compiler );

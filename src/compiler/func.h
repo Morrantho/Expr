@@ -4,7 +4,7 @@
 #include "../base/typedefs.h"
 #include "inst.h"
 
-typedef u32 FuncId;
+typedef u16 FuncId;
 
 typedef struct Func {
 	u32 start;	/* insts start index */
