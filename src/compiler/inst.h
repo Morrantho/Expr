@@ -21,6 +21,7 @@ void InstInit( Insts* insts );
 void InstReset( Insts* insts );
 void InstABC( Insts* insts, OpCode op, u8 a, u8 b, u8 c );
 void InstAB( Insts* insts, OpCode op, u8 a, u16 bc );
+void InstDump( Insts* insts );
 void InstFree( Insts* insts );
 
 #endif

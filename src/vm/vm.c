@@ -5,16 +5,24 @@ void VmInit( Vm* vm, Interns* interns, Consts* consts, Funcs* funcs, Insts* inst
 	vm->consts = consts;
 	vm->funcs = funcs;
 	vm->insts = insts;
+	vm->ip = 0;
 	vm->frame = 0;
+	vm->call = 0;
 }
 
 void VmReset( Vm* vm ){
+	vm->ip = 0;
 	vm->frame = 0;
+	vm->call = 0;
 }
 
 #include "ops/ops.h"
 
 void VmPrintValue( Vm* vm, Value* value ){
+	if( !value ){
+		printf( "NULL VALUE\n" );
+		return;
+	}
 	switch( value->type ){
 		case VALUE_NULL:
 			printf( "NULL\n" ); break;
@@ -28,18 +36,19 @@ void VmPrintValue( Vm* vm, Value* value ){
 }
 
 Value* VmRun( Vm* vm, FuncId entry ){
+	if( entry == FUNC_NONE ) return 0;
 	Func* fn = FuncGet( vm->funcs, entry );
 	vm->frame = 0;
+	vm->call = 0;
 	Frame* frame = &vm->frames[ 0 ];
 	frame->start = 0;
 	frame->end = fn->nregs;
-	Inst* ip = &vm->insts->code[ fn->start ];
-	Inst* i;
+	vm->ip = &vm->insts->code[ fn->start ];
 	for( ;; ){
-		i = ip++;
+		Inst* i = vm->ip++;
 		switch( ( OpCode )i->op ){
-			default: return 0;
-			case OP_HALT: case OP_RET: return VmGetValue( vm, i->a );
+			case OP_ERR: case OP_COUNT: return 0;
+			case OP_HALT: return VmGetValue( vm, i->a );
 			X_OPS_CORE( X_OP_VM_CASE )
 			X_OPS_UNA( X_OP_VM_CASE )
 			X_OPS_POST( X_OP_VM_CASE )

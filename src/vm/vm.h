@@ -16,14 +16,25 @@ typedef struct Frame { /* literally a span of registers each uses. */
 	u8 end;		/* end reg ( inclusive ) */
 } Frame;
 
+typedef struct Call {
+	Inst* ip;
+	u8 frame;
+	u8 ret;
+} Call;
+
 typedef struct Vm {
 	Value regs[ CMP_REG_CAP ];
 	Frame frames[ CMP_REG_CAP ];
+	Call calls[ CMP_REG_CAP ];
+
 	Interns* interns;
 	Consts* consts;
 	Funcs* funcs;
 	Insts* insts;
+
+	Inst* ip;
 	u8 frame; /* current frame */
+	u8 call;
 } Vm;
 
 void VmInit( Vm* vm, Interns* interns, Consts* consts, Funcs* funcs, Insts* insts );

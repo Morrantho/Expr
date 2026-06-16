@@ -11,33 +11,35 @@ static void AppFree( App* app ){
 	SrcFree( &app->srcs );
 }
 
-static void AppReset( App* app, u8* text ){
-	LogReset( &app->logs );
-	LexReset( &app->lexer, text );
-	InstReset( &app->insts );
-	CompilerReset( &app->compiler );
-	VmReset( &app->vm );
-}
+// static void AppReset( App* app, u8* text ){
+// 	LogReset( &app->logs );
+// 	LexReset( &app->lexer, text );
+// 	InstReset( &app->insts );
+// 	CompilerReset( &app->compiler );
+// 	VmReset( &app->vm );
+// }
 
-static void AppRepl( App* app ){
-	u8* text = app->lexer.text; /* Lexer increments this, so copy it for resets. */
-	for( ;; ){
-		printf( "> " );
-		if( !fgets( ( x8* )text, SRC_REPL_CAP, stdin ) ) return;
-		AppReset( app, text );
-		FuncId entry = Compile( &app->compiler );
-		if( LogDump( &app->logs ) ) continue;
-		Value* value = VmRun( &app->vm, entry );
-		if( !value->type ) continue;
-		VmPrintValue( &app->vm, value );
-	}
-}
+/* Disabled indefinitely. */
+// static void AppRepl( App* app ){
+// 	u8* text = app->lexer.text; /* Lexer increments this, so copy it for resets. */
+// 	for( ;; ){
+// 		printf( "> " );
+// 		if( !fgets( ( x8* )text, SRC_REPL_CAP, stdin ) ) return;
+// 		AppReset( app, text );
+// 		FuncId main = Compile( &app->compiler );
+// 		if( LogDump( &app->logs ) ) continue;
+// 		Value* value = VmRun( &app->vm, main );
+// 		if( !value->type ) continue;
+// 		VmPrintValue( &app->vm, value );
+// 	}
+// }
 
 static void AppRun( App* app ){
-	if( !app->nargs ){ AppRepl( app ); return; }
-	FuncId entry = Compile( &app->compiler );
+	// if( !app->nargs ){ AppRepl( app ); return; }
+	FuncId main = Compile( &app->compiler );
 	if( LogDump( &app->logs ) ) return;
-	Value* value = VmRun( &app->vm, entry );
+	InstDump( &app->insts );
+	Value* value = VmRun( &app->vm, main );
 	VmPrintValue( &app->vm, value );
 }
 
@@ -60,6 +62,7 @@ static void AppInit( App* app, u32 nargs, u8** args ){
 }
 
 x32 main( x32 nargs, x8** args ){
+	if( nargs == 1 ){ Throw( ERR_BADFILE, "missing input file" ); return 1; }
 	App app;
 	AppInit( &app, ( u32 )nargs, ( u8** )args );
 	AppRun( &app );

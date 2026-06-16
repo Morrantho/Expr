@@ -13,6 +13,7 @@ typedef struct Func {
 	u32 end;	/* insts end index */
 	u8 nargs;
 	u8 nregs;
+	ExprType ret_type;
 } Func;
 
 typedef struct Funcs {

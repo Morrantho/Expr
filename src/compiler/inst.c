@@ -32,6 +32,13 @@ void InstAB( Insts* insts, OpCode op, u8 a, u16 bc ){
 	InstABC( insts, op, a, ( u8 )( bc >> 8 ), ( u8 )bc );
 }
 
+void InstDump( Insts* insts ){
+	for( u32 i = 0; i < insts->len; i++ ){
+		Inst* inst = &insts->code[ i ];
+		printf( "%s %d %d %d\n", OpGetName( inst->op ), inst->a, inst->b, inst->c );
+	}
+}
+
 void InstFree( Insts* insts ){
 	MemFree( insts->code );
 }

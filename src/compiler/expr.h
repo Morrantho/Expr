@@ -2,6 +2,7 @@
 #define EXPR_H
 
 #include "../base/typedefs.h"
+#include "../base/intern/intern.h"
 
 typedef u32 Reg;
 
@@ -10,8 +11,8 @@ typedef u32 Reg;
 	X( NULL, "null" )\
 	X( NUM,  "number" )\
 	X( STR,  "string" )\
-	X( FUNC, "function" )\
-	X( REF,  "reference" )
+	X( ID,   "id" )\
+	X( FUNC, "function" )
 
 #define X_EXPR_ENUMS( ENUM, STR ) EXPR_##ENUM,
 #define X_EXPR_STRS( ENUM, STR ) ( u8* )STR,
@@ -19,8 +20,11 @@ typedef u32 Reg;
 typedef enum ExprType { X_EXPRS( X_EXPR_ENUMS )  EXPR_COUNT } ExprType;
 
 typedef struct Expr { /* 8 bytes max. If we need more metadata, use u8s for these. */
-	u8 type;
-	u8 reg;
+	ExprType type;
+	union {
+		InternId intern;
+		Reg reg;
+	};
 } Expr;
 
 u8* ExprGetName( ExprType type );

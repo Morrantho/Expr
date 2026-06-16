@@ -13,7 +13,11 @@
 	X( INF )\
 	X( NUM )\
 	X( STR )\
-	X( REF )
+	X( ID )\
+	X( DECL )\
+	X( FN )\
+	X( CALL )\
+	X( MEMB )
 
 #define X_DENO_ENUMS( ENUM ) DENO_##ENUM,
 #define X_DENO_NAMES( ENUM ) ( u8* )#ENUM,
