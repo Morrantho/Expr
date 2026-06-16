@@ -47,7 +47,7 @@
 	X( RP,        EOS, RP,      Rp,      RET )		/* ')' */\
 	X( ASTERISK,  EOS, MUL,     Mul,     RET )		/* '*' */\
 	X( PLUS,      EOS, ADD,     Add,     RET )		/* '+' */\
-	X( COMMA,     EOS, NEXT,    Next,    JMP )		/* ',' */\
+	X( COMMA,     EOS, COMMA,   Comma,   RET )		/* ',' */\
 	X( HYPHEN,    EOS, SUB,     Sub,     RET )		/* '-' */\
 	X( PERIOD,    EOS, PERIOD,  Period,  RET )		/* '.' */\
 	X( FSLASH,    EOS, DIV,     Div,     RET )		/* '/' */\

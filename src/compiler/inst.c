@@ -32,6 +32,12 @@ void InstAB( Insts* insts, OpCode op, u8 a, u16 bc ){
 	InstABC( insts, op, a, ( u8 )( bc >> 8 ), ( u8 )bc );
 }
 
+void InstAppend( Insts* dst, Insts* src, u32 start, u32 end ){
+	for( u32 i = start; i < end; i++ ){
+		*InstPush( dst ) = src->code[ i ];
+	}
+}
+
 void InstDump( Insts* insts ){
 	for( u32 i = 0; i < insts->len; i++ ){
 		Inst* inst = &insts->code[ i ];

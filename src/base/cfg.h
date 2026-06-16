@@ -24,6 +24,7 @@
 
 #define CMP_REG_CAP		COUNT( 256 )
 #define CMP_REG_ERR		CMP_REG_CAP
+#define CMP_ARG_CAP     COUNT( 32 )
 #define INST_CAP		COUNT( 1024 )
 
 #define FUNC_CAP		COUNT( 1024 )

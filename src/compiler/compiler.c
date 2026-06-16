@@ -13,11 +13,17 @@ void CompilerInit( Compiler* compiler, Logs* logs, Lexer* lexer, Interns* intern
 	compiler->syms = syms;
 	compiler->fn_syms = fn_syms;
 	compiler->insts = insts;
+	InstInit( &compiler->scratch );
+	compiler->scratch_ptr = 0;
 	compiler->reg = 0;
+	compiler->returned = 0;
 }
 
 void CompilerReset( Compiler* compiler ){
 	compiler->reg = compiler->syms->len;
+	compiler->returned = 0;
+	compiler->scratch.len = 0;
+	compiler->scratch_ptr = 0;
 }
 
 /* Temporary until we deal with blocks, scopes, functions, etc. */
@@ -27,6 +33,11 @@ static Reg RegAlloc( Compiler* compiler ){
 		return 0;
 	}
 	return ( Reg )compiler->reg++;
+}
+
+static Insts* CompilerInsts( Compiler* compiler ){
+	if( compiler->scratch_ptr ) return compiler->scratch_ptr;
+	return compiler->insts;
 }
 
 static void CompilerMatch( Compiler* compiler, TkType expected ){
@@ -63,21 +74,21 @@ static Expr CompileUnary( Compiler* compiler, Tk* tk ){
 	Op* op = OpGetUnary( src.type, tk->type );
 	if( !op->code ) return CompileBadUnary( compiler, &src, tk );
 	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
-	InstABC( compiler->insts, op->code, ( u8 )dst.reg, ( u8 )src.reg, 0 );
+	InstABC( CompilerInsts( compiler ), op->code, ( u8 )dst.reg, ( u8 )src.reg, 0 );
 	return dst;
 }
 
 static Expr CompileNum( Compiler* compiler, Tk* tk ){
 	Expr dst = ExprGen( EXPR_NUM, RegAlloc( compiler ) );
 	ConstId cid = ConstPutNum( compiler->consts, tk->num );
-	InstAB( compiler->insts, OP_LOADC, ( u8 )dst.reg, ( u16 )cid );
+	InstAB( CompilerInsts( compiler ), OP_LOADC, ( u8 )dst.reg, ( u16 )cid );
 	return dst;
 }
 
 static Expr CompileStr( Compiler* compiler, Tk* tk ){
 	Expr dst = ExprGen( EXPR_STR, RegAlloc( compiler ) );
 	ConstId cid = ConstPutStr( compiler->consts, tk->intern );
-	InstAB( compiler->insts, OP_LOADC, ( u8 )dst.reg, ( u16 )cid );
+	InstAB( CompilerInsts( compiler ), OP_LOADC, ( u8 )dst.reg, ( u16 )cid );
 	return dst;
 }
 
@@ -116,7 +127,7 @@ static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	Op* op = OpGetPost( src.type, tk->type );
 	if( !op->code ) return CompileBadPost( compiler, &src, tk );
 	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
-	InstABC( compiler->insts, op->code, ( u8 )dst.reg, ( u8 )src.reg, 0 );
+	InstABC( CompilerInsts( compiler ), op->code, ( u8 )dst.reg, ( u8 )src.reg, 0 );
 	return dst;
 }
 
@@ -134,28 +145,71 @@ static Expr CompileBlock( Compiler* compiler, TkType end1, TkType end2 ){
 	return last;
 }
 
+static InstMark CompilerPushScratch( Compiler* compiler ){
+	InstMark mark;
+	mark.insts = compiler->scratch_ptr;
+	mark.len = compiler->scratch.len;
+	compiler->scratch_ptr = &compiler->scratch;
+	return mark;
+}
+
+static void CompilerPopScratch( Compiler* compiler, InstMark mark ){
+	compiler->scratch.len = mark.len;
+	compiler->scratch_ptr = mark.insts;
+}
+
+static u8 CompileParams( Compiler* compiler, Lexer* lexer ){
+	u8 nargs = 0;
+	while( lexer->tk.type != TK_FNCLOSE && lexer->tk.type != TK_EOS ){
+		Tk tk = lexer->tk;
+		if( tk.type != TK_ID ){
+			Log( compiler->logs, &tk.pos, CMP_BADPARAM );
+			break;
+		}
+		Lex( lexer ); /* eat id */
+		SymPut( compiler->syms, tk.intern, EXPR_NUM, nargs );
+		nargs++;
+		compiler->reg = nargs;
+		if( lexer->tk.type == TK_COMMA ){
+			Lex( lexer );
+			continue;
+		}
+		break;
+	}
+	CompilerMatch( compiler, TK_FNCLOSE );
+	return nargs;
+}
+
 static Expr CompileFn( Compiler* compiler, Lexer* lexer, Expr lhs, Tk* tk ){
 	if( lhs.type != EXPR_ID ){
 		Log( compiler->logs, &tk->pos, CMP_BADFNDECL );
 		return ExprGen( EXPR_ERR, CMP_REG_ERR );
 	}
 	Lex( lexer ); /* eat <( */
-	CompilerMatch( compiler, TK_FNCLOSE ); /* )> */
+	u8 nargs = CompileParams( compiler, lexer );
 	FuncId fn_id = FuncPush( compiler->funcs );
 	FnSymPut( compiler->fn_syms, lhs.intern, fn_id );
-	u32 nsyms = compiler->syms->len; /* so we can revert */
-	u32 nregs = compiler->reg;
-	compiler->reg = 0; /* so we can count regs consumed */
+	u32 nsyms = compiler->syms->len; /* for restore */
+	u32 nregs = compiler->reg; /* for restore */
+	u8 returned = compiler->returned; /* for restore */
+	compiler->reg = 0;
+	compiler->returned = 0;
+	InstMark mark = CompilerPushScratch( compiler );
+	Expr last = CompileBlock( compiler, TK_END, TK_EOS );
+	if( !compiler->returned && last.reg != CMP_REG_ERR ){
+		InstABC( CompilerInsts( compiler ), OP_RET, ( u8 )last.reg, 0, 0 );
+	}
 	Func* fn = FuncGet( compiler->funcs, fn_id );
 	fn->start = compiler->insts->len;
-	fn->nargs = 0;
-	Expr last = CompileBlock( compiler, TK_END, TK_EOS );
-	if( last.reg != CMP_REG_ERR ) InstABC( compiler->insts, OP_RET, last.reg, 0, 0 );
+	fn->nargs = nargs;
 	fn->ret_type = last.type;
-	fn->end = compiler->insts->len;
 	fn->nregs = compiler->reg;
-	compiler->reg = nregs; /* Restore to former state */
+	InstAppend( compiler->insts, &compiler->scratch, mark.len, compiler->scratch.len );
+	fn->end = compiler->insts->len;
+	CompilerPopScratch( compiler, mark );
+	compiler->reg = nregs;
 	compiler->syms->len = nsyms;
+	compiler->returned = returned;
 	return ExprGen( EXPR_NULL, CMP_REG_ERR );
 }
 
@@ -166,15 +220,44 @@ static Expr CompileBadRef( Compiler* compiler, InternId intern ){
 	return ExprGen( EXPR_ERR, CMP_REG_ERR );
 }
 
+static u8 CompileArgs( Compiler* compiler, Lexer* lexer, Expr* args ){
+	u8 nargs = 0;
+	if( lexer->tk.type == TK_RP ){
+		Lex( lexer );
+		return 0;
+	}
+	for( ;; ){
+		args[ nargs++ ] = CompileExpr( compiler, PREC_NONE );
+		if( lexer->tk.type == TK_COMMA ){
+			Lex( lexer );
+			continue;
+		}
+		CompilerMatch( compiler, TK_RP );
+		return nargs;
+	}
+}
+
 static Expr CompileCall( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	if( src.type != EXPR_ID ) return CompileBadPost( compiler, &src, tk );
 	Lex( lexer ); /* eat ( */
-	CompilerMatch( compiler, TK_RP );
 	FnSym* sym = FnSymGet( compiler->fn_syms, src.intern );
 	if( !sym ) return CompileBadRef( compiler, src.intern );
 	Func* fn = FuncGet( compiler->funcs, sym->fn_id );
+	Expr args[ CMP_ARG_CAP ];
+	u8 nargs = CompileArgs( compiler, lexer, args );
+	if( nargs != fn->nargs ){
+		Log( compiler->logs, &tk->pos, CMP_BADARGC, fn->nargs, nargs );
+		return ExprGen( EXPR_ERR, CMP_REG_ERR );
+	}
+	for( u8 i = 0; i < nargs; i++ ){
+		if( args[ i ].type != EXPR_NUM ){
+			Log( compiler->logs, &tk->pos, CMP_BADARGTYPE );
+			return ExprGen( EXPR_ERR, CMP_REG_ERR );
+		}
+		InstABC( CompilerInsts( compiler ), OP_ARG, i, ( u8 )args[ i ].reg, 0 );
+	}
 	Expr dst = ExprGen( fn->ret_type, RegAlloc( compiler ) );
-	InstAB( compiler->insts, OP_CALL, ( u8 )dst.reg, ( u16 )sym->fn_id );
+	InstAB( CompilerInsts( compiler ), OP_CALL, ( u8 )dst.reg, ( u16 )sym->fn_id );
 	return dst;
 }
 
@@ -209,7 +292,7 @@ static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec
 	Op* op = OpGetBinary( lhs.type, rhs.type, tk->type );
 	if( !op->code ) return CompileBadBinary( compiler, &lhs, &rhs, tk );
 	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
-	InstABC( compiler->insts, op->code, ( u8 )dst.reg, ( u8 )lhs.reg, ( u8 )rhs.reg );
+	InstABC( CompilerInsts( compiler ), op->code, ( u8 )dst.reg, ( u8 )lhs.reg, ( u8 )rhs.reg );
 	return dst;
 }
 
@@ -273,7 +356,8 @@ static Expr CompileReturn( Compiler* compiler ){
 	Lex( lexer ); /* eat @ */
 	Expr expr = CompileExpr( compiler, PREC_NONE );
 	if( expr.type == EXPR_ERR ) return expr;
-	InstABC( compiler->insts, OP_RET, ( u8 )expr.reg, 0, 0 );
+	InstABC( CompilerInsts( compiler ), OP_RET, ( u8 )expr.reg, 0, 0 );
+	compiler->returned |= 1;
 	return expr;
 }
 
@@ -304,8 +388,8 @@ static FuncId CompileStart( Compiler* compiler, FuncId main_id ){
 	_start->nargs = 0;
 	_start->nregs = 1;
 	_start->ret_type = main->ret_type;
-	InstAB( compiler->insts, OP_CALL, 0, ( u16 )main_id ); /* Call Main() */
-	InstABC( compiler->insts, OP_HALT, 0, 0, 0 );
+	InstAB( CompilerInsts( compiler ), OP_CALL, 0, ( u16 )main_id ); /* Call Main() */
+	InstABC( CompilerInsts( compiler ), OP_HALT, 0, 0, 0 );
 	_start->end = compiler->insts->len;
 	return _start_id;
 }
@@ -320,4 +404,8 @@ FuncId Compile( Compiler* compiler ){
 		return FUNC_NONE;
 	}
 	return CompileStart( compiler, main_id );
+}
+
+void CompilerFree( Compiler* compiler ){
+	InstFree( &compiler->scratch );
 }

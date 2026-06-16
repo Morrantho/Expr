@@ -113,6 +113,10 @@ static void LexAdd( Lexer* lexer ){ /* + ++ += */
 	if( *lexer->text == '=' ){ LexEat( lexer, TK_ADDEQ ); return; }
 }
 
+static void LexComma( Lexer* lexer ){ /* , */
+	LexChar( lexer, TK_COMMA );
+}
+
 static void LexSub( Lexer* lexer ){ /* - -- -= */
 	LexChar( lexer, TK_SUB );
 	if( *lexer->text == '-' ){ LexEat( lexer, TK_DEC ); return; }

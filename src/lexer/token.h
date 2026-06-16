@@ -26,6 +26,7 @@
 	X( ADD,     TERM,   LEFT,  NOPPRE, INF,   ERR  ) /* +   */\
 	X( INC,     UNARY,  LEFT,  PRE,    ERR,   POST ) /* ++  */\
 	X( ADDEQ,   ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* +=  */\
+	X( COMMA,   NONE,   NONE,  ERR,    ERR,   ERR  ) /* ,   */\
 	X( SUB,     TERM,   LEFT,  PRE,    INF,   ERR  ) /* -   */\
 	X( DEC,     UNARY,  LEFT,  PRE,    ERR,   POST ) /* --  */\
 	X( SUBEQ,   ASSIGN, RIGHT, ERR,    INF,   ERR  ) /* -=  */\

@@ -26,6 +26,13 @@ static void VmCall( Vm* vm, Inst* i ){
 	vm->ip = &vm->insts->code[ fn->start ];
 }
 
+static void VmArg( Vm* vm, Inst* i ){
+	Frame* frame = VmGetFrame( vm );
+	Value* src = VmGetValue( vm, i->b );
+	Value* dst = &vm->regs[ frame->end + i->a ];
+	*dst = *src;
+}
+
 static void VmReturn( Vm* vm, Inst* i ){
 	Value ret = *VmGetValue( vm, i->a );
 	Call* call = &vm->calls[ --vm->call ];

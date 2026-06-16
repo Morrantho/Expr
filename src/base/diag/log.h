@@ -26,6 +26,9 @@
 	X( FATAL, CMP_BADREFTYPE,	"cannot reference a function: %s" )\
 	X( FATAL, CMP_BADDECL,      "invalid declaration" )\
 	X( FATAL, CMP_BADFNDECL,    "invalid function declaration" )\
+	X( FATAL, CMP_BADPARAM,     "invalid function parameter" )\
+	X( FATAL, CMP_BADARGC,      "expected %d args, got %d\n" )\
+	X( FATAL, CMP_BADARGTYPE,   "bad argument type" )\
 	X( FATAL, CMP_NOMAIN,       "no Main<()> entry point")
 	
 #define X_LOG_LVL_ENUM( LEVEL, NAME, COL ) LOG_##LEVEL,
