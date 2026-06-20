@@ -9,7 +9,7 @@ typedef struct App {
 	Logs logs;
 	Interns interns;
 	Consts consts;
-	Syms syms;
+	Locals locals;
 	Insts insts;
 	Lexer lexer;
 	Compiler compiler;
@@ -26,7 +26,7 @@ static void AppInit( App* app, u8* path ){
 	InternInit( &app->interns );
 	LexInit( app, &app->lexer, src_idx );
 	ConstInit( &app->consts );
-	SymInit( &app->syms );
+	LocalInit( &app->locals );
 	InstInit( &app->insts );
 	CompilerInit( app, &app->compiler );
 	VmInit( app, &app->vm );
@@ -34,7 +34,7 @@ static void AppInit( App* app, u8* path ){
 
 static void AppFree( App* app ){
 	InstFree( &app->insts );
-	SymFree( &app->syms );
+	LocalFree( &app->locals );
 	ConstFree( &app->consts );
 	InternFree( &app->interns );
 	LogFree( &app->logs );

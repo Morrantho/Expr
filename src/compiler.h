@@ -5,7 +5,7 @@ typedef struct Compiler {
 	Logs* logs;
 	Interns* interns;
 	Consts* consts;
-	Syms* syms;
+	Locals* locals;
 	Insts* insts;
 	Lexer* lexer;
 	Reg reg;
@@ -20,7 +20,7 @@ void CompilerInit( App* app, Compiler* compiler ){
 	compiler->logs = &app->logs;
 	compiler->interns = &app->interns;
 	compiler->consts = &app->consts;
-	compiler->syms = &app->syms;
+	compiler->locals = &app->locals;
 	compiler->lexer = &app->lexer;
 	compiler->insts = &app->insts;
 	compiler->reg = 0;
@@ -83,9 +83,9 @@ static Expr CompileBadId( Compiler* compiler, Tk* tk ){
 }
 
 static Expr CompileId( Compiler* compiler, Tk* tk ){
-	Sym* sym = SymGet( compiler->syms, tk->intern );
-	if( !sym ) return CompileBadId( compiler, tk );
-	return ExprGen( sym->expr_type, sym->reg );
+	Local* local = LocalGet( compiler->locals, tk->intern );
+	if( !local ) return CompileBadId( compiler, tk );
+	return ExprGen( local->expr_type, local->reg );
 }
 
 static Expr CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
@@ -203,7 +203,7 @@ static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
 	Lex( lexer ); /* eat : */
 	Expr rhs = CompileExpr( compiler, PREC_NONE );
 	if( rhs.type == EXPR_ERR ) return rhs;
-	SymPut( compiler->syms, tk.intern, rhs.type, ( u8 )rhs.reg );
+	LocalPut( compiler->locals, tk.intern, rhs.type, ( u8 )rhs.reg );
 	return rhs;
 }
 

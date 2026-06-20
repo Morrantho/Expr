@@ -12,6 +12,6 @@
 #define CONST_VEC_CAP 512
 #define REG_CAP 256
 #define FN_VEC_CAP 1024
-#define SYM_VEC_CAP 1024
+#define LOCAL_VEC_CAP 1024
 #define INST_VEC_CAP 1024
 #endif

@@ -23,7 +23,7 @@ typedef u32 Idx, Offset;
 #include "parsing.h"
 #include "const.h"
 // #include "fn.h"
-#include "sym.h"
+#include "local.h"
 #include "op.h"
 #include "inst.h"
 #include "compiler.h"
