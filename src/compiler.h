@@ -189,26 +189,17 @@ static Expr CompileInfix( Compiler* compiler, Expr lhs, Prec min ){
 	return lhs;
 }
 
-static Expr CompileExprTail( Compiler* compiler, Expr lhs, Prec min ){
-	lhs = CompilePostfix( compiler, lhs );
-	lhs = CompileInfix( compiler, lhs, min );
-	return lhs;
-}
-
 static Expr CompileExpr( Compiler* compiler, Prec min ){
-	Expr head = CompilePrefix( compiler );
-	return CompileExprTail( compiler, head, min );
-}
-
-static Expr CompileIdTail( Compiler* compiler, Tk* tk ){
-	Expr id = CompileId( compiler, tk );
-	return CompileExprTail( compiler, id, PREC_NONE );
+	Expr expr = CompilePrefix( compiler );
+	expr = CompilePostfix( compiler, expr );
+	expr = CompileInfix( compiler, expr, min );
+	return expr;
 }
 
 static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
+	if( lexer->peek.type != TK_ASSIGN ) return CompileExpr( compiler, PREC_NONE );
 	Tk tk = lexer->tk;
 	Lex( lexer ); /* eat id */
-	if( lexer->tk.type != TK_ASSIGN ) return CompileIdTail( compiler, &tk );
 	Lex( lexer ); /* eat : */
 	Expr rhs = CompileExpr( compiler, PREC_NONE );
 	if( rhs.type == EXPR_ERR ) return rhs;
@@ -226,7 +217,6 @@ static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 
 void CompilerRun( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
-	Lex( lexer );
 	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
 	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer );
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );

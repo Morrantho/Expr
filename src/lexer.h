@@ -11,7 +11,7 @@ typedef struct Lexer {
 #endif
 
 #ifdef IMPL
-void LexScan( Lexer* lexer, Tk* tk );
+static void LexScan( Lexer* lexer, Tk* tk );
 
 void LexInit( App* app, Lexer* lexer, SrcIdx src ){
 	lexer->srcs = &app->srcs;

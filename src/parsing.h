@@ -26,8 +26,7 @@
 	X( INF )\
 	X( NUM )\
 	X( STR )\
-	X( ID )\
-	X( DECL )
+	X( ID )
 	// X( FN )
 	// X( CALL )
 	// X( MEMB )
