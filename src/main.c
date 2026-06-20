@@ -1,0 +1,60 @@
+#define BASE
+#include "includes.h"
+#undef BASE
+
+#define TYPES
+#include "includes.h"
+typedef struct App {
+	Srcs srcs;
+	Logs logs;
+	Interns interns;
+	Consts consts;
+	Syms syms;
+	Insts insts;
+	Lexer lexer;
+	Compiler compiler;
+	Vm vm;
+} App;
+#undef TYPES
+
+#define IMPL
+#include "includes.h"
+static void AppInit( App* app, u8* path ){
+	SrcInit( &app->srcs );
+	SrcIdx src_idx = SrcLoad( &app->srcs, path );
+	LogInit( &app->logs, &app->srcs );
+	InternInit( &app->interns );
+	LexInit( app, &app->lexer, src_idx );
+	ConstInit( &app->consts );
+	SymInit( &app->syms );
+	InstInit( &app->insts );
+	CompilerInit( app, &app->compiler );
+	VmInit( app, &app->vm );
+}
+
+static void AppFree( App* app ){
+	InstFree( &app->insts );
+	SymFree( &app->syms );
+	ConstFree( &app->consts );
+	InternFree( &app->interns );
+	LogFree( &app->logs );
+	SrcFree( &app->srcs );
+}
+
+static void AppRun( App* app ){
+	CompilerRun( &app->compiler );
+	if( LogDump( &app->logs ) ) return;
+	Value* v = VmRun( &app->vm );
+	if( v->type == VALUE_NULL ) return;
+	VmPrintValue( &app->vm, v );
+}
+
+x32 main( x32 nargs, x8** args ){
+	if( nargs == 1 ) Halt( ERR_NOFILE );
+	App app = { 0 };
+	AppInit( &app, ( u8* )args[ 1 ] );
+	AppRun( &app );
+	AppFree( &app );
+	return 0;
+}
+#undef IMPL
