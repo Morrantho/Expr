@@ -1,0 +1,17 @@
+#ifdef BASE
+#define SRC_AOB_CAP 32768
+#define SRC_VEC_CAP 16
+#define LOG_BUF_CAP 512
+#define LOG_AOB_CAP 32768
+#define LOG_VEC_CAP 512
+#define HASH_OFFSET 2166136261	/* FNV1a */
+#define HASH_PRIME 16777619		/* FNV1a */
+#define INTERN_AOB_CAP 32768
+#define INTERN_SLOT_CAP 1024
+#define INTERN_ENTRY_CAP 512
+#define CONST_VEC_CAP 512
+#define REG_CAP 256
+#define FN_VEC_CAP 1024
+#define SYM_VEC_CAP 1024
+#define INST_VEC_CAP 1024
+#endif

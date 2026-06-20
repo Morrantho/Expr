@@ -1,11 +1,9 @@
 CC=cc
 STD=-std=gnu23
-SRC=src/unity.c
-EXCLUDES=-not -name "unity.c" -not -name "main.c"
-SRCS=$(shell find src/ -name "*.c" -type f $(EXCLUDES))
+SRC=src/main.c
 LIB=
 WARN=-Wall -Wextra -Werror -Wpedantic -Winline
-NOWARN=
+NOWARN=-Wno-unused-function
 DBG=-O0 -ggdb3 -fno-omit-frame-pointer -DDEBUG
 FAST=-Ofast -fomit-frame-pointer -fno-stack-protector -march=native -DNDEBUG
 FASTER=-Ofast -flto -fomit-frame-pointer -fno-stack-protector -march=native -DNDEBUG
@@ -24,20 +22,11 @@ faster:
 fastest:
 	$(CC) $(STD) $(WARN) $(NOWARN) $(FASTEST) $(SRC) $(LIB)
 
-obj:
-	$(CC) $(STD) $(WARN) $(NOWARN) $(FAST) $(SRCS) $(LIB)
-
 asm:
 	$(CC) $(STD) $(WARN) $(NOWARN) $(ASM) $(SRC) $(LIB) -o a.s
 
 calls:
 	@objdump -drwC -Mintel ./a.out | awk "/call/ { print }"
-
-vmdump:
-	@objdump -d -M intel --no-show-raw-insn --disassemble=VmRun ./a.out > vmrun.txt
-
-syms:
-	@nm -C ./a.out | grep -E ""
 
 clean:
 	rm -f a.out a.s
