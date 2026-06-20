@@ -14,6 +14,7 @@ typedef struct Srcs {
 
 typedef struct SrcPos {
 	SrcIdx src;
+	SrcOffset off;
 	u32 ln, col;
 } SrcPos;
 #endif

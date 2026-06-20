@@ -18,6 +18,7 @@ void LexInit( App* app, Lexer* lexer, SrcIdx src ){
 	lexer->logs = &app->logs;
 	lexer->interns = &app->interns;
 	lexer->pos.src = src;
+	lexer->pos.off = 0;
 	lexer->pos.ln = lexer->pos.col = 1;
 	lexer->text = SrcGetText( lexer->srcs, src );
 	LexScan( lexer, &lexer->tk );
@@ -32,6 +33,7 @@ static u8 LexGetType( u8 ascii ){
 static void LexNext( Lexer* lexer, Tk* tk ){
 	( void )tk;
 	++lexer->text;
+	++lexer->pos.off;
 	++lexer->pos.col;
 }
 
@@ -57,6 +59,7 @@ static void LexEat( Lexer* lexer, Tk* tk, TkType type ){
 static void LexLine( Lexer* lexer, Tk* tk ){ /* \n */
 	( void )tk;
 	++lexer->text;
+	++lexer->pos.off;
 	++lexer->pos.ln;
 	lexer->pos.col = 1;
 }
