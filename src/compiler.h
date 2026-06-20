@@ -1,6 +1,12 @@
 #ifdef TYPES
 typedef u32 Reg;
 
+typedef struct CompilerFrame {
+	Reg reg;		/* base reg */
+	u32 nlocals;
+	InstIdx inst;	/* start inst */
+} CompilerFrame;
+
 typedef struct Compiler {
 	Logs* logs;
 	Interns* interns;
@@ -31,6 +37,21 @@ static Reg RegAlloc( Compiler* compiler ){
 	return ( Reg )compiler->reg++;
 }
 
+static void CompilerEnter( Compiler* compiler, CompilerFrame* out ){
+	out->reg = compiler->reg;
+	out->nlocals = compiler->locals->len;
+	out->inst = compiler->insts->len;
+	compiler->reg = 0;
+	compiler->locals->len = 0;
+}
+
+static Reg CompilerExit( Compiler* compiler, CompilerFrame* in ){
+	Reg nregs = compiler->reg;
+	compiler->reg = in->reg;
+	compiler->locals->len = in->nlocals;
+	return nregs;
+}
+
 static void CompilerMatch( Compiler* compiler, TkType expected ){
 	Lexer* lexer = compiler->lexer;
 	Tk* tk = &lexer->tk;
@@ -38,6 +59,13 @@ static void CompilerMatch( Compiler* compiler, TkType expected ){
 		Log( compiler->logs, &tk->pos, PARSE_EXPECT, expected, tk->type );
 	}
 	Lex( lexer );
+}
+
+static Expr CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
+	u8 *deno_name = DenoGetName( deno );
+	u8 *tk_name = TkGetName( tk->type );
+	Log( compiler->logs, &tk->pos, PARSE_BADPRE, deno_name, tk_name );
+	return ExprGen( EXPR_ERR, 0 );
 }
 
 static Expr CompileGroup( Compiler* compiler ){
@@ -86,13 +114,6 @@ static Expr CompileId( Compiler* compiler, Tk* tk ){
 	Local* local = LocalGet( compiler->locals, tk->intern );
 	if( !local ) return CompileBadId( compiler, tk );
 	return ExprGen( local->expr_type, local->reg );
-}
-
-static Expr CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
-	u8 *deno_name = DenoGetName( deno );
-	u8 *tk_name = TkGetName( tk->type );
-	Log( compiler->logs, &tk->pos, PARSE_BADPRE, deno_name, tk_name );
-	return ExprGen( EXPR_ERR, 0 );
 }
 
 static Expr CompilePrefix( Compiler* compiler ){
@@ -203,7 +224,7 @@ static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
 	Lex( lexer ); /* eat : */
 	Expr rhs = CompileExpr( compiler, PREC_NONE );
 	if( rhs.type == EXPR_ERR ) return rhs;
-	LocalPut( compiler->locals, tk.intern, rhs.type, ( u8 )rhs.reg );
+	LocalPut( compiler->locals, tk.intern, rhs.type, rhs.reg );
 	return rhs;
 }
 
@@ -217,8 +238,12 @@ static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 
 void CompilerRun( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
+	CompilerFrame entry;
+	CompilerEnter( compiler, &entry );
 	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
 	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer );
+	Reg nregs = CompilerExit( compiler, &entry );
+	( void )nregs;
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );
 }
 #endif
