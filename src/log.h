@@ -38,6 +38,8 @@ void LogInit( Logs* logs, Srcs* srcs ){
 	logs->srcs = srcs;
 	AobInit( &logs->aob, LOG_AOB_CAP );
 	logs->data = MemAlloc( sizeof( LogOffset ), LOG_VEC_CAP );
+	logs->len = 0;
+	logs->cap = LOG_AOB_CAP;
 }
 
 void LogFree( Logs* logs ){

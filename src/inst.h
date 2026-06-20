@@ -7,8 +7,7 @@ typedef struct Inst {
 
 typedef struct Insts {
 	Inst* data;
-	u32 len;
-	u32 cap;
+	u32 len, cap;
 } Insts;
 #endif
 

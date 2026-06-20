@@ -12,8 +12,7 @@ typedef struct Fn {
 
 typedef struct Fns {
 	Fn* data;
-	u32 len;
-	u32 cap;
+	u32 len, cap;
 } Fns;
 #endif
 

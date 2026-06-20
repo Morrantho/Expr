@@ -54,7 +54,7 @@ static Offset SrcReadPath( Srcs* srcs, u8* path ){
 static Offset SrcReadText( Srcs* srcs, u8* path ){
 	u32 len = 0;
 	FILE* file = SrcOpen( path, &len );
-	Offset offset = AobPush( &srcs->aob, len );
+	Offset offset = AobPush( &srcs->aob, len + 1 );
 	u8* dst = AobGet( &srcs->aob, offset );
 	size_t read = fread( dst, 1, len, file );
 	if( read != len ){ fclose( file ); Halt( ERR_FREAD, path ); }

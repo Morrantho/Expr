@@ -16,8 +16,7 @@ typedef struct Const{
 
 typedef struct Consts {
 	Const* data;
-	u32 len;
-	u32 cap;
+	u32 len, cap;
 } Consts;
 #endif
 
