@@ -132,5 +132,7 @@
 	X( TILDE,     EOS, Bnot,     RET )		/* '~' */\
 	X( DEL,       EOS, Next,     JMP )		/* 127 */
 #define X_ASCII_ENUM( ENUM, TK, FN, ACTION ) ASCII_##ENUM,
+#define X_LEX_TYPE_INIT( ENUM, TK, FN, ACTION ) TK_##TK,
+#define X_LEX_CASE( ENUM, TK, FN, ACTION ) case ASCII_##ENUM:{ Lex##FN( lexer, out ); ACTION; }
 typedef enum Ascii { X_ASCIIS( X_ASCII_ENUM )  } Ascii;
 #endif

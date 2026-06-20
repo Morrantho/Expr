@@ -14,8 +14,7 @@ typedef struct Compiler {
 
 #ifdef IMPL
 static Expr CompileExpr( Compiler* compiler, Prec min );
-static Expr CompileStmt( Compiler* compiler );
-static Expr CompileResolve( Compiler* compiler, Expr expr );
+static Expr CompileStmt( Compiler* compiler, Lexer* lexer );
 
 void CompilerInit( App* app, Compiler* compiler ){
 	compiler->logs = &app->logs;
@@ -39,13 +38,6 @@ static void CompilerMatch( Compiler* compiler, TkType expected ){
 		Log( compiler->logs, &tk->pos, PARSE_EXPECT, expected, tk->type );
 	}
 	Lex( lexer );
-}
-
-static Expr CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
-	u8 *deno_name = DenoGetName( deno );
-	u8 *tk_name = TkGetName( tk->type );
-	Log( compiler->logs, &tk->pos, PARSE_BADPRE, deno_name, tk_name );
-	return ExprGen( EXPR_ERR, 0 );
 }
 
 static Expr CompileGroup( Compiler* compiler ){
@@ -84,10 +76,23 @@ static Expr CompileStr( Compiler* compiler, Tk* tk ){
 	return dst;
 }
 
-static Expr CompileId( Tk* tk ){
-	Expr expr = ExprGen( EXPR_ID, UINT32_MAX );
-	expr.intern = tk->intern;
-	return expr;
+static Expr CompileBadId( Compiler* compiler, Tk* tk ){
+	u8* id = InternGetRaw( compiler->interns, tk->intern );
+	Log( compiler->logs, &tk->pos, CMP_BADID, id );
+	return ExprGen( EXPR_ERR, UINT32_MAX );
+}
+
+static Expr CompileId( Compiler* compiler, Tk* tk ){
+	Sym* sym = SymGet( compiler->syms, tk->intern );
+	if( !sym ) return CompileBadId( compiler, tk );
+	return ExprGen( sym->expr_type, sym->reg );
+}
+
+static Expr CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
+	u8 *deno_name = DenoGetName( deno );
+	u8 *tk_name = TkGetName( tk->type );
+	Log( compiler->logs, &tk->pos, PARSE_BADPRE, deno_name, tk_name );
+	return ExprGen( EXPR_ERR, 0 );
 }
 
 static Expr CompilePrefix( Compiler* compiler ){
@@ -102,7 +107,7 @@ static Expr CompilePrefix( Compiler* compiler ){
 		case DENO_PRE: return CompileUnary( compiler, &tk );
 		case DENO_NUM: return CompileNum( compiler, &tk );
 		case DENO_STR: return CompileStr( compiler, &tk );
-		case DENO_ID: return CompileId( &tk );
+		case DENO_ID: return CompileId( compiler, &tk );
 	}
 }
 
@@ -115,7 +120,6 @@ static Expr CompileBadPost( Compiler* compiler, Expr* expr, Tk* tk ){
 
 static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	Lex( lexer );
-	src = CompileResolve( compiler, src );
 	Op* op = OpGetPost( src.type, tk->type );
 	if( !op->code ) return CompileBadPost( compiler, &src, tk );
 	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
@@ -127,7 +131,7 @@ static Expr CompileBlock( Compiler* compiler, TkType end1, TkType end2 ){
 	Lexer* lexer = compiler->lexer;
 	Expr last = ExprGen( EXPR_ERR, UINT32_MAX );
 	while( lexer->tk.type != end1 && lexer->tk.type != end2 ){
-		last = CompileStmt( compiler );
+		last = CompileStmt( compiler, lexer );
 	}
 	if( lexer->tk.type == end1 ){
 		Lex( lexer );
@@ -135,13 +139,6 @@ static Expr CompileBlock( Compiler* compiler, TkType end1, TkType end2 ){
 	}
 	CompilerMatch( compiler, end1 ); /* Report missing end */
 	return last;
-}
-
-static Expr CompileBadRef( Compiler* compiler, InternIdx intern ){
-	Lexer* lexer = compiler->lexer;
-	u8* ref = InternGetRaw( compiler->interns, intern );
-	Log( compiler->logs, &lexer->tk.pos, CMP_BADREF, ref );
-	return ExprGen( EXPR_ERR, UINT32_MAX );
 }
 
 static Expr CompilePostfix( Compiler* compiler, Expr src ){
@@ -166,26 +163,12 @@ static Expr CompileBadBinary( Compiler* c, Expr* lhs, Expr* rhs, Tk* tk ){
 
 static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec, Tk* tk ){
 	Lex( lexer );
-	lhs = CompileResolve( compiler, lhs );
 	Expr rhs = CompileExpr( compiler, prec );
-	rhs = CompileResolve( compiler, rhs );
 	Op* op = OpGetBinary( lhs.type, rhs.type, tk->type );
 	if( !op->code ) return CompileBadBinary( compiler, &lhs, &rhs, tk );
 	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, lhs.reg, rhs.reg );
 	return dst;
-}
-
-static Expr CompileDecl( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec, Tk* tk ){
-	if( lhs.type != EXPR_ID ){
-		Log( compiler->logs, &tk->pos, CMP_BADDECL );
-		return ExprGen( EXPR_ERR, UINT32_MAX );
-	}
-	Lex( lexer ); /* eat : */
-	Expr rhs = CompileExpr( compiler, prec );
-	if( rhs.type == EXPR_ERR ) return rhs;
-	SymPut( compiler->syms, lhs.intern, rhs.type, ( u8 )rhs.reg );
-	return rhs;
 }
 
 static Expr CompileInfix( Compiler* compiler, Expr lhs, Prec min ){
@@ -200,39 +183,43 @@ static Expr CompileInfix( Compiler* compiler, Expr lhs, Prec min ){
 		switch( deno ){
 			default: return lhs;
 			case DENO_INF: lhs = CompileBinary( compiler, lexer, lhs, prec, &tk ); break;
-			case DENO_DECL: lhs = CompileDecl( compiler, lexer, lhs, prec, &tk ); break;
 		}
 		tk = lexer->tk;
 	}
 	return lhs;
 }
 
-static Expr CompileBadRefType( Compiler* compiler, InternIdx intern ){
-	Lexer* lexer = compiler->lexer;
-	u8* ref = InternGetRaw( compiler->interns, intern );
-	Log( compiler->logs, &lexer->tk.pos, CMP_BADREFTYPE, ref );
-	return ExprGen( EXPR_ERR, UINT32_MAX );
-}
-
-static Expr CompileResolve( Compiler* compiler, Expr expr ){
-	if( expr.type != EXPR_ID ) return expr;
-	Sym* sym = SymGet( compiler->syms, expr.intern );
-	if( sym ) return ExprGen( sym->expr_type, sym->reg );
-	return CompileBadRef( compiler, expr.intern );
+static Expr CompileExprTail( Compiler* compiler, Expr lhs, Prec min ){
+	lhs = CompilePostfix( compiler, lhs );
+	lhs = CompileInfix( compiler, lhs, min );
+	return lhs;
 }
 
 static Expr CompileExpr( Compiler* compiler, Prec min ){
-	Expr expr = CompilePrefix( compiler );
-	expr = CompilePostfix( compiler, expr );
-	expr = CompileInfix( compiler, expr, min );
-	expr = CompileResolve( compiler, expr );
-	return expr;
+	Expr head = CompilePrefix( compiler );
+	return CompileExprTail( compiler, head, min );
 }
 
-static Expr CompileStmt( Compiler* compiler ){
-	Lexer* lexer = compiler->lexer;
+static Expr CompileIdTail( Compiler* compiler, Tk* tk ){
+	Expr id = CompileId( compiler, tk );
+	return CompileExprTail( compiler, id, PREC_NONE );
+}
+
+static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
+	Tk tk = lexer->tk;
+	Lex( lexer ); /* eat id */
+	if( lexer->tk.type != TK_ASSIGN ) return CompileIdTail( compiler, &tk );
+	Lex( lexer ); /* eat : */
+	Expr rhs = CompileExpr( compiler, PREC_NONE );
+	if( rhs.type == EXPR_ERR ) return rhs;
+	SymPut( compiler->syms, tk.intern, rhs.type, ( u8 )rhs.reg );
+	return rhs;
+}
+
+static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 	switch( lexer->tk.type ){
 		default: return CompileExpr( compiler, PREC_NONE );
+		case TK_ID: return CompileDecl( compiler, lexer );
 		case TK_EOS: return ExprGen( EXPR_ERR, UINT32_MAX );
 	}
 }
@@ -241,7 +228,7 @@ void CompilerRun( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
 	Lex( lexer );
 	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
-	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler );
+	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer );
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );
 }
 #endif

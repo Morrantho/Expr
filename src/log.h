@@ -12,8 +12,8 @@
 	X( CMP_BADUNARY,	"cannot use %s on %s" )\
 	X( CMP_BADPOST,		"cannot use %s on %s" )\
 	X( CMP_BADBINARY,	"cannot use %s on %s and %s" )\
-	X( CMP_BADREF,		"undefined reference: %s" )\
-	X( CMP_BADREFTYPE,	"cannot reference a function: %s" )\
+	X( CMP_BADID,		"undefined reference: %s" )\
+	X( CMP_BADIDTYPE,	"cannot reference a function: %s" )\
 	X( CMP_BADDECL,		"invalid declaration" )\
 	X( CMP_BADFNDECL,	"invalid function declaration" )\
 	X( CMP_BADPARAM,	"invalid function parameter" )\
