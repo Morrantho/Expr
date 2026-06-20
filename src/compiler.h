@@ -1,10 +1,14 @@
 #ifdef TYPES
 typedef u32 Reg;
 
+typedef struct CompilerScope {
+	u8 nlocals;
+} CompilerScope;
+
 typedef struct CompilerFrame {
+	InstIdx inst;	/* base inst */
 	Reg reg;		/* base reg */
-	u32 nlocals;
-	InstIdx inst;	/* start inst */
+	u8 nlocals;
 } CompilerFrame;
 
 typedef struct Compiler {
@@ -14,7 +18,7 @@ typedef struct Compiler {
 	Locals* locals;
 	Insts* insts;
 	Lexer* lexer;
-	Reg reg;
+	Reg nregs;
 } Compiler;
 #endif
 
@@ -29,25 +33,34 @@ void CompilerInit( App* app, Compiler* compiler ){
 	compiler->locals = &app->locals;
 	compiler->lexer = &app->lexer;
 	compiler->insts = &app->insts;
-	compiler->reg = 0;
+	compiler->nregs = 0;
 }
 
 static Reg RegAlloc( Compiler* compiler ){
-	if( compiler->reg >= REG_CAP ){ Halt( ERR_REGALLOC ); }
-	return ( Reg )compiler->reg++;
+	if( compiler->nregs >= REG_CAP ){ Halt( ERR_REGALLOC ); }
+	return ( Reg )compiler->nregs++;
 }
 
-static void CompilerEnter( Compiler* compiler, CompilerFrame* out ){
-	out->reg = compiler->reg;
-	out->nlocals = compiler->locals->len;
-	out->inst = compiler->insts->len;
-	compiler->reg = 0;
+static void CompilerPushScope( Compiler* compiler, CompilerScope* out ){
+	out->nlocals = ( u8 )compiler->locals->len;
 	compiler->locals->len = 0;
 }
 
-static Reg CompilerExit( Compiler* compiler, CompilerFrame* in ){
-	Reg nregs = compiler->reg;
-	compiler->reg = in->reg;
+static void CompilerPopScope( Compiler* compiler, CompilerScope* in ){
+	compiler->locals->len = in->nlocals;
+}
+
+static void CompilerPushFrame( Compiler* compiler, CompilerFrame* out ){
+	out->reg = compiler->nregs;
+	out->nlocals = ( u8 )compiler->locals->len;
+	out->inst = compiler->insts->len;
+	compiler->nregs = 0;
+	compiler->locals->len = 0;
+}
+
+static Reg CompilerPopFrame( Compiler* compiler, CompilerFrame* in ){
+	Reg nregs = compiler->nregs;
+	compiler->nregs = in->reg;
 	compiler->locals->len = in->nlocals;
 	return nregs;
 }
@@ -239,11 +252,11 @@ static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 void CompilerRun( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
 	CompilerFrame entry;
-	CompilerEnter( compiler, &entry );
+	CompilerPushFrame( compiler, &entry );
 	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
 	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer );
-	Reg nregs = CompilerExit( compiler, &entry );
-	( void )nregs;
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );
+	Reg nregs = CompilerPopFrame( compiler, &entry );
+	( void )nregs;
 }
 #endif
