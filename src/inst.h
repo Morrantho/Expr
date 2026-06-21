@@ -39,13 +39,6 @@ static Inst* InstGet( Insts* insts, InstIdx idx ){
 	return &insts->data[ idx ];
 }
 
-static void InstDump( Insts* insts ){
-	for( u32 i = 0; i < insts->len; i++ ){
-		Inst* inst = &insts->data[ i ];
-		printf( "%s %d %d %d\n", OpGetName( inst->op ), inst->a, inst->b, inst->c );
-	}
-}
-
 static InstIdx InstABC( Insts* insts, OpCode op, u8 a, u8 b, u8 c ){
 	InstIdx idx = UINT32_MAX;
 	*InstPush( insts, &idx ) = ( Inst ){ op, a, b, c };

@@ -86,7 +86,7 @@ static void CompilerPopFrame( Compiler* compiler, CompilerFrame* in ){
 static void CompilerMatch( Compiler* compiler, Lexer* lexer, TkType expected ){
 	Tk* tk = &lexer->tk;
 	if( tk->type != expected ){
-		Log( compiler->logs, &tk->pos, PARSE_EXPECT, expected, tk->type );
+		Log( compiler->logs, &tk->pos, PARSE_EXPECT, TkGetName( expected ), TkGetName( tk->type ) );
 	}
 	Lex( lexer );
 }
@@ -106,7 +106,7 @@ static Expr CompileGroup( Compiler* compiler, Lexer* lexer ){
 
 static Expr CompileBadUnary( Compiler* compiler, Expr* expr, Tk* tk ){
 	u8* expr_name = ExprGetName( expr->type );
-	u8* unary_name = OpGetUnaryName( tk->type );
+	u8* unary_name = TkGetName( tk->type );
 	Log( compiler->logs, &tk->pos, CMP_BADUNARY, unary_name, expr_name );
 	return ExprGen( EXPR_ERR, 0 );
 }
@@ -161,10 +161,10 @@ static Expr CompilePrefix( Compiler* compiler, Lexer* lexer ){
 	}
 }
 
-static Expr CompileBadPost( Compiler* compiler, Expr* expr, Tk* tk ){
-	u8* expr_name = ExprGetName( expr->type );
-	u8* post_name = OpGetPostName( tk->type );
-	Log( compiler->logs, &tk->pos, CMP_BADPOST, post_name, expr_name );
+static Expr CompileBadPost( Compiler* compiler, Expr* src, Tk* tk ){
+	u8* src_name = ExprGetName( src->type );
+	u8* post_name = TkGetName( tk->type );
+	Log( compiler->logs, &tk->pos, CMP_BADPOST, post_name, src_name );
 	return ExprGen( EXPR_ERR, UINT32_MAX );
 }
 
@@ -203,7 +203,7 @@ static Expr CompilePostfix( Compiler* compiler, Lexer* lexer, Expr src ){
 static Expr CompileBadBinary( Compiler* c, Expr* lhs, Expr* rhs, Tk* tk ){
 	u8* lhs_type = ExprGetName( lhs->type );
 	u8* rhs_type = ExprGetName( rhs->type );
-	u8* bin_name = OpGetBinaryName( tk->type );
+	u8* bin_name = TkGetName( tk->type );
 	Log( c->logs, &tk->pos, CMP_BADBINARY, bin_name, lhs_type, rhs_type );
 	return ExprGen( EXPR_ERR, UINT32_MAX );
 }

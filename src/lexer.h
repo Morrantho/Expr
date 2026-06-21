@@ -198,7 +198,7 @@ static void LexEq( Lexer* lexer, Tk* tk ){ /* == ==> */
 	SrcPos pos = lexer->pos;
 	LexChar( lexer, tk, TK_EOS ); /* Intentional */
 	if( *lexer->text != '=' ){ Log( lexer->logs, &pos, LEX_BADASSIGN ); return; }
-	LexEat( lexer, tk, TK_ISEQ );
+	LexEat( lexer, tk, TK_CMP );
 	if( *lexer->text == '>' ){ LexEat( lexer, tk, TK_CONT ); return; }
 }
 

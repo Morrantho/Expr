@@ -124,7 +124,7 @@ static inline void VmLteNum( Vm* vm, Inst* i ){
 	VmSetNum( vm, i->a, VmGetNum( vm, i->b ) <= VmGetNum( vm, i->c ) );
 }
 
-static inline void VmIsEqNum( Vm* vm, Inst* i ){
+static inline void VmCmpNum( Vm* vm, Inst* i ){
 	VmSetNum( vm, i->a, VmGetNum( vm, i->b ) == VmGetNum( vm, i->c ) );
 }
 

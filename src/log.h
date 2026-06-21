@@ -8,7 +8,7 @@
 	X( PARSE_BADPRE,	"bad expr prefix: %s for token type: %s" )\
 	X( PARSE_BADINF,	"bad expr infix: %s for token type: %s" )\
 	X( PARSE_BADPOST,	"bad expr postfix: %s for token type: %s" )\
-	X( PARSE_EXPECT,	"expected: %d, got: %d" )\
+	X( PARSE_EXPECT,	"expected: %s, got: %s" )\
 	X( CMP_BADUNARY,	"cannot use %s on %s" )\
 	X( CMP_BADPOST,		"cannot use %s on %s" )\
 	X( CMP_BADBINARY,	"cannot use %s on %s and %s" )\
