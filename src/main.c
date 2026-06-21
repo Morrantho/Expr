@@ -11,6 +11,7 @@ typedef struct App {
 	Consts consts;
 	Locals locals;
 	Insts insts;
+	Chunks chunks;
 	Lexer lexer;
 	Compiler compiler;
 	Vm vm;
@@ -28,11 +29,13 @@ static void AppInit( App* app, u8* path ){
 	ConstInit( &app->consts );
 	LocalInit( &app->locals );
 	InstInit( &app->insts );
+	ChunkInit( &app->chunks );
 	CompilerInit( app, &app->compiler );
 	VmInit( app, &app->vm );
 }
 
 static void AppFree( App* app ){
+	ChunkFree( &app->chunks );
 	InstFree( &app->insts );
 	LocalFree( &app->locals );
 	ConstFree( &app->consts );

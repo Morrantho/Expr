@@ -5,10 +5,10 @@ typedef struct CompilerScope {
 	u8 nlocals;
 } CompilerScope;
 
-typedef struct CompilerFrame {
-	InstIdx inst;	/* base inst */
-	Reg reg;		/* base reg */
+typedef struct CompilerFrame {	/* register span */
+	Reg reg;					/* base reg */
 	u8 nlocals;
+	ChunkIdx chunk;				/* store previous chunk */
 } CompilerFrame;
 
 typedef struct Compiler {
@@ -17,8 +17,11 @@ typedef struct Compiler {
 	Consts* consts;
 	Locals* locals;
 	Insts* insts;
+	Chunks* chunks;
 	Lexer* lexer;
+
 	Reg nregs;
+	ChunkIdx chunk;				/* cur chunk */
 } Compiler;
 #endif
 
@@ -33,7 +36,9 @@ void CompilerInit( App* app, Compiler* compiler ){
 	compiler->locals = &app->locals;
 	compiler->lexer = &app->lexer;
 	compiler->insts = &app->insts;
+	compiler->chunks = &app->chunks;
 	compiler->nregs = 0;
+	compiler->chunk = CHUNK_NONE;
 }
 
 static Reg RegAlloc( Compiler* compiler ){
@@ -42,28 +47,40 @@ static Reg RegAlloc( Compiler* compiler ){
 }
 
 static CompilerScope CompilerPushScope( Compiler* compiler ){
-	CompilerScope scope = { .nlocals = ( u8 )compiler->locals->len };
-	compiler->locals->len = 0;
-	return scope;
+	return ( CompilerScope ){ .nlocals = ( u8 )compiler->locals->len };
 }
 
 static void CompilerPopScope( Compiler* compiler, CompilerScope* in ){
 	compiler->locals->len = in->nlocals;
 }
 
-static void CompilerPushFrame( Compiler* compiler, CompilerFrame* out ){
-	out->reg = compiler->nregs;
-	out->nlocals = ( u8 )compiler->locals->len;
-	out->inst = compiler->insts->len;
-	compiler->nregs = 0;
-	compiler->locals->len = 0;
+static InstIdx CompilerGetIp( Compiler* compiler ){
+	Chunk* chunk = ChunkGet( compiler->chunks, compiler->chunk );
+	return compiler->insts->len - chunk->start;
 }
 
-static Reg CompilerPopFrame( Compiler* compiler, CompilerFrame* in ){
-	Reg nregs = compiler->nregs;
+static ChunkIdx CompilerPushFrame( Compiler* compiler, CompilerFrame* out ){
+	out->reg = compiler->nregs;
+	out->nlocals = ( u8 )compiler->locals->len;
+	out->chunk = compiler->chunk; /* prev chunk */
+	ChunkIdx chunk_idx = ChunkPush( compiler->chunks );
+	Chunk* chunk = ChunkGet( compiler->chunks, chunk_idx );
+	chunk->start = compiler->insts->len;
+	chunk->len = 0;
+	chunk->nregs = 0;
+	compiler->chunk = chunk_idx;
+	compiler->nregs = 0;
+	compiler->locals->len = 0;
+	return chunk_idx;
+}
+
+static void CompilerPopFrame( Compiler* compiler, CompilerFrame* in ){
+	Chunk* chunk = ChunkGet( compiler->chunks, compiler->chunk );
+	chunk->len = compiler->insts->len - chunk->start;
+	chunk->nregs = compiler->nregs;
 	compiler->nregs = in->reg;
 	compiler->locals->len = in->nlocals;
-	return nregs;
+	compiler->chunk = in->chunk;
 }
 
 static void CompilerMatch( Compiler* compiler, Lexer* lexer, TkType expected ){
@@ -250,7 +267,6 @@ void CompilerRun( Compiler* compiler ){
 	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
 	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer );
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );
-	Reg nregs = CompilerPopFrame( compiler, &entry );
-	( void )nregs;
+	CompilerPopFrame( compiler, &entry );
 }
 #endif
