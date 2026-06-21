@@ -32,7 +32,7 @@
 	// X( MEMB )
 #define X_EXPRS( X )\
 	X( ERR,		"error" )\
-	X( NULL,	"null" )\
+	X( VOID,	"void" )\
 	X( NUM,		"number" )\
 	X( STR,		"string" )\
 	X( ID,		"id" )

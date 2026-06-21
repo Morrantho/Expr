@@ -18,13 +18,19 @@ typedef struct Consts {
 	Const* data;
 	u32 len, cap;
 } Consts;
+
+static ConstIdx CONST_VOID = 0;
 #endif
 
 #ifdef IMPL
+ConstIdx ConstPutNum( Consts* consts, f64 num );
+
 void ConstInit( Consts* consts ){
 	consts->data = MemAlloc( sizeof( consts->data[ 0 ] ), CONST_VEC_CAP );
 	consts->len = 0;
 	consts->cap = CONST_VEC_CAP;
+	CONST_VOID = ConstPutNum( consts, 0 );
+	// if( CONST_VOID != 0 ) Halt( ERR_CONSTVOID );
 }
 
 static void ConstGrow( Consts* consts ){

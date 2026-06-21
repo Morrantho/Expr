@@ -184,7 +184,7 @@ static Expr CompileBlock( Compiler* compiler, Lexer* lexer, TkType end1, TkType 
 		last = CompileStmt( compiler, lexer );
 	CompilerPopScope( compiler, &scope );
 	if( lexer->tk.type == end1 ){ Lex( lexer ); return last; }
-	if( lexer->tk.type == end2 && end2 != TK_EOS ){ return last; }
+	if( lexer->tk.type == end2 && end2 != TK_EOS ) return last;
 	CompilerMatch( compiler, lexer, end1 ); /* Report missing end */
 	return last;
 }
@@ -242,24 +242,61 @@ static Expr CompileExpr( Compiler* compiler, Lexer* lexer, Prec min ){
 	return expr;
 }
 
-static Expr CompileIf( Compiler* compiler, Lexer* lexer ){
-	Lex( lexer ); /* eat ?( */
+static Expr CompileIfBlock( Compiler* compiler, Lexer* lexer ){
+	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
+	CompilerScope scope = CompilerPushScope( compiler );
+	while( lexer->tk.type != TK_END 
+		&& lexer->tk.type != TK_ELIF
+		&& lexer->tk.type != TK_ELSE
+		&& lexer->tk.type != TK_EOS )
+			expr = CompileStmt( compiler, lexer );
+	CompilerPopScope( compiler, &scope );
+	return expr;
+}
+
+static Expr CompileIfCond( Compiler* compiler, Lexer* lexer ){
+	Lex( lexer );															/* eat ?( or ??( */
 	Expr cond = CompileExpr( compiler, lexer, PREC_NONE );
-	CompilerMatch( compiler, lexer, TK_RP ); /* ) */
-	InstIdx jz = InstJz( compiler->insts, cond.reg ); /* backpatch later */
-	Expr then = CompileBlock( compiler, lexer, TK_END, TK_ELSE ); /* :: ?? */
-	if( lexer->tk.type != TK_ELSE ){
-		InstPatchBX( compiler->insts, jz, CompilerGetIp( compiler ) ); /* backpatch jz */
-		return then;
-	}
-	Expr dst = ExprGen( then.type, RegAlloc( compiler ) ); /* join register */
-	InstMov( compiler->insts, dst.reg, then.reg ); /* mov jmp target to dst */
-	InstIdx jmp = InstJmp( compiler->insts ); /* backpatch later */
-	InstPatchBX( compiler->insts, jz, CompilerGetIp( compiler ) ); /* backpatch jz */
+	CompilerMatch( compiler, lexer, TK_RP );								/* match ) */
+	return cond;
+}
+
+static u8 CompileIfHead( Compiler* compiler, Lexer* lexer, Expr* dst, InstIdx* jz ){
+	Expr cond = CompileIfCond( compiler, lexer );
+	*jz = InstJz( compiler->insts, cond.reg );								/* for backpatch false jmp */
+	Expr body = CompileIfBlock( compiler, lexer );
+	if( dst->type == EXPR_ERR ) dst->type = body.type;
+	InstMov( compiler->insts, dst->reg, body.reg );							/* branch result */
+	if( lexer->tk.type == TK_ELIF || lexer->tk.type == TK_ELSE ) return 1;	/* more work to do */
+	InstPatchBX( compiler->insts, *jz, CompilerGetIp( compiler ) );			/* backpatch false jmp */
+	CompilerMatch( compiler, lexer, TK_END );
+	return 0;																/* if only */
+}
+
+static void CompileElse( Compiler* compiler, Lexer* lexer, Expr* dst ){
 	Lex( lexer ); /* eat ?? */
-	Expr els = CompileBlock( compiler, lexer, TK_END, TK_EOS ); /* :: EOS */
-	InstMov( compiler->insts, dst.reg, els.reg );
-	InstPatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) ); /* backpatch jmp */
+	Expr body = CompileBlock( compiler, lexer, TK_END, TK_EOS );
+	InstMov( compiler->insts, dst->reg, body.reg );
+}
+
+static void CompileIfChain( Compiler* compiler, Lexer* lexer, Expr* dst ){
+	InstIdx jz;
+	if( !CompileIfHead( compiler, lexer, dst, &jz ) ) return;
+	InstIdx jmp = InstJmp( compiler->insts );
+	InstPatchBX( compiler->insts, jz, CompilerGetIp( compiler ) );
+	if( lexer->tk.type == TK_ELIF ){
+		CompileIfChain( compiler, lexer, dst );
+		InstPatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) );
+		return;
+	}
+	CompileElse( compiler, lexer, dst );
+	InstPatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) );
+}
+
+static Expr CompileIf( Compiler* compiler, Lexer* lexer ){
+	Expr dst = ExprGen( EXPR_VOID, RegAlloc( compiler ) ); /* init void or single ifs emits emit garbage. */
+	InstABX( compiler->insts, OP_LOADC, dst.reg, CONST_VOID );
+	CompileIfChain( compiler, lexer, &dst );
 	return dst;
 }
 
