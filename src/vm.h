@@ -18,7 +18,9 @@ typedef struct Vm {
 	Interns* interns;
 	Consts* consts;
 	Insts* insts;
-	Inst* ip;
+	Chunks* chunks;
+
+	Inst *ip, *base, *end;
 } Vm;
 #endif
 
@@ -27,7 +29,22 @@ void VmInit( App* app, Vm* vm ){
 	vm->interns = &app->interns;
 	vm->consts = &app->consts;
 	vm->insts = &app->insts;
+	vm->chunks = &app->chunks;
+
 	vm->ip = vm->insts->data;
+	vm->base = vm->end = 0;
+}
+
+static inline void VmEnterChunk( Vm* vm, ChunkIdx idx ){
+	Chunk* chunk = ChunkGet( vm->chunks, idx );
+	vm->base = vm->insts->data + chunk->start;
+	vm->ip = vm->base;
+	vm->end = vm->base + chunk->len;
+}
+
+static inline Inst* VmInstAt( Vm* vm, InstIdx ip ){
+	// if( vm->base + ip >= vm->end ) Halt( ERR_VMIP );
+	return vm->base + ip;
 }
 
 static inline Value* VmGetValue( Vm* vm, u8 reg ){
@@ -89,7 +106,8 @@ void VmPrintValue( Vm* vm, Value* value ){
 
 #include "vm_ops.h"
 
-Value* VmRun( Vm* vm ){
+Value* VmRun( Vm* vm, ChunkIdx entry ){
+	VmEnterChunk( vm, entry );
 	for( ;; ){
 		Inst* i = vm->ip++;
 		switch( ( OpCode )i->op ){

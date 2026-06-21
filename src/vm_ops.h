@@ -9,19 +9,20 @@ static void VmLoadConst( Vm* vm, Inst* i ){
 	}
 }
 
+static void VmMov( Vm* vm, Inst* i ){
+	vm->regs[ i->a ] = vm->regs[ i->b ];
+}
+
 static void VmJmp( Vm* vm, Inst* i ){
-	(void)vm;
-	(void)i;
+	vm->ip = VmInstAt( vm, InstGetBX( i ) );
 }
 
 static void VmJz( Vm* vm, Inst* i ){
-	(void)vm;
-	(void)i;
+	if( VmGetValue( vm, i->a )->num == 0 ) vm->ip = VmInstAt( vm, InstGetBX( i ) );
 }
 
 static void VmJnz( Vm* vm, Inst* i ){
-	(void)vm;
-	(void)i;
+	if( VmGetValue( vm, i->a )->num != 0 ) vm->ip = VmInstAt( vm, InstGetBX( i ) );
 }
 /*UNARY***********************************************************************/
 static inline void VmNotNum( Vm* vm, Inst* i ){

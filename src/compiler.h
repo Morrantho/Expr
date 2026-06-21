@@ -180,10 +180,11 @@ static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 static Expr CompileBlock( Compiler* compiler, Lexer* lexer, TkType end1, TkType end2 ){
 	Expr last = ExprGen( EXPR_ERR, UINT32_MAX );
 	CompilerScope scope = CompilerPushScope( compiler );
-	while( lexer->tk.type != end1 && lexer->tk.type != end2 )
+	while( lexer->tk.type != end1 && lexer->tk.type != end2 && lexer->tk.type != TK_EOS )
 		last = CompileStmt( compiler, lexer );
 	CompilerPopScope( compiler, &scope );
 	if( lexer->tk.type == end1 ){ Lex( lexer ); return last; }
+	if( lexer->tk.type == end2 && end2 != TK_EOS ){ return last; }
 	CompilerMatch( compiler, lexer, end1 ); /* Report missing end */
 	return last;
 }
@@ -241,6 +242,27 @@ static Expr CompileExpr( Compiler* compiler, Lexer* lexer, Prec min ){
 	return expr;
 }
 
+static Expr CompileIf( Compiler* compiler, Lexer* lexer ){
+	Lex( lexer ); /* eat ?( */
+	Expr cond = CompileExpr( compiler, lexer, PREC_NONE );
+	CompilerMatch( compiler, lexer, TK_RP ); /* ) */
+	InstIdx jz = InstJz( compiler->insts, cond.reg ); /* backpatch later */
+	Expr then = CompileBlock( compiler, lexer, TK_END, TK_ELSE ); /* :: ?? */
+	if( lexer->tk.type != TK_ELSE ){
+		InstPatchBX( compiler->insts, jz, CompilerGetIp( compiler ) ); /* backpatch jz */
+		return then;
+	}
+	Expr dst = ExprGen( then.type, RegAlloc( compiler ) ); /* join register */
+	InstMov( compiler->insts, dst.reg, then.reg ); /* mov jmp target to dst */
+	InstIdx jmp = InstJmp( compiler->insts ); /* backpatch later */
+	InstPatchBX( compiler->insts, jz, CompilerGetIp( compiler ) ); /* backpatch jz */
+	Lex( lexer ); /* eat ?? */
+	Expr els = CompileBlock( compiler, lexer, TK_END, TK_EOS ); /* :: EOS */
+	InstMov( compiler->insts, dst.reg, els.reg );
+	InstPatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) ); /* backpatch jmp */
+	return dst;
+}
+
 static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
 	if( lexer->peek.type != TK_ASSIGN ) return CompileExpr( compiler, lexer, PREC_NONE );
 	Tk tk = lexer->tk;
@@ -255,18 +277,20 @@ static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
 static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 	switch( lexer->tk.type ){
 		default: return CompileExpr( compiler, lexer, PREC_NONE );
+		case TK_IF: return CompileIf( compiler, lexer );
 		case TK_ID: return CompileDecl( compiler, lexer );
 		case TK_EOS: return ExprGen( EXPR_ERR, UINT32_MAX );
 	}
 }
 
-void CompilerRun( Compiler* compiler ){
+ChunkIdx CompilerRun( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
 	CompilerFrame entry;
-	CompilerPushFrame( compiler, &entry );
+	ChunkIdx chunk_idx = CompilerPushFrame( compiler, &entry );
 	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
 	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer );
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );
 	CompilerPopFrame( compiler, &entry );
+	return chunk_idx;
 }
 #endif

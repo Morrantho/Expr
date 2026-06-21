@@ -44,34 +44,33 @@ static void AppFree( App* app ){
 	SrcFree( &app->srcs );
 }
 
-static void AppTestVm( App* app ){
-	ChunkIdx chunk_idx = ChunkPush( &app->chunks );
-	Chunk* chunk = ChunkGet( &app->chunks, chunk_idx );
-	chunk->start = app->insts.len;
+// static void AppTestVm( App* app ){
+// 	ChunkIdx chunk_idx = ChunkPush( &app->chunks );
+// 	Chunk* chunk = ChunkGet( &app->chunks, chunk_idx );
+// 	chunk->start = app->insts.len;
 
-	ConstIdx c0 = ConstPutNum( &app->consts, 0 );
-	ConstIdx c111 = ConstPutNum( &app->consts, 111 );
-	ConstIdx c222 = ConstPutNum( &app->consts, 222 );
+// 	ConstIdx c0 = ConstPutNum( &app->consts, 0 );
+// 	ConstIdx c111 = ConstPutNum( &app->consts, 111 );
+// 	ConstIdx c222 = ConstPutNum( &app->consts, 222 );
 
-	InstABX( &app->insts, OP_LOADC, 0, c0 );
-	InstABX( &app->insts, OP_JZ, 0, 4 );
-	InstABX( &app->insts, OP_LOADC, 1, c111 );
-	InstABX( &app->insts, OP_JMP, 0, 5 );
-	InstABX( &app->insts, OP_LOADC, 1, c222 );
-	InstABC( &app->insts, OP_HALT, 1, 0, 0 );
+// 	InstABX( &app->insts, OP_LOADC, 0, c0 );
+// 	InstABX( &app->insts, OP_JZ, 0, 4 );
+// 	InstABX( &app->insts, OP_LOADC, 1, c111 );
+// 	InstABX( &app->insts, OP_JMP, 0, 5 );
+// 	InstABX( &app->insts, OP_LOADC, 1, c222 );
+// 	InstABC( &app->insts, OP_HALT, 1, 0, 0 );
 
-	chunk->len = app->insts.len - chunk->start;
-	chunk->nregs = 2;
-	InstDump( &app->insts );
-}
+// 	chunk->len = app->insts.len - chunk->start;
+// 	chunk->nregs = 2;
+// 	InstDump( &app->insts );
+// }
 
 static void AppRun( App* app ){
-	// CompilerRun( &app->compiler );
-	// if( LogDump( &app->logs ) ) return;
-	AppTestVm( app );
-	Value* v = VmRun( &app->vm );
-	if( v->type == VALUE_NULL ) return;
-	VmPrintValue( &app->vm, v );
+	ChunkIdx entry = CompilerRun( &app->compiler );
+	if( LogDump( &app->logs ) ) return;
+	Value* value = VmRun( &app->vm, entry );
+	if( value->type == VALUE_NULL ) return;
+	VmPrintValue( &app->vm, value );
 }
 
 x32 main( x32 nargs, x8** args ){

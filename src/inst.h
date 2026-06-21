@@ -60,12 +60,12 @@ static InstIdx InstAX( Insts* insts, OpCode op, u32 ax ){
 	return InstABC( insts, op, ax >> 16, ax >> 8, ax );
 }
 
-static u16 InstGetBX( Inst inst ){
-	return ( ( u16 )inst.b << 8 ) | inst.c;
+static u16 InstGetBX( Inst* inst ){
+	return ( ( u16 )inst->b << 8 ) | inst->c;
 }
 
-static u32 InstGetAX( Inst inst ){
-	return ( ( u32 )inst.a << 16 ) | ( ( u32 )inst.b << 8 ) | inst.c;
+static u32 InstGetAX( Inst* inst ){
+	return ( ( u32 )inst->a << 16 ) | ( ( u32 )inst->b << 8 ) | inst->c;
 }
 
 static void InstPatchBX( Insts* insts, InstIdx idx, InstIdx bx ){
@@ -81,6 +81,10 @@ static void InstPatchAX( Insts* insts, InstIdx idx, InstIdx ax ){
 	inst->a = ax >> 16;
 	inst->b = ax >> 8;
 	inst->c = ax;
+}
+
+static InstIdx InstMov( Insts* insts, u8 dst, u8 src ){
+	return InstABC( insts, OP_MOV, dst, src, 0 );
 }
 
 static InstIdx InstJmp( Insts* insts ){
