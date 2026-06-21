@@ -5,7 +5,7 @@ typedef u16 ChunkIdx;
 typedef struct Chunk { /* instruction span */
 	InstIdx start;
 	InstIdx len;
-	u8 nregs;
+	u32 nregs;
 } Chunk;
 
 typedef struct Chunks {

@@ -2,7 +2,7 @@
 typedef u32 Reg;
 
 typedef struct CompilerScope {
-	u8 nlocals;
+	u32 nlocals;
 } CompilerScope;
 
 typedef struct CompilerFrame {	/* register span */
@@ -34,9 +34,9 @@ void CompilerInit( App* app, Compiler* compiler ){
 	compiler->interns = &app->interns;
 	compiler->consts = &app->consts;
 	compiler->locals = &app->locals;
-	compiler->lexer = &app->lexer;
 	compiler->insts = &app->insts;
 	compiler->chunks = &app->chunks;
+	compiler->lexer = &app->lexer;
 	compiler->nregs = 0;
 	compiler->chunk = CHUNK_NONE;
 }
@@ -47,7 +47,7 @@ static Reg RegAlloc( Compiler* compiler ){
 }
 
 static CompilerScope CompilerPushScope( Compiler* compiler ){
-	return ( CompilerScope ){ .nlocals = ( u8 )compiler->locals->len };
+	return ( CompilerScope ){ .nlocals = compiler->locals->len };
 }
 
 static void CompilerPopScope( Compiler* compiler, CompilerScope* in ){
