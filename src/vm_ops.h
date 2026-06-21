@@ -8,6 +8,21 @@ static void VmLoadConst( Vm* vm, Inst* i ){
 		case CONST_STR: VmSetStr( vm, i->a, c->str ); return;
 	}
 }
+
+static void VmJmp( Vm* vm, Inst* i ){
+	(void)vm;
+	(void)i;
+}
+
+static void VmJz( Vm* vm, Inst* i ){
+	(void)vm;
+	(void)i;
+}
+
+static void VmJnz( Vm* vm, Inst* i ){
+	(void)vm;
+	(void)i;
+}
 /*UNARY***********************************************************************/
 static inline void VmNotNum( Vm* vm, Inst* i ){
 	VmSetNum( vm, i->a, !VmGetNum( vm, i->b ) );

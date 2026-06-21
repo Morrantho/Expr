@@ -39,6 +39,13 @@ static Inst* InstGet( Insts* insts, InstIdx idx ){
 	return &insts->data[ idx ];
 }
 
+static void InstDump( Insts* insts ){
+	for( u32 i = 0; i < insts->len; i++ ){
+		Inst* inst = &insts->data[ i ];
+		printf( "%s %d %d %d\n", OpGetName( inst->op ), inst->a, inst->b, inst->c );
+	}
+}
+
 static InstIdx InstABC( Insts* insts, OpCode op, u8 a, u8 b, u8 c ){
 	InstIdx idx = UINT32_MAX;
 	*InstPush( insts, &idx ) = ( Inst ){ op, a, b, c };
@@ -74,5 +81,17 @@ static void InstPatchAX( Insts* insts, InstIdx idx, InstIdx ax ){
 	inst->a = ax >> 16;
 	inst->b = ax >> 8;
 	inst->c = ax;
+}
+
+static InstIdx InstJmp( Insts* insts ){
+	return InstABX( insts, OP_JMP, 0, 0 );
+}
+
+static InstIdx InstJz(  Insts* insts, u8 reg ){
+	return InstABX( insts, OP_JZ, reg, 0 );
+}
+
+static InstIdx InstJnz(  Insts* insts, u8 reg ){
+	return InstABX( insts, OP_JNZ, reg, 0 );
 }
 #endif

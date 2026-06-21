@@ -5,7 +5,10 @@
 	X( HALT, _, _, _, _, _, "halt" )
 /*CORE************************************************************************/
 #define X_OPS_CORE( X )\
-	X( LOADC, LoadConst, _, _, _, _, "load constant" )
+	X( LOADC, LoadConst, _, _, _, _, "load constant" )\
+	X( JMP,   Jmp,       _, _, _, _, "unconditional jump" )\
+	X( JZ,    Jz,        _, _, _, _, "jump if zero" )\
+	X( JNZ,   Jnz,       _, _, _, _, "jump if not zero" )
 	//X( RET,   Return,    _, _, _, _, "return" )
 	//X( CALL,  Call,      _, _, _, _, "call" )
 	//X( ARG,   Arg,       _, _, _, _, "arg" )
