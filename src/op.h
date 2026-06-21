@@ -35,7 +35,7 @@
 	X( POSTDEC_NUM, PostDecNum, DEC, NUM, _, NUM ) /* a-- */
 #define X_OPS_POST( X )\
 	X_OPS_POST_NUM_MUT_C( X )
-/*BINARY**********************************************************************/
+/*BINARY NUM******************************************************************/
 #define X_OPS_BINARY_NUM_C( X )\
 	X( NOTEQ_NUM,  NotEqNum,  NOTEQ,  NUM, NUM, NUM ) /* a != b */\
 	X( MOD_NUM,    ModNum,    MOD,    NUM, NUM, NUM ) /* a % b */\
@@ -68,10 +68,14 @@
 	X( BOREQ_NUM,  BorEqNum,  BOREQ,  NUM, NUM, NUM ) /* a |= b */
 #define X_OPS_BINARY_NO_C( X )\
 	X( POW_NUM,    PowNum,    POW,    NUM, NUM, NUM ) /* a ^^ b */
+/*BINARY STR******************************************************************/
+#define X_OPS_BINARY_STR_C( X )\
+	X( CMP_STR,    CmpStr,    CMP,    STR, STR, NUM )
 #define X_OPS_BINARY( X )\
 	X_OPS_BINARY_NUM_C( X )\
 	X_OPS_BINARY_NUM_MUT_C( X )\
-	X_OPS_BINARY_NO_C( X )
+	X_OPS_BINARY_NO_C( X )\
+	X_OPS_BINARY_STR_C( X )
 /*ALL*************************************************************************/
 #define X_OPS( X )\
 	X_OPS_EXCLUDE( X )\
@@ -87,8 +91,7 @@
 	[ EXPR_##LHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
 #define X_OP_BINARY_INIT( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
 	[ EXPR_##LHS_TYPE ][ EXPR_##RHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
-#define X_OP_VM_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
-	case OP_##OP:{ Vm##FN( vm, i ); continue; }
+#define X_OP_VM_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE ) case OP_##OP:{ Vm##FN( vm, i, regs ); continue; }
 typedef enum OpCode { X_OPS( X_OP_ENUMS ) OP_COUNT } OpCode;
 typedef struct Op {
 	u8 code; /* OpCode */

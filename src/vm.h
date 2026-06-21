@@ -51,32 +51,14 @@ static inline Value* VmGetValue( Vm* vm, u8 reg ){
 	return &vm->regs[ reg ];
 }
 
-static inline void VmSetNum( Vm* vm, u8 reg, f64 num ){
-	Value* value = VmGetValue( vm, reg );
-	value->type = VALUE_NUM;
-	value->num = num;
+static inline void VmNum( Value* dst, f64 n ){
+	dst->type = VALUE_NUM;
+	dst->num = n;
 }
 
-static inline f64 VmGetNum( Vm* vm, u8 reg ){
-	return VmGetValue( vm, reg )->num;
-}
-
-static inline void VmSetX64( Vm* vm, u8 reg, x64 num ){
-	VmSetNum( vm, reg, num );
-}
-
-static inline x64 VmGetX64( Vm* vm, u8 reg ){
-	return ( x64 )VmGetNum( vm, reg );
-}
-
-static inline void VmSetStr( Vm* vm, u8 reg, InternIdx str ){
-	Value* value = VmGetValue( vm, reg );
-	value->type = VALUE_STR;
-	value->str = str;
-}
-
-static inline InternIdx VmGetStr( Vm* vm, u8 reg ){
-	return VmGetValue( vm, reg )->str;
+static inline void VmStr( Value* dst, InternIdx str ){
+	dst->type = VALUE_STR;
+	dst->str = str;
 }
 
 static inline x64 VmPowX64( x64 base, x64 exp ){
@@ -107,12 +89,13 @@ void VmPrintValue( Vm* vm, Value* value ){
 #include "vm_ops.h"
 
 Value* VmRun( Vm* vm, ChunkIdx entry ){
+	Value* regs = vm->regs;
 	VmEnterChunk( vm, entry );
 	for( ;; ){
 		Inst* i = vm->ip++;
 		switch( ( OpCode )i->op ){
 			case OP_ERR: case OP_COUNT: return 0;
-			case OP_HALT: return VmGetValue( vm, i->a );
+			case OP_HALT: return &regs[ i->a ];
 			X_OPS_CORE( X_OP_VM_CASE )
 			X_OPS_UNARY( X_OP_VM_CASE )
 			X_OPS_POST( X_OP_VM_CASE )

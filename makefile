@@ -3,7 +3,7 @@ STD=-std=gnu23
 SRC=src/main.c
 LIB=
 WARN=-Wall -Wextra -Werror -Wpedantic -Winline
-NOWARN=-Wno-unused-function
+NOWARN=-Wno-unused-function -Wno-unused-parameter
 DBG=-O0 -ggdb3 -fno-omit-frame-pointer -DDEBUG
 FAST=-Ofast -flto -fwhole-program -fomit-frame-pointer -fno-stack-protector -march=native -DNDEBUG
 ASM=-masm=intel -Ofast -fwhole-program -fomit-frame-pointer -fno-stack-protector -march=native -S
