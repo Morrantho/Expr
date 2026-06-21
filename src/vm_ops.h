@@ -7,6 +7,7 @@ static void VmLoadConst( Vm* vm, Inst* i, Value* regs ){
 		case CONST_NUM: VmNum( &regs[ i->a ], c->num ); return;
 		case CONST_STR: VmStr( &regs[ i->a ], c->str ); return;
 	}
+	// Halt( ERR_LOADCONST );
 }
 
 static void VmMov( Vm* vm, Inst* i, Value* regs ){
@@ -83,75 +84,75 @@ static inline void VmPostDecNum( Vm* vm, Inst* i, Value* regs ){
 }
 /*BINARY NUM******************************************************************/
 static inline void VmNotEqNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num != regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num != regs[ i->c ].num );
 }
 
 static inline void VmModNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num % ( x64 )regs[ i->b ].num );
+	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num % ( x64 )regs[ i->c ].num );
 }
 
 static inline void VmBandNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num & ( x64 )regs[ i->b ].num );
+	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num & ( x64 )regs[ i->c ].num );
 }
 
 static inline void VmAndNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num && regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num && regs[ i->c ].num );
 }
 
 static inline void VmMulNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num * regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num * regs[ i->c ].num );
 }
 
 static inline void VmAddNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num + regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num + regs[ i->c ].num );
 }
 
 static inline void VmSubNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num - regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num - regs[ i->c ].num );
 }
 
 static inline void VmDivNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num / regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num / regs[ i->c ].num );
 }
 
 static inline void VmLtNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num < regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num < regs[ i->c ].num );
 }
 
 static inline void VmLshNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num << ( x64 )regs[ i->b ].num );
+	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num << ( x64 )regs[ i->c ].num );
 }
 
 static inline void VmLteNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num <= regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num <= regs[ i->c ].num );
 }
 
 static inline void VmCmpNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num == regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num == regs[ i->c ].num );
 }
 
 static inline void VmGtNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num > regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num > regs[ i->c ].num );
 }
 
 static inline void VmRshNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num >> ( x64 )regs[ i->b ].num );
+	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num >> ( x64 )regs[ i->c ].num );
 }
 
 static inline void VmGteNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num >= regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num >= regs[ i->c ].num );
 }
 
 static inline void VmBxorNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num ^ ( x64 )regs[ i->b ].num );
+	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num ^ ( x64 )regs[ i->c ].num );
 }
 
 static inline void VmBorNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num | ( x64 )regs[ i->b ].num );
+	VmNum( &regs[ i->a ], ( x64 )regs[ i->b ].num | ( x64 )regs[ i->c ].num );
 }
 
 static inline void VmOrNum( Vm* vm, Inst* i, Value* regs ){
-	VmNum( &regs[ i->a ], regs[ i->b ].num || regs[ i->b ].num );
+	VmNum( &regs[ i->a ], regs[ i->b ].num || regs[ i->c ].num );
 }
 
 static inline void VmModEqNum( Vm* vm, Inst* i, Value* regs ){
