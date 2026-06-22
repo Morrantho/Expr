@@ -47,7 +47,7 @@ static void AppFree( App* app ){
 static void AppRun( App* app ){
 	ChunkIdx entry = CompilerRun( &app->compiler );
 	if( LogDump( &app->logs ) ) return;
-	InstDump( &app->insts );
+	// InstDump( &app->insts );
 	Value* value = VmRun( &app->vm, entry );
 	if( value->type == VALUE_NULL ) return;
 	VmPrintValue( &app->vm, value );
