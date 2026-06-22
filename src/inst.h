@@ -68,21 +68,6 @@ static u16 InstGetBX( Inst* inst ){
 // 	return ( ( u32 )inst->a << 16 ) | ( ( u32 )inst->b << 8 ) | inst->c;
 // }
 
-static void InstPatchBX( Insts* insts, InstIdx idx, InstIdx bx ){
-	// if( bx > UINT16_MAX ) Halt( ERR_INSTPATCH );
-	Inst* inst = InstGet( insts, idx );
-	inst->b = bx >> 8;
-	inst->c = bx;
-}
-
-// static void InstPatchAX( Insts* insts, InstIdx idx, InstIdx ax ){
-// 	if( ax > 0x00ffffff ) Halt( ERR_INSTPATCH );
-// 	Inst* inst = InstGet( insts, idx );
-// 	inst->a = ax >> 16;
-// 	inst->b = ax >> 8;
-// 	inst->c = ax;
-// }
-
 static InstIdx InstMov( Insts* insts, u8 dst, u8 src ){
 	return InstABC( insts, OP_MOV, dst, src, 0 );
 }

@@ -14,4 +14,5 @@
 #define LOCAL_VEC_CAP 1024
 #define INST_VEC_CAP 1024
 #define CHUNK_VEC_CAP 1024
+#define PATCH_VEC_CAP 256
 #endif

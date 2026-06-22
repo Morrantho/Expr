@@ -19,6 +19,7 @@ typedef struct Compiler {
 	Locals* locals;
 	Insts* insts;
 	Chunks* chunks;
+	Patches* patches;
 	Lexer* lexer;
 
 	Reg nregs;
@@ -37,6 +38,7 @@ void CompilerInit( App* app, Compiler* compiler ){
 	compiler->locals = &app->locals;
 	compiler->insts = &app->insts;
 	compiler->chunks = &app->chunks;
+	compiler->patches = &app->patches;
 	compiler->lexer = &app->lexer;
 	compiler->nregs = 0;
 	compiler->chunk = CHUNK_NONE;
@@ -247,7 +249,7 @@ static InstIdx CompileLoopHead( Compiler* compiler, InstIdx* brk ){
 	InstIdx enter = InstJmp( compiler->insts );
 	*brk = InstJmp( compiler->insts );
 	InstIdx head = CompilerGetIp( compiler );
-	InstPatchBX( compiler->insts, enter, head );
+	PatchBX( compiler->insts, enter, head );
 	return head;
 }
 
@@ -265,7 +267,7 @@ static Expr CompileLoop( Compiler* compiler, Lexer* lexer ){
 	InstIdx brk, head = CompileLoopHead( compiler, &brk );
 	CompileLoopBody( compiler, lexer, brk, head );
 	InstABX( compiler->insts, OP_JMP, 0, head );
-	InstPatchBX( compiler->insts,  brk, CompilerGetIp( compiler ) );
+	PatchBX( compiler->insts,  brk, CompilerGetIp( compiler ) );
 	CompilerMatch( compiler, lexer, TK_END );
 	return dst;
 }
@@ -316,7 +318,7 @@ static u8 CompileIfHead( Compiler* compiler, Lexer* lexer, Expr* dst, InstIdx* j
 	if( dst->type == EXPR_ERR ) dst->type = body.type;
 	InstMov( compiler->insts, dst->reg, body.reg );							/* branch result */
 	if( lexer->tk.type == TK_ELIF || lexer->tk.type == TK_ELSE ) return 1;	/* more work to do */
-	InstPatchBX( compiler->insts, *jz, CompilerGetIp( compiler ) );			/* backpatch false jmp */
+	PatchBX( compiler->insts, *jz, CompilerGetIp( compiler ) );			/* backpatch false jmp */
 	CompilerMatch( compiler, lexer, TK_END );
 	return 0;																/* if only */
 }
@@ -331,14 +333,14 @@ static void CompileIfChain( Compiler* compiler, Lexer* lexer, Expr* dst, InstIdx
 	InstIdx jz;
 	if( !CompileIfHead( compiler, lexer, dst, &jz, brk, cont ) ) return;
 	InstIdx jmp = InstJmp( compiler->insts );
-	InstPatchBX( compiler->insts, jz, CompilerGetIp( compiler ) );
+	PatchBX( compiler->insts, jz, CompilerGetIp( compiler ) );
 	if( lexer->tk.type == TK_ELIF ){
 		CompileIfChain( compiler, lexer, dst, brk, cont );
-		InstPatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) );
+		PatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) );
 		return;
 	}
 	CompileElse( compiler, lexer, dst, brk, cont );
-	InstPatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) );
+	PatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) );
 }
 
 static Expr CompileIf( Compiler* compiler, Lexer* lexer, InstIdx brk, InstIdx cont ){
