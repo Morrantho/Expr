@@ -85,6 +85,7 @@
 	X_OPS_BINARY( X )
 /*INITS***********************************************************************/
 #define X_OP_ENUMS( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE ) OP_##OP,
+#define X_OP_NAMES( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE ) ( u8* )#OP,
 #define X_OP_UNARY_INIT( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
 	[ EXPR_##LHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
 #define X_OP_POST_INIT( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
@@ -113,5 +114,10 @@ Op* OpGetPost( ExprType lhs_type, TkType tk_type ){
 Op* OpGetBinary( ExprType lhs_type, ExprType rhs_type, TkType tk_type ){
 	static Op binary_ops[ EXPR_COUNT ][ EXPR_COUNT ][ TK_COUNT ] = { X_OPS_BINARY( X_OP_BINARY_INIT ) };
 	return &binary_ops[ lhs_type ][ rhs_type ][ tk_type ];
+}
+
+u8* OpGetName( OpCode op ){
+	static u8* names[ ] = { X_OPS( X_OP_NAMES ) };
+	return names[ op ];
 }
 #endif
