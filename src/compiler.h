@@ -243,7 +243,7 @@ static Expr CompileExpr( Compiler* compiler, Lexer* lexer, Prec min ){
 	return expr;
 }
 
-static InstIdx CompileLoopHead( Compiler* compiler, Lexer* lexer, InstIdx* brk ){
+static InstIdx CompileLoopHead( Compiler* compiler, InstIdx* brk ){
 	InstIdx enter = InstJmp( compiler->insts );
 	*brk = InstJmp( compiler->insts );
 	InstIdx head = CompilerGetIp( compiler );
@@ -262,7 +262,7 @@ static Expr CompileLoop( Compiler* compiler, Lexer* lexer ){
 	Lex( lexer ); /* eat ;; */
 	Expr dst = ExprGen( EXPR_VOID, RegAlloc( compiler ) );	
 	InstABX( compiler->insts, OP_LOADC, dst.reg, CONST_VOID );
-	InstIdx brk, head = CompileLoopHead( compiler, lexer, &brk );
+	InstIdx brk, head = CompileLoopHead( compiler, &brk );
 	CompileLoopBody( compiler, lexer, brk, head );
 	InstABX( compiler->insts, OP_JMP, 0, head );
 	InstPatchBX( compiler->insts,  brk, CompilerGetIp( compiler ) );
