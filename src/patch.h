@@ -2,8 +2,11 @@
 typedef u32 PatchIdx;
 
 typedef enum PatchType {
-	PATCH_CONTINUE,
 	PATCH_BREAK,
+	PATCH_CONTINUE,
+	PATCH_IF,
+	PATCH_ELSE,
+	PATCH_ELIF
 } PatchType;
 
 typedef struct Patch {
@@ -27,8 +30,8 @@ void PatchBX( Insts* insts, InstIdx idx, InstIdx bx ){
 	inst->c = bx;
 }
 
-void PatchInit( App* app, Patches* patches ){
-	patches->insts = &app->insts;
+void PatchInit( Patches* patches, Insts* insts ){
+	patches->insts = insts;
 	patches->data = MemAlloc( sizeof( patches->data[ 0 ] ), PATCH_VEC_CAP );
 	patches->len = 0;
 	patches->cap = PATCH_VEC_CAP;

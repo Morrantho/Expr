@@ -25,7 +25,7 @@ typedef struct Vm {
 #endif
 
 #ifdef IMPL
-void VmInit( App* app, Vm* vm ){
+void VmInit( Vm* vm, App* app ){
 	vm->interns = &app->interns;
 	vm->consts = &app->consts;
 	vm->insts = &app->insts;

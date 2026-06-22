@@ -26,14 +26,14 @@ static void AppInit( App* app, u8* path ){
 	SrcIdx src_idx = SrcLoad( &app->srcs, path );
 	LogInit( &app->logs, &app->srcs );
 	InternInit( &app->interns );
-	LexInit( app, &app->lexer, src_idx );
+	LexInit( &app->lexer, app, src_idx );
 	ConstInit( &app->consts );
 	LocalInit( &app->locals );
 	InstInit( &app->insts );
 	ChunkInit( &app->chunks );
-	PatchInit( app, &app->patches );
-	CompilerInit( app, &app->compiler );
-	VmInit( app, &app->vm );
+	PatchInit( &app->patches, &app->insts );
+	CompilerInit( &app->compiler, app );
+	VmInit( &app->vm, app );
 }
 
 static void AppFree( App* app ){

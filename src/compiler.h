@@ -31,7 +31,7 @@ typedef struct Compiler {
 static Expr CompileExpr( Compiler* compiler, Lexer* lexer, Prec min );
 static Expr CompileStmt( Compiler* compiler, Lexer* lexer, InstIdx brk, InstIdx cont );
 
-void CompilerInit( App* app, Compiler* compiler ){
+void CompilerInit( Compiler* compiler, App* app ){
 	compiler->logs = &app->logs;
 	compiler->interns = &app->interns;
 	compiler->consts = &app->consts;
