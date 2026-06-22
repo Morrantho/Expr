@@ -70,17 +70,17 @@ static inline void VmFloorNum( Vm* vm, Inst* i, Value* regs ){
 }
 /*POST************************************************************************/
 static inline void VmPostIncNum( Vm* vm, Inst* i, Value* regs ){
-	Value *src = &regs[ i->b ];
+	Value* src = &regs[ i->b ];
 	f64 b = src->num;
-	++src->num;
 	VmNum( &regs[ i->a ], b );
+	++src->num;
 }
 
 static inline void VmPostDecNum( Vm* vm, Inst* i, Value* regs ){
-	Value *src = &regs[ i->b ];
+	Value* src = &regs[ i->b ];
 	f64 b = src->num;
-	--src->num;
 	VmNum( &regs[ i->a ], b );
+	--src->num;
 }
 /*BINARY NUM******************************************************************/
 static inline void VmNotEqNum( Vm* vm, Inst* i, Value* regs ){
