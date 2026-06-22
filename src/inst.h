@@ -42,7 +42,7 @@ static Inst* InstGet( Insts* insts, InstIdx idx ){
 void InstDump( Insts* insts ){
 	for( u32 i = 0; i < insts->len; i++ ){
 		Inst* inst = &insts->data[ i ];
-		printf( "%s %d %d %d\n", OpGetName( inst->op ), inst->a, inst->b, inst->c );
+		printf( "%d: %s r%d %d %d\n", i, OpGetName( inst->op ), inst->a, inst->b, inst->c );
 	}
 }
 

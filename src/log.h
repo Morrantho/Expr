@@ -13,13 +13,8 @@
 	X( CMP_BADPOST,		"cannot use %s on %s" )\
 	X( CMP_BADBINARY,	"cannot use %s on %s and %s" )\
 	X( CMP_BADID,		"undefined reference: %s" )\
-	X( CMP_BADIDTYPE,	"cannot reference a function: %s" )\
-	X( CMP_BADDECL,		"invalid declaration" )\
-	X( CMP_BADFNDECL,	"invalid function declaration" )\
-	X( CMP_BADPARAM,	"invalid function parameter" )\
-	X( CMP_BADARGC,		"expected %d args, got %d\n" )\
-	X( CMP_BADARGTYPE,	"bad argument type" )\
-	X( CMP_NOMAIN,		"no Main<()> entry point")
+	X( CMP_BADBRK,      "cannot break outside a loop" )\
+	X( CMP_BADCONT,     "cannot continue outside a loop" )
 #define X_LOG_ENUMS( ENUM, FMT ) ENUM,
 #define X_LOG_FMTS( ENUM, FMT ) ( u8* )FMT,
 typedef u32 LogIdx, LogOffset;
