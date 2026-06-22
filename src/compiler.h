@@ -60,7 +60,7 @@ static InstIdx CompilerGetIp( Compiler* compiler ){
 	return compiler->insts->len - chunk->start;
 }
 
-static ChunkIdx CompilerPushFrame( Compiler* compiler, CompilerFrame* out ){
+static ChunkIdx CompilerPushChunk( Compiler* compiler, CompilerFrame* out ){
 	out->reg = compiler->nregs;
 	out->nlocals = ( u8 )compiler->locals->len;
 	out->chunk = compiler->chunk; /* prev chunk */
@@ -75,7 +75,7 @@ static ChunkIdx CompilerPushFrame( Compiler* compiler, CompilerFrame* out ){
 	return chunk_idx;
 }
 
-static void CompilerPopFrame( Compiler* compiler, CompilerFrame* in ){
+static void CompilerPopChunk( Compiler* compiler, CompilerFrame* in ){
 	Chunk* chunk = ChunkGet( compiler->chunks, compiler->chunk );
 	chunk->len = compiler->insts->len - chunk->start;
 	chunk->nregs = compiler->nregs;
@@ -374,11 +374,11 @@ static Expr CompileStmt( Compiler* compiler, Lexer* lexer, InstIdx brk, InstIdx 
 ChunkIdx CompilerRun( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
 	CompilerFrame entry;
-	ChunkIdx chunk_idx = CompilerPushFrame( compiler, &entry );
+	ChunkIdx chunk_idx = CompilerPushChunk( compiler, &entry );
 	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
 	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer, LOOP_NONE, LOOP_NONE );
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );
-	CompilerPopFrame( compiler, &entry );
+	CompilerPopChunk( compiler, &entry );
 	return chunk_idx;
 }
 #endif
