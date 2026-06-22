@@ -8,8 +8,8 @@ typedef struct CompilerScope {
 
 typedef struct CompilerFrame {	/* register span */
 	Reg reg;					/* base reg */
-	u8 nlocals;
 	ChunkIdx chunk;				/* store previous chunk */
+	u8 nlocals;
 } CompilerFrame;
 
 typedef struct Compiler {
@@ -272,14 +272,20 @@ static Expr CompileLoop( Compiler* compiler, Lexer* lexer ){
 
 static Expr CompileBreak( Compiler* compiler, Lexer* lexer, InstIdx brk ){
 	Lex( lexer ); /* <== */
-	if( brk == LOOP_NONE ) Log( compiler->logs, &lexer->tk.pos, CMP_BADCONT ); 
+	if( brk == LOOP_NONE ){
+		Log( compiler->logs, &lexer->tk.pos, CMP_BADBRK );
+		return ExprGen( EXPR_ERR, UINT32_MAX );
+	}
 	InstABX( compiler->insts, OP_JMP, 0, brk );
 	return ExprGen( EXPR_VOID, RegAlloc( compiler ) );
 }
 
 static Expr CompileContinue( Compiler* compiler, Lexer* lexer, InstIdx cont ){
 	Lex( lexer ); /* ==> */
-	if( cont == LOOP_NONE ) Log( compiler->logs, &lexer->tk.pos, CMP_BADCONT ); 
+	if( cont == LOOP_NONE ){
+		Log( compiler->logs, &lexer->tk.pos, CMP_BADCONT );
+		return ExprGen( EXPR_ERR, UINT32_MAX );
+	}
 	InstABX( compiler->insts, OP_JMP, 0, cont );
 	return ExprGen( EXPR_VOID, RegAlloc( compiler ) );
 }
