@@ -1,6 +1,3 @@
-Make unary, post, binary, and core ops all generate different switch case
-handlers, so we can pass more efficient args to each kind
-
 const dedupe
 
 fold consts

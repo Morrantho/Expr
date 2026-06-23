@@ -42,10 +42,6 @@ static inline void VmEnterChunk( Vm* vm, ChunkIdx idx ){
 	vm->end = vm->base + chunk->len;
 }
 
-static inline Value* VmGetValue( Vm* vm, u8 reg ){
-	return &vm->regs[ reg ];
-}
-
 static inline void VmNum( Value* dst, f64 n ){
 	dst->type = VALUE_NUM;
 	dst->num = n;
