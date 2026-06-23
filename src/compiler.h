@@ -219,18 +219,13 @@ static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec
 }
 
 static Expr CompileInfix( Compiler* compiler, Lexer* lexer, Expr lhs, Prec min ){
-	Tk tk = lexer->tk; /* copy */
 	for( ;; ){
-		Deno deno = DenoGet( PARSEPOS_INF, tk.type );
-		if( !deno ) return lhs;
+		Tk tk = lexer->tk; /* copy */
+		if( DenoGet( PARSEPOS_INF, tk.type ) != DENO_INF ) return lhs;
 		Prec prec = PrecGet( tk.type );
 		if( prec <= min ) break;
 		prec -= AssocGet( tk.type );
-		switch( deno ){
-			default: return lhs;
-			case DENO_INF: lhs = CompileBinary( compiler, lexer, lhs, prec, &tk ); break;
-		}
-		tk = lexer->tk;
+		lhs = CompileBinary( compiler, lexer, lhs, prec, &tk ); break;
 	}
 	return lhs;
 }
