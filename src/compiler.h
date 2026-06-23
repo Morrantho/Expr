@@ -223,9 +223,9 @@ static Expr CompileInfix( Compiler* compiler, Lexer* lexer, Expr lhs, Prec min )
 		Tk tk = lexer->tk; /* copy */
 		if( DenoGet( PARSEPOS_INF, tk.type ) != DENO_INF ) return lhs;
 		Prec prec = PrecGet( tk.type );
-		if( prec <= min ) break;
+		if( prec <= min ) return lhs;
 		prec -= AssocGet( tk.type );
-		lhs = CompileBinary( compiler, lexer, lhs, prec, &tk ); break;
+		lhs = CompileBinary( compiler, lexer, lhs, prec, &tk );
 	}
 	return lhs;
 }
