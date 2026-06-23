@@ -4,9 +4,8 @@ typedef u32 PatchIdx;
 typedef enum PatchType {
 	PATCH_BREAK,
 	PATCH_CONTINUE,
-	PATCH_IF,
-	PATCH_ELSE,
-	PATCH_ELIF
+	PATCH_MISS, /* try next branch */
+	PATCH_END, /* end of if chain */
 } PatchType;
 
 typedef struct Patch {
@@ -23,11 +22,10 @@ typedef struct Patches {
 #endif
 
 #ifdef IMPL
-void PatchBX( Insts* insts, InstIdx idx, InstIdx bx ){
+void PatchBX( Inst* dst, InstIdx bx ){
 	// if( bx > UINT16_MAX ) Halt( ERR_INSTPATCH );
-	Inst* inst = InstGet( insts, idx );
-	inst->b = bx >> 8;
-	inst->c = bx;
+	dst->b = bx >> 8;
+	dst->c = bx;
 }
 
 void PatchInit( Patches* patches, Insts* insts ){
@@ -62,7 +60,23 @@ void PatchApply( Patches* patches, PatchType type, PatchIdx mark, InstIdx target
 	for( ; mark < patches->len; mark++ ){
 		Patch* patch = &patches->data[ mark ];
 		if( patch->type != type ) continue;
-		PatchBX( patches->insts, patch->inst, target );
+		Inst* inst = InstGet( patches->insts, patch->inst );
+		PatchBX( inst, target );
 	}
+	PatchReset( patches, mark );
+}
+
+/* so we dont do 2 separate passes for no reason. */
+void PatchLoop( Patches* patches, PatchIdx mark, InstIdx cont, InstIdx brk ){
+	for( ; mark < patches->len; mark++ ){
+		Patch* patch = &patches->data[ mark ];
+		Inst* inst = InstGet( patches->insts, patch->inst );
+		switch( patch->type ){
+			default: continue;
+			case PATCH_BREAK: PatchBX( inst, brk ); break;
+			case PATCH_CONTINUE: PatchBX( inst, cont ); break;
+		}
+	}
+	PatchReset( patches, mark );
 }
 #endif

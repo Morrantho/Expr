@@ -12,7 +12,7 @@ typedef struct App {
 	Locals locals;
 	Insts insts;
 	Chunks chunks;
-	Patches patches;
+	Patches ifs, loops;
 	Lexer lexer;
 	Compiler compiler;
 	Vm vm;
@@ -31,13 +31,15 @@ static void AppInit( App* app, u8* path ){
 	LocalInit( &app->locals );
 	InstInit( &app->insts );
 	ChunkInit( &app->chunks );
-	PatchInit( &app->patches, &app->insts );
+	PatchInit( &app->ifs, &app->insts );
+	PatchInit( &app->loops, &app->insts );
 	CompilerInit( &app->compiler, app );
 	VmInit( &app->vm, app );
 }
 
 static void AppFree( App* app ){
-	PatchFree( &app->patches );
+	PatchFree( &app->loops );
+	PatchFree( &app->ifs );
 	ChunkFree( &app->chunks );
 	InstFree( &app->insts );
 	LocalFree( &app->locals );
@@ -50,7 +52,7 @@ static void AppFree( App* app ){
 static void AppRun( App* app ){
 	ChunkIdx entry = CompilerRun( &app->compiler );
 	if( LogDump( &app->logs ) ) return;
-	// InstDump( &app->insts );
+	InstDump( &app->insts );
 	Value* value = VmRun( &app->vm, entry );
 	if( value->type == VALUE_NULL ) return;
 	VmPrintValue( &app->vm, value );

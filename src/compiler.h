@@ -1,6 +1,6 @@
 #ifdef TYPES
 typedef u32 Reg;
-#define LOOP_NONE UINT32_MAX
+#define REG_NONE UINT32_MAX
 
 typedef struct CompilerScope {
 	u32 nlocals;
@@ -9,7 +9,7 @@ typedef struct CompilerScope {
 typedef struct CompilerFrame {	/* register span */
 	Reg reg;					/* base reg */
 	ChunkIdx chunk;				/* store previous chunk */
-	u8 nlocals;
+	u32 nlocals;
 } CompilerFrame;
 
 typedef struct Compiler {
@@ -19,17 +19,18 @@ typedef struct Compiler {
 	Locals* locals;
 	Insts* insts;
 	Chunks* chunks;
-	Patches* patches;
+	Patches *ifs, *loops;
 	Lexer* lexer;
 
 	Reg nregs;
 	ChunkIdx chunk;				/* cur chunk */
+	u32 nloops;					/* continue + break need this for context */
 } Compiler;
 #endif
 
 #ifdef IMPL
 static Expr CompileExpr( Compiler* compiler, Lexer* lexer, Prec min );
-static Expr CompileStmt( Compiler* compiler, Lexer* lexer, InstIdx brk, InstIdx cont );
+static Expr CompileStmt( Compiler* compiler, Lexer* lexer );
 
 void CompilerInit( Compiler* compiler, App* app ){
 	compiler->logs = &app->logs;
@@ -38,10 +39,12 @@ void CompilerInit( Compiler* compiler, App* app ){
 	compiler->locals = &app->locals;
 	compiler->insts = &app->insts;
 	compiler->chunks = &app->chunks;
-	compiler->patches = &app->patches;
+	compiler->ifs = &app->ifs;
+	compiler->loops = &app->loops;
 	compiler->lexer = &app->lexer;
 	compiler->nregs = 0;
 	compiler->chunk = CHUNK_NONE;
+	compiler->nloops = 0;
 }
 
 static Reg RegAlloc( Compiler* compiler ){
@@ -64,7 +67,7 @@ static InstIdx CompilerGetIp( Compiler* compiler ){
 
 static ChunkIdx CompilerPushChunk( Compiler* compiler, CompilerFrame* out ){
 	out->reg = compiler->nregs;
-	out->nlocals = ( u8 )compiler->locals->len;
+	out->nlocals = compiler->locals->len;
 	out->chunk = compiler->chunk; /* prev chunk */
 	ChunkIdx chunk_idx = ChunkPush( compiler->chunks );
 	Chunk* chunk = ChunkGet( compiler->chunks, chunk_idx );
@@ -94,11 +97,17 @@ static void CompilerMatch( Compiler* compiler, Lexer* lexer, TkType expected ){
 	Lex( lexer );
 }
 
+static Expr CompileVoid( Compiler* compiler ){
+	Expr expr = ExprGen( EXPR_VOID, RegAlloc( compiler ) );
+	InstABX( compiler->insts, OP_LOADC, expr.reg, CONST_VOID );
+	return expr;
+}
+
 static Expr CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
 	u8 *deno_name = DenoGetName( deno );
 	u8 *tk_name = TkGetName( tk->type );
 	Log( compiler->logs, &tk->pos, PARSE_BADPRE, deno_name, tk_name );
-	return ExprGen( EXPR_ERR, 0 );
+	return ExprErr( );
 }
 
 static Expr CompileGroup( Compiler* compiler, Lexer* lexer ){
@@ -111,7 +120,7 @@ static Expr CompileBadUnary( Compiler* compiler, Expr* expr, Tk* tk ){
 	u8* expr_name = ExprGetName( expr->type );
 	u8* unary_name = TkGetName( tk->type );
 	Log( compiler->logs, &tk->pos, CMP_BADUNARY, unary_name, expr_name );
-	return ExprGen( EXPR_ERR, 0 );
+	return ExprErr( );
 }
 
 static Expr CompileUnary( Compiler* compiler, Lexer* lexer, Tk* tk ){
@@ -140,7 +149,7 @@ static Expr CompileStr( Compiler* compiler, Tk* tk ){
 static Expr CompileBadId( Compiler* compiler, Tk* tk ){
 	u8* id = InternGetRaw( compiler->interns, tk->intern );
 	Log( compiler->logs, &tk->pos, CMP_BADID, id );
-	return ExprGen( EXPR_ERR, UINT32_MAX );
+	return ExprErr( );
 }
 
 static Expr CompileId( Compiler* compiler, Tk* tk ){
@@ -168,7 +177,7 @@ static Expr CompileBadPost( Compiler* compiler, Expr* src, Tk* tk ){
 	u8* src_name = ExprGetName( src->type );
 	u8* post_name = TkGetName( tk->type );
 	Log( compiler->logs, &tk->pos, CMP_BADPOST, post_name, src_name );
-	return ExprGen( EXPR_ERR, UINT32_MAX );
+	return ExprErr( );
 }
 
 static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
@@ -178,18 +187,6 @@ static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, src.reg, 0 );
 	return dst;
-}
-
-static Expr CompileBlock( Compiler* compiler, Lexer* lexer, TkType end1, TkType end2, InstIdx brk, InstIdx cont ){
-	Expr last = ExprGen( EXPR_ERR, UINT32_MAX );
-	CompilerScope scope = CompilerPushScope( compiler );
-	while( lexer->tk.type != end1 && lexer->tk.type != end2 && lexer->tk.type != TK_EOS )
-		last = CompileStmt( compiler, lexer, brk, cont );
-	CompilerPopScope( compiler, &scope );
-	if( lexer->tk.type == end1 ){ Lex( lexer ); return last; }
-	if( lexer->tk.type == end2 && end2 != TK_EOS ) return last;
-	CompilerMatch( compiler, lexer, end1 ); /* Report missing end */
-	return last;
 }
 
 static Expr CompilePostfix( Compiler* compiler, Lexer* lexer, Expr src ){
@@ -208,7 +205,7 @@ static Expr CompileBadBinary( Compiler* c, Expr* lhs, Expr* rhs, Tk* tk ){
 	u8* rhs_type = ExprGetName( rhs->type );
 	u8* bin_name = TkGetName( tk->type );
 	Log( c->logs, &tk->pos, CMP_BADBINARY, bin_name, lhs_type, rhs_type );
-	return ExprGen( EXPR_ERR, UINT32_MAX );
+	return ExprErr( );
 }
 
 static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec, Tk* tk ){
@@ -245,108 +242,100 @@ static Expr CompileExpr( Compiler* compiler, Lexer* lexer, Prec min ){
 	return expr;
 }
 
-static InstIdx CompileLoopHead( Compiler* compiler, InstIdx* brk ){
-	InstIdx enter = InstJmp( compiler->insts );
-	*brk = InstJmp( compiler->insts );
-	InstIdx head = CompilerGetIp( compiler );
-	PatchBX( compiler->insts, enter, head );
-	return head;
-}
-
-static void CompileLoopBody( Compiler* compiler, Lexer* lexer, InstIdx brk, InstIdx cont ){
+static void CompileLoopBody( Compiler* compiler, Lexer* lexer ){
+	compiler->nloops++;
 	CompilerScope scope = CompilerPushScope( compiler );
 	while( lexer->tk.type != TK_END && lexer->tk.type != TK_EOS )
-		CompileStmt( compiler, lexer, brk, cont );
+		CompileStmt( compiler, lexer );
 	CompilerPopScope( compiler, &scope );
+	compiler->nloops--;
 }
 
 static Expr CompileLoop( Compiler* compiler, Lexer* lexer ){
 	Lex( lexer ); /* eat ;; */
-	Expr dst = ExprGen( EXPR_VOID, RegAlloc( compiler ) );	
-	InstABX( compiler->insts, OP_LOADC, dst.reg, CONST_VOID );
-	InstIdx brk, head = CompileLoopHead( compiler, &brk );
-	CompileLoopBody( compiler, lexer, brk, head );
-	InstABX( compiler->insts, OP_JMP, 0, head );
-	PatchBX( compiler->insts,  brk, CompilerGetIp( compiler ) );
+	PatchIdx mark = compiler->loops->len;
+	InstIdx enter = CompilerGetIp( compiler );
+	CompileLoopBody( compiler, lexer );
+	InstJmp( compiler->insts, enter );
+	InstIdx exit = CompilerGetIp( compiler );
+	PatchLoop( compiler->loops, mark, enter, exit );
 	CompilerMatch( compiler, lexer, TK_END );
-	return dst;
+	return ExprVoid( );
 }
 
-static Expr CompileBreak( Compiler* compiler, Lexer* lexer, InstIdx brk ){
-	Lex( lexer ); /* <== */
-	if( brk == LOOP_NONE ){
-		Log( compiler->logs, &lexer->tk.pos, CMP_BADBRK );
-		return ExprGen( EXPR_ERR, UINT32_MAX );
-	}
-	InstABX( compiler->insts, OP_JMP, 0, brk );
-	return ExprGen( EXPR_VOID, RegAlloc( compiler ) );
+static Expr CompileBadControl( Compiler* compiler, SrcPos* pos, LogType type ){
+	Log( compiler->logs, pos, type );
+	return ExprErr( );
 }
 
-static Expr CompileContinue( Compiler* compiler, Lexer* lexer, InstIdx cont ){
-	Lex( lexer ); /* ==> */
-	if( cont == LOOP_NONE ){
-		Log( compiler->logs, &lexer->tk.pos, CMP_BADCONT );
-		return ExprGen( EXPR_ERR, UINT32_MAX );
-	}
-	InstABX( compiler->insts, OP_JMP, 0, cont );
-	return ExprGen( EXPR_VOID, RegAlloc( compiler ) );
+/* continue and break */
+static Expr CompileControl( Compiler* compiler, Lexer* lexer, PatchType patch_type, LogType log_type ){
+	Tk tk = lexer->tk;
+	Lex( lexer ); /* ==> or <== */
+	if( !compiler->nloops ) return CompileBadControl( compiler, &tk.pos, log_type );
+	PatchPush( compiler->loops, patch_type, InstJmp( compiler->insts, 0 ) );
+	return ExprVoid( );
 }
 
-static Expr CompileIfBlock( Compiler* compiler, Lexer* lexer, InstIdx brk, InstIdx cont ){
-	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
+static Expr CompileBreak( Compiler* compiler, Lexer* lexer ){
+	return CompileControl( compiler, lexer, PATCH_BREAK, CMP_BADBRK );
+}
+
+static Expr CompileContinue( Compiler* compiler, Lexer* lexer ){
+	return CompileControl( compiler, lexer, PATCH_CONTINUE, CMP_BADCONT );
+}
+
+static void CompileIfBody( Compiler* compiler, Lexer* lexer, Expr* dst ){
+	Expr body = ExprErr( );
 	CompilerScope scope = CompilerPushScope( compiler );
 	while( lexer->tk.type != TK_END 
 		&& lexer->tk.type != TK_ELIF
 		&& lexer->tk.type != TK_ELSE
 		&& lexer->tk.type != TK_EOS )
-			expr = CompileStmt( compiler, lexer, brk, cont );
+			body = CompileStmt( compiler, lexer );
 	CompilerPopScope( compiler, &scope );
-	return expr;
-}
-
-static Expr CompileIfCond( Compiler* compiler, Lexer* lexer ){
-	Lex( lexer );															/* eat ?( or ??( */
-	Expr cond = CompileExpr( compiler, lexer, PREC_NONE );
-	CompilerMatch( compiler, lexer, TK_RP );								/* match ) */
-	return cond;
-}
-
-static u8 CompileIfHead( Compiler* compiler, Lexer* lexer, Expr* dst, InstIdx* jz, InstIdx brk, InstIdx cont ){
-	Expr cond = CompileIfCond( compiler, lexer );
-	*jz = InstJz( compiler->insts, cond.reg );								/* for backpatch false jmp */
-	Expr body = CompileIfBlock( compiler, lexer, brk, cont );
-	if( dst->type == EXPR_ERR ) dst->type = body.type;
-	InstMov( compiler->insts, dst->reg, body.reg );							/* branch result */
-	if( lexer->tk.type == TK_ELIF || lexer->tk.type == TK_ELSE ) return 1;	/* more work to do */
-	PatchBX( compiler->insts, *jz, CompilerGetIp( compiler ) );			/* backpatch false jmp */
-	CompilerMatch( compiler, lexer, TK_END );
-	return 0;																/* if only */
-}
-
-static void CompileElse( Compiler* compiler, Lexer* lexer, Expr* dst, InstIdx brk, InstIdx cont ){
-	Lex( lexer ); /* eat ?? */
-	Expr body = CompileBlock( compiler, lexer, TK_END, TK_EOS, brk, cont );
+	if( body.type == EXPR_ERR || body.type == EXPR_VOID ) return;
+	if( dst->type == EXPR_VOID ) dst->type = body.type;
 	InstMov( compiler->insts, dst->reg, body.reg );
 }
 
-static void CompileIfChain( Compiler* compiler, Lexer* lexer, Expr* dst, InstIdx brk, InstIdx cont ){
-	InstIdx jz;
-	if( !CompileIfHead( compiler, lexer, dst, &jz, brk, cont ) ) return;
-	InstIdx jmp = InstJmp( compiler->insts );
-	PatchBX( compiler->insts, jz, CompilerGetIp( compiler ) );
-	if( lexer->tk.type == TK_ELIF ){
-		CompileIfChain( compiler, lexer, dst, brk, cont );
-		PatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) );
-		return;
-	}
-	CompileElse( compiler, lexer, dst, brk, cont );
-	PatchBX( compiler->insts, jmp, CompilerGetIp( compiler ) );
+static PatchIdx CompileIfCond( Compiler* compiler, Lexer* lexer ){
+	PatchIdx miss = compiler->ifs->len;
+	Lex( lexer ); /* eat ?( or ??( */
+	Expr cond = CompileExpr( compiler, lexer, PREC_NONE );
+	CompilerMatch( compiler, lexer, TK_RP ); /* match ) */
+	PatchPush( compiler->ifs, PATCH_MISS, InstJz( compiler->insts, cond.reg ) );
+	return miss;
 }
 
-static Expr CompileIf( Compiler* compiler, Lexer* lexer, InstIdx brk, InstIdx cont ){
-	Expr dst = ExprGen( EXPR_VOID, RegAlloc( compiler ) ); /* init void or single ifs emits emit garbage. */
-	InstABX( compiler->insts, OP_LOADC, dst.reg, CONST_VOID );
-	CompileIfChain( compiler, lexer, &dst, brk, cont );
+static u8 CompileIfLast( Compiler* compiler, Lexer* lexer, PatchIdx miss ){
+	if( lexer->tk.type == TK_ELIF || lexer->tk.type == TK_ELSE ) return 0;
+	PatchApply( compiler->ifs, PATCH_MISS, miss, CompilerGetIp( compiler ) );
+	return 1;
+}
+
+static void CompileIfBranch( Compiler* compiler, Lexer* lexer, Expr* dst ){
+	PatchIdx miss = CompileIfCond( compiler, lexer );
+	CompileIfBody( compiler, lexer, dst );
+	if( CompileIfLast( compiler, lexer, miss ) ) return;
+	InstIdx end = InstJmp( compiler->insts, 0 );
+	PatchApply( compiler->ifs, PATCH_MISS, miss, CompilerGetIp( compiler ) );
+	PatchPush( compiler->ifs, PATCH_END, end );
+}
+
+static void CompileElse( Compiler* compiler, Lexer* lexer, Expr* dst ){
+	if( lexer->tk.type != TK_ELSE ) return;
+	Lex( lexer ); /* ?? */
+	CompileIfBody( compiler, lexer, dst );
+}
+
+static Expr CompileIf( Compiler* compiler, Lexer* lexer ){
+	Expr dst = CompileVoid( compiler );
+	PatchIdx mark = compiler->ifs->len;
+	do CompileIfBranch( compiler, lexer, &dst ); while( lexer->tk.type == TK_ELIF );
+	CompileElse( compiler, lexer, &dst );
+	CompilerMatch( compiler, lexer, TK_END );
+	PatchApply( compiler->ifs, PATCH_END, mark, CompilerGetIp( compiler ) );
 	return dst;
 }
 
@@ -361,15 +350,15 @@ static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
 	return rhs;
 }
 
-static Expr CompileStmt( Compiler* compiler, Lexer* lexer, InstIdx brk, InstIdx cont ){
+static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 	switch( lexer->tk.type ){
 		default: return CompileExpr( compiler, lexer, PREC_NONE );
 		case TK_LOOP: return CompileLoop( compiler, lexer );
-		case TK_BREAK: return CompileBreak( compiler, lexer, brk );
-		case TK_CONT: return CompileContinue( compiler, lexer, cont );
-		case TK_IF: return CompileIf( compiler, lexer, brk, cont );
+		case TK_BREAK: return CompileBreak( compiler, lexer );
+		case TK_CONT: return CompileContinue( compiler, lexer );
+		case TK_IF: return CompileIf( compiler, lexer );
 		case TK_ID: return CompileDecl( compiler, lexer );
-		case TK_EOS: return ExprGen( EXPR_ERR, UINT32_MAX );
+		case TK_EOS: return ExprErr( );
 	}
 }
 
@@ -377,8 +366,8 @@ ChunkIdx CompilerRun( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
 	CompilerFrame entry;
 	ChunkIdx chunk_idx = CompilerPushChunk( compiler, &entry );
-	Expr expr = ExprGen( EXPR_ERR, UINT32_MAX );
-	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer, LOOP_NONE, LOOP_NONE );
+	Expr expr = ExprErr( );
+	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer );
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );
 	CompilerPopChunk( compiler, &entry );
 	return chunk_idx;

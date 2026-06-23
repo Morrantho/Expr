@@ -103,4 +103,12 @@ u8* ExprGetName( ExprType type ){
 Expr ExprGen( ExprType type, u32 reg ){
 	return ( Expr ){ .type = type, .reg = reg };
 }
+
+Expr ExprErr( ){
+	return ( Expr ){ .type = EXPR_ERR, .reg = REG_NONE };
+}
+
+Expr ExprVoid( ){
+	return ( Expr ){ .type = EXPR_VOID, .reg = REG_NONE };
+}
 #endif

@@ -72,8 +72,8 @@ static InstIdx InstMov( Insts* insts, u8 dst, u8 src ){
 	return InstABC( insts, OP_MOV, dst, src, 0 );
 }
 
-static InstIdx InstJmp( Insts* insts ){
-	return InstABX( insts, OP_JMP, 0, 0 );
+static InstIdx InstJmp( Insts* insts, u16 bx ){
+	return InstABX( insts, OP_JMP, 0, bx );
 }
 
 static InstIdx InstJz(  Insts* insts, u8 reg ){
