@@ -361,7 +361,7 @@ ChunkIdx CompilerRun( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
 	CompilerFrame entry;
 	ChunkIdx chunk_idx = CompilerPushChunk( compiler, &entry );
-	Expr expr = ExprErr( );
+	Expr expr = ExprVoid( );
 	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer );
 	if( expr.type == EXPR_VOID ) expr = CompileVoid( compiler );
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );

@@ -42,11 +42,6 @@ static inline void VmEnterChunk( Vm* vm, ChunkIdx idx ){
 	vm->end = vm->base + chunk->len;
 }
 
-static inline Inst* VmInstAt( Vm* vm, InstIdx ip ){
-	// if( vm->base + ip >= vm->end ) Halt( ERR_VMIP );
-	return vm->base + ip;
-}
-
 static inline Value* VmGetValue( Vm* vm, u8 reg ){
 	return &vm->regs[ reg ];
 }
@@ -96,10 +91,10 @@ Value* VmRun( Vm* vm, ChunkIdx entry ){
 		switch( ( OpCode )i->op ){
 			case OP_ERR: case OP_COUNT: return 0;
 			case OP_HALT: return &regs[ i->a ];
-			X_OPS_CORE( X_OP_VM_CASE )
-			X_OPS_UNARY( X_OP_VM_CASE )
-			X_OPS_POST( X_OP_VM_CASE )
-			X_OPS_BINARY( X_OP_VM_CASE )
+			X_OPS_CORE( X_OP_VM_CORE_CASE )
+			X_OPS_UNARY( X_OP_VM_UNARY_CASE )
+			X_OPS_POST( X_OP_VM_POST_CASE )
+			X_OPS_BINARY( X_OP_VM_BINARY_CASE )
 		}
 	}
 }

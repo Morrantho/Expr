@@ -6,7 +6,6 @@
 /*CORE************************************************************************/
 #define X_OPS_CORE( X )\
 	X( LOADC, LoadConst, _, _, _, _  )\
-	X( MOV,   Mov,       _, _, _, _ )\
 	X( JMP,   Jmp,       _, _, _, _ )\
 	X( JZ,    Jz,        _, _, _, _ )\
 	X( JNZ,   Jnz,       _, _, _, _ )
@@ -92,7 +91,12 @@
 	[ EXPR_##LHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
 #define X_OP_BINARY_INIT( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
 	[ EXPR_##LHS_TYPE ][ EXPR_##RHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
-#define X_OP_VM_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE ) case OP_##OP:{ Vm##FN( vm, i, regs ); continue; }
+#define X_OP_VM_CORE_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE ) case OP_##OP:{ Vm##FN( vm, i, regs ); continue; }
+#define X_OP_VM_UNARY_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
+	case OP_##OP:{ Vm##FN( &regs[ i->a ], &regs[ i->b ] ); continue; }
+#define X_OP_VM_POST_CASE X_OP_VM_UNARY_CASE
+#define X_OP_VM_BINARY_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
+	case OP_##OP:{ Vm##FN( &regs[ i->a ], &regs[ i->b ], &regs[ i->c ] ); continue; }
 typedef enum OpCode { X_OPS( X_OP_ENUMS ) OP_COUNT } OpCode;
 typedef struct Op {
 	u8 code; /* OpCode */
