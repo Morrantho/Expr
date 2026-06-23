@@ -285,18 +285,14 @@ static Expr CompileContinue( Compiler* compiler, Lexer* lexer ){
 	return CompileControl( compiler, lexer, PATCH_CONTINUE, CMP_BADCONT );
 }
 
-static void CompileIfBody( Compiler* compiler, Lexer* lexer, Expr* dst ){
-	Expr body = ExprErr( );
+static void CompileIfBody( Compiler* compiler, Lexer* lexer ){
 	CompilerScope scope = CompilerPushScope( compiler );
 	while( lexer->tk.type != TK_END 
 		&& lexer->tk.type != TK_ELIF
 		&& lexer->tk.type != TK_ELSE
 		&& lexer->tk.type != TK_EOS )
-			body = CompileStmt( compiler, lexer );
+			CompileStmt( compiler, lexer );
 	CompilerPopScope( compiler, &scope );
-	if( body.type == EXPR_ERR || body.type == EXPR_VOID ) return;
-	if( dst->type == EXPR_VOID ) dst->type = body.type;
-	InstMov( compiler->insts, dst->reg, body.reg );
 }
 
 static PatchIdx CompileIfCond( Compiler* compiler, Lexer* lexer ){
@@ -314,29 +310,28 @@ static u8 CompileIfLast( Compiler* compiler, Lexer* lexer, PatchIdx miss ){
 	return 1;
 }
 
-static void CompileIfBranch( Compiler* compiler, Lexer* lexer, Expr* dst ){
+static void CompileIfBranch( Compiler* compiler, Lexer* lexer ){
 	PatchIdx miss = CompileIfCond( compiler, lexer );
-	CompileIfBody( compiler, lexer, dst );
+	CompileIfBody( compiler, lexer );
 	if( CompileIfLast( compiler, lexer, miss ) ) return;
 	InstIdx end = InstJmp( compiler->insts, 0 );
 	PatchApply( compiler->ifs, PATCH_MISS, miss, CompilerGetIp( compiler ) );
 	PatchPush( compiler->ifs, PATCH_END, end );
 }
 
-static void CompileElse( Compiler* compiler, Lexer* lexer, Expr* dst ){
+static void CompileElse( Compiler* compiler, Lexer* lexer ){
 	if( lexer->tk.type != TK_ELSE ) return;
 	Lex( lexer ); /* ?? */
-	CompileIfBody( compiler, lexer, dst );
+	CompileIfBody( compiler, lexer );
 }
 
 static Expr CompileIf( Compiler* compiler, Lexer* lexer ){
-	Expr dst = CompileVoid( compiler );
 	PatchIdx mark = compiler->ifs->len;
-	do CompileIfBranch( compiler, lexer, &dst ); while( lexer->tk.type == TK_ELIF );
-	CompileElse( compiler, lexer, &dst );
+	do CompileIfBranch( compiler, lexer ); while( lexer->tk.type == TK_ELIF );
+	CompileElse( compiler, lexer );
 	CompilerMatch( compiler, lexer, TK_END );
 	PatchApply( compiler->ifs, PATCH_END, mark, CompilerGetIp( compiler ) );
-	return dst;
+	return ExprVoid( );
 }
 
 static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
@@ -368,6 +363,7 @@ ChunkIdx CompilerRun( Compiler* compiler ){
 	ChunkIdx chunk_idx = CompilerPushChunk( compiler, &entry );
 	Expr expr = ExprErr( );
 	while( lexer->tk.type != TK_EOS ) expr = CompileStmt( compiler, lexer );
+	if( expr.type == EXPR_VOID ) expr = CompileVoid( compiler );
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );
 	CompilerPopChunk( compiler, &entry );
 	return chunk_idx;

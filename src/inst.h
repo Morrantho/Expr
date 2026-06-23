@@ -68,9 +68,9 @@ static u16 InstGetBX( Inst* inst ){
 // 	return ( ( u32 )inst->a << 16 ) | ( ( u32 )inst->b << 8 ) | inst->c;
 // }
 
-static InstIdx InstMov( Insts* insts, u8 dst, u8 src ){
-	return InstABC( insts, OP_MOV, dst, src, 0 );
-}
+// static InstIdx InstMov( Insts* insts, u8 dst, u8 src ){
+// 	return InstABC( insts, OP_MOV, dst, src, 0 );
+// }
 
 static InstIdx InstJmp( Insts* insts, u16 bx ){
 	return InstABX( insts, OP_JMP, 0, bx );
