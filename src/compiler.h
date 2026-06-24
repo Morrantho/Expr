@@ -204,8 +204,7 @@ static Expr CompileBadPost( Compiler* compiler, Expr* src, Tk* tk ){
 
 static u8 CompilePostStmt( Compiler* compiler, Op* op, Expr* src, Tk* tk ){
 	if( compiler->state != CMP_STMT || !OpIsMutative( op->code ) ) return 0;
-	Op* mut = OpGetUnary( src->type, tk->type );
-	if( !mut ) return 0;
+	Op* mut = OpGetUnary( src->type, tk->type ); /* use prefix, less vm overhead */
 	InstABC( compiler->insts, mut->code, src->reg, src->reg, 0 ); /* no alloc, self-mutate. */
 	return 1;
 }
