@@ -4,8 +4,8 @@ typedef u32 PatchIdx;
 typedef enum PatchType {
 	PATCH_BREAK,
 	PATCH_CONTINUE,
-	PATCH_MISS, /* try next branch */
-	PATCH_END, /* end of if chain */
+	PATCH_BRANCH,	/* try next branch */
+	PATCH_END,		/* end of if chain */
 } PatchType;
 
 typedef struct Patch {
