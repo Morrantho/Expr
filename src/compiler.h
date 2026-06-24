@@ -113,7 +113,7 @@ static void CompilerMatch( Compiler* compiler, Lexer* lexer, TkType expected ){
 }
 
 static Expr CompileVoid( Compiler* compiler ){
-	Expr expr = ExprGen( EXPR_VOID, RegAlloc( compiler ) );
+	Expr expr = ExprAs( EXPR_VOID, RegAlloc( compiler ) );
 	InstABX( compiler->insts, OP_LOADC, expr.reg, CONST_VOID );
 	return expr;
 }
@@ -149,20 +149,20 @@ static Expr CompileUnary( Compiler* compiler, Lexer* lexer, Tk* tk ){
 	Op* op = OpGetUnary( src.type, tk->type );
 	if( !op->code ) return CompileBadUnary( compiler, &src, tk );
 	if( CompileUnaryStmt( compiler, op, &src ) ) return ExprVoid( );
-	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
+	Expr dst = ExprAs( op->type, RegAlloc( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, src.reg, 0 );
 	return dst;
 }
 
 static Expr CompileNum( Compiler* compiler, Tk* tk ){
-	Expr dst = ExprGen( EXPR_NUM, RegAlloc( compiler ) );
+	Expr dst = ExprAs( EXPR_NUM, RegAlloc( compiler ) );
 	ConstIdx idx = ConstPutNum( compiler->consts, tk->num );
 	InstABX( compiler->insts, OP_LOADC, dst.reg, idx );
 	return dst;
 }
 
 static Expr CompileStr( Compiler* compiler, Tk* tk ){
-	Expr dst = ExprGen( EXPR_STR, RegAlloc( compiler ) );
+	Expr dst = ExprAs( EXPR_STR, RegAlloc( compiler ) );
 	ConstIdx idx = ConstPutStr( compiler->consts, tk->intern );
 	InstABX( compiler->insts, OP_LOADC, dst.reg, idx );
 	return dst;
@@ -177,7 +177,7 @@ static Expr CompileBadId( Compiler* compiler, Tk* tk ){
 static Expr CompileId( Compiler* compiler, Tk* tk ){
 	Local* local = LocalGet( compiler->locals, tk->intern );
 	if( !local ) return CompileBadId( compiler, tk );
-	return ExprGen( local->expr_type, local->reg );
+	return ExprAs( local->expr_type, local->reg );
 }
 
 static Expr CompilePrefix( Compiler* compiler, Lexer* lexer ){
@@ -214,7 +214,7 @@ static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	Op* op = OpGetPost( src.type, tk->type );
 	if( !op->code ) return CompileBadPost( compiler, &src, tk );
 	if( CompilePostStmt( compiler, op, &src, tk ) ) return ExprVoid( );
-	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
+	Expr dst = ExprAs( op->type, RegAlloc( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, src.reg, 0 );
 	return dst;
 }
@@ -250,7 +250,7 @@ static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec
 	Op* op = OpGetBinary( lhs.type, rhs.type, tk->type );
 	if( !op->code ) return CompileBadBinary( compiler, &lhs, &rhs, tk );
 	if( CompileBinaryStmt( compiler, op, &lhs, &rhs ) ) return ExprVoid( );
-	Expr dst = ExprGen( op->type, RegAlloc( compiler ) );
+	Expr dst = ExprAs( op->type, RegAlloc( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, lhs.reg, rhs.reg );
 	return dst;
 }

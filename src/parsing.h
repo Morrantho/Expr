@@ -100,7 +100,7 @@ u8* ExprGetName( ExprType type ){
 	return names[ type ];
 }
 
-Expr ExprGen( ExprType type, u32 reg ){
+Expr ExprAs( ExprType type, u32 reg ){
 	return ( Expr ){ .type = type, .reg = reg };
 }
 
