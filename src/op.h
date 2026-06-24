@@ -83,19 +83,20 @@
 	X_OPS_POST( X )\
 	X_OPS_BINARY( X )
 /*INITS***********************************************************************/
-#define X_OP_ENUMS( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE ) OP_##OP,
-#define X_OP_NAMES( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE ) ( u8* )#OP,
-#define X_OP_UNARY_INIT( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
-	[ EXPR_##LHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
-#define X_OP_POST_INIT( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
-	[ EXPR_##LHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
-#define X_OP_BINARY_INIT( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
-	[ EXPR_##LHS_TYPE ][ EXPR_##RHS_TYPE ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT_TYPE },
-#define X_OP_VM_CORE_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE ) case OP_##OP:{ Vm##FN( vm, i, regs ); continue; }
-#define X_OP_VM_UNARY_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
+#define X_OP_ENUMS( OP, FN, TK, LHS, RHS, OUT ) OP_##OP,
+#define X_OP_NAMES( OP, FN, TK, LHS, RHS, OUT ) ( u8* )#OP,
+#define X_OP_MUTS( OP, FN, TK, LHS, RHS, OUT ) [ OP_##OP ] = 1,
+#define X_OP_UNARY_INIT( OP, FN, TK, LHS, RHS, OUT )\
+	[ EXPR_##LHS ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT },
+#define X_OP_POST_INIT( OP, FN, TK, LHS, RHS, OUT )\
+	[ EXPR_##LHS ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT },
+#define X_OP_BINARY_INIT( OP, FN, TK, LHS, RHS, OUT )\
+	[ EXPR_##LHS ][ EXPR_##RHS ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT },
+#define X_OP_VM_CORE_CASE( OP, FN, TK, LHS, RHS, OUT ) case OP_##OP:{ Vm##FN( vm, i, regs ); continue; }
+#define X_OP_VM_UNARY_CASE( OP, FN, TK, LHS, RHS, OUT )\
 	case OP_##OP:{ Vm##FN( &regs[ i->a ], &regs[ i->b ] ); continue; }
 #define X_OP_VM_POST_CASE X_OP_VM_UNARY_CASE
-#define X_OP_VM_BINARY_CASE( OP, FN, TK, LHS_TYPE, RHS_TYPE, OUT_TYPE )\
+#define X_OP_VM_BINARY_CASE( OP, FN, TK, LHS, RHS, OUT )\
 	case OP_##OP:{ Vm##FN( &regs[ i->a ], &regs[ i->b ], &regs[ i->c ] ); continue; }
 typedef enum OpCode { X_OPS( X_OP_ENUMS ) OP_COUNT } OpCode;
 typedef struct Op {
@@ -118,6 +119,15 @@ Op* OpGetPost( ExprType lhs_type, TkType tk_type ){
 Op* OpGetBinary( ExprType lhs_type, ExprType rhs_type, TkType tk_type ){
 	static Op binary_ops[ EXPR_COUNT ][ EXPR_COUNT ][ TK_COUNT ] = { X_OPS_BINARY( X_OP_BINARY_INIT ) };
 	return &binary_ops[ lhs_type ][ rhs_type ][ tk_type ];
+}
+
+u8 OpIsMutative( OpCode code ){
+	static u8 mut_ops[ OP_COUNT ] = {
+		X_OPS_UNARY_NUM_MUT_C( X_OP_MUTS )
+		X_OPS_POST_NUM_MUT_C( X_OP_MUTS )
+		X_OPS_BINARY_NUM_MUT_C( X_OP_MUTS )
+	};
+	return mut_ops[ code ];
 }
 
 u8* OpGetName( OpCode op ){
