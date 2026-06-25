@@ -2,20 +2,17 @@
 typedef u32 Reg;
 #define REG_NONE UINT32_MAX
 
-typedef enum CmpState {
-	CMP_INIT,
-	CMP_EXPR,
-	CMP_STMT
-} CmpState;
-
-typedef struct CompilerScope {
-	u32 nlocals;
-} CompilerScope;
-
+typedef enum ExprMode {			/* for compiling exprs as a stmt, or an expr. */
+	EM_EXPR,
+	EM_STMT
+} ExprMode;
+/* for compiler-specific state save and restore. unrelated to vm frames. */
 typedef struct CompilerFrame {	/* register span */
 	Reg reg;					/* base reg */
-	ChunkIdx chunk;				/* store previous chunk */
+	Reg dst;					/* destination reg */
+	ChunkIdx chunk;				/* previous chunk */
 	u32 nlocals;
+	ExprMode mode;				/* as stmt or as expr */
 } CompilerFrame;
 
 typedef struct Compiler {
@@ -27,18 +24,19 @@ typedef struct Compiler {
 	Chunks* chunks;
 	Patches *ifs, *loops;
 	Lexer* lexer;
-
-	Reg nregs;
+	/* state */
+	Reg nregs;					/* regs in use */
+	u32 nloops;					/* continue + break context */
+	Reg dst;					/* for targeted exprs. needed for fn args. */
+	ExprMode mode;				/* compiling exprs as exprs or stmts. changes bytecode. */
 	ChunkIdx chunk;				/* cur chunk */
-	u32 nloops;					/* continue + break need this for context */
-	CmpState state;
 } Compiler;
 #endif
 
 #ifdef IMPL
 static Expr CompileExpr( Compiler* compiler, Lexer* lexer, Prec min );
 static Expr CompileStmt( Compiler* compiler, Lexer* lexer );
-static Expr CompileExprAs( Compiler* compiler, Lexer* lexer, Prec min, CmpState state );
+static Expr CompileExprAs( Compiler* compiler, Lexer* lexer, Prec min, ExprMode mode );
 
 void CompilerInit( Compiler* compiler, App* app ){
 	compiler->logs = &app->logs;
@@ -50,32 +48,40 @@ void CompilerInit( Compiler* compiler, App* app ){
 	compiler->ifs = &app->ifs;
 	compiler->loops = &app->loops;
 	compiler->lexer = &app->lexer;
+
 	compiler->nregs = 0;
-	compiler->chunk = CHUNK_NONE;
 	compiler->nloops = 0;
-	compiler->state = CMP_INIT;
+	compiler->dst = REG_NONE;
+	compiler->chunk = CHUNK_NONE;
+	compiler->mode = EM_STMT;
 }
 
 static Reg RegAlloc( Compiler* compiler ){
-	if( compiler->nregs >= REG_CAP ){ Halt( ERR_REGALLOC ); }
+	if( compiler->nregs >= REG_CAP ) Halt( ERR_REGALLOC );
 	return ( Reg )compiler->nregs++;
 }
 
-static CompilerScope CompilerPushScope( Compiler* compiler ){
-	return ( CompilerScope ){ .nlocals = compiler->locals->len };
+static Reg RegResult( Compiler* compiler ){
+	if( compiler->dst == REG_NONE ) return RegAlloc( compiler );
+	return compiler->dst;
 }
 
-static void CompilerPopScope( Compiler* compiler, CompilerScope* in ){
-	compiler->locals->len = in->nlocals;
-}
+// static Reg RegReserve( Compiler* compiler, Reg nregs ){
+// 	if( compiler->nregs + nregs > REG_CAP ) Halt( ERR_REGALLOC );
+// 	Reg reg = compiler->nregs;
+// 	compiler->nregs += nregs;
+// 	return reg;
+// }
 
-static InstIdx CompilerGetIp( Compiler* compiler ){
-	Chunk* chunk = ChunkGet( compiler->chunks, compiler->chunk );
-	return compiler->insts->len - chunk->start;
-}
+// static void RegEnsure( Compiler* compiler, Reg nregs ){
+// 	if( nregs > REG_CAP ) Halt( ERR_REGALLOC );
+// 	if( compiler->nregs < nregs ) compiler->nregs = nregs;
+// }
 
 static ChunkIdx CompilerPushChunk( Compiler* compiler, CompilerFrame* out ){
 	out->reg = compiler->nregs;
+	out->dst = compiler->dst;
+	out->mode = compiler->mode;
 	out->nlocals = compiler->locals->len;
 	out->chunk = compiler->chunk; /* prev chunk */
 	ChunkIdx chunk_idx = ChunkPush( compiler->chunks );
@@ -83,6 +89,8 @@ static ChunkIdx CompilerPushChunk( Compiler* compiler, CompilerFrame* out ){
 	chunk->start = compiler->insts->len;
 	chunk->len = 0;
 	chunk->nregs = 0;
+	compiler->dst = REG_NONE;
+	compiler->mode = EM_STMT;
 	compiler->chunk = chunk_idx;
 	compiler->nregs = 0;
 	compiler->locals->len = 0;
@@ -94,14 +102,15 @@ static void CompilerPopChunk( Compiler* compiler, CompilerFrame* in ){
 	chunk->len = compiler->insts->len - chunk->start;
 	chunk->nregs = compiler->nregs;
 	compiler->nregs = in->reg;
+	compiler->dst = in->dst;
+	compiler->mode = in->mode;
 	compiler->locals->len = in->nlocals;
 	compiler->chunk = in->chunk;
 }
 
-static CmpState CompilerSetState( Compiler* compiler, CmpState new_state ){
-	CmpState old_state = compiler->state;
-	compiler->state = new_state;
-	return old_state;
+static InstIdx CompilerGetIp( Compiler* compiler ){
+	Chunk* chunk = ChunkGet( compiler->chunks, compiler->chunk );
+	return compiler->insts->len - chunk->start;
 }
 
 static void CompilerMatch( Compiler* compiler, Lexer* lexer, TkType expected ){
@@ -113,7 +122,7 @@ static void CompilerMatch( Compiler* compiler, Lexer* lexer, TkType expected ){
 }
 
 static Expr CompileVoid( Compiler* compiler ){
-	Expr expr = ExprAs( EXPR_VOID, RegAlloc( compiler ) );
+	Expr expr = ExprAs( EXPR_VOID, RegResult( compiler ) );
 	InstABX( compiler->insts, OP_LOADC, expr.reg, CONST_VOID );
 	return expr;
 }
@@ -139,30 +148,30 @@ static Expr CompileBadUnary( Compiler* compiler, Expr* expr, Tk* tk ){
 }
 /* Avoids regalloc for mutating unarys in stmt position. */
 static u8 CompileUnaryStmt( Compiler* compiler, Op* op, Expr* src ){
-	if( compiler->state != CMP_STMT || !OpIsMutative( op->code ) ) return 0;
+	if( compiler->mode != EM_STMT || !OpIsMutative( op->code ) ) return 0;
 	InstABC( compiler->insts, op->code, src->reg, src->reg, 0 ); /* no alloc, self-mutate */
 	return 1;
 }
 
 static Expr CompileUnary( Compiler* compiler, Lexer* lexer, Tk* tk ){
-	Expr src = CompileExprAs( compiler, lexer, PREC_UNARY, CMP_EXPR );
+	Expr src = CompileExprAs( compiler, lexer, PREC_UNARY, EM_EXPR );
 	Op* op = OpGetUnary( src.type, tk->type );
 	if( !op->code ) return CompileBadUnary( compiler, &src, tk );
 	if( CompileUnaryStmt( compiler, op, &src ) ) return ExprVoid( );
-	Expr dst = ExprAs( op->type, RegAlloc( compiler ) );
+	Expr dst = ExprAs( op->type, RegResult( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, src.reg, 0 );
 	return dst;
 }
 
 static Expr CompileNum( Compiler* compiler, Tk* tk ){
-	Expr dst = ExprAs( EXPR_NUM, RegAlloc( compiler ) );
+	Expr dst = ExprAs( EXPR_NUM, RegResult( compiler ) );
 	ConstIdx idx = ConstPutNum( compiler->consts, tk->num );
 	InstABX( compiler->insts, OP_LOADC, dst.reg, idx );
 	return dst;
 }
 
 static Expr CompileStr( Compiler* compiler, Tk* tk ){
-	Expr dst = ExprAs( EXPR_STR, RegAlloc( compiler ) );
+	Expr dst = ExprAs( EXPR_STR, RegResult( compiler ) );
 	ConstIdx idx = ConstPutStr( compiler->consts, tk->intern );
 	InstABX( compiler->insts, OP_LOADC, dst.reg, idx );
 	return dst;
@@ -186,7 +195,7 @@ static Expr CompilePrefix( Compiler* compiler, Lexer* lexer ){
 	Lex( lexer );
 	switch( deno ){
 		default: return CompileBadPrefix( compiler, deno, &tk );
-		case DENO_NOPPRE: return CompileExprAs( compiler, lexer, PREC_UNARY, CMP_EXPR );
+		case DENO_NOPPRE: return CompileExprAs( compiler, lexer, PREC_UNARY, EM_EXPR );
 		case DENO_GRP: return CompileGroup( compiler, lexer );
 		case DENO_PRE: return CompileUnary( compiler, lexer, &tk );
 		case DENO_NUM: return CompileNum( compiler, &tk );
@@ -203,7 +212,7 @@ static Expr CompileBadPost( Compiler* compiler, Expr* src, Tk* tk ){
 }
 
 static u8 CompilePostStmt( Compiler* compiler, Op* op, Expr* src, Tk* tk ){
-	if( compiler->state != CMP_STMT || !OpIsMutative( op->code ) ) return 0;
+	if( compiler->mode != EM_STMT || !OpIsMutative( op->code ) ) return 0;
 	Op* mut = OpGetUnary( src->type, tk->type ); /* use prefix, less vm overhead */
 	InstABC( compiler->insts, mut->code, src->reg, src->reg, 0 ); /* no alloc, self-mutate. */
 	return 1;
@@ -214,7 +223,7 @@ static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	Op* op = OpGetPost( src.type, tk->type );
 	if( !op->code ) return CompileBadPost( compiler, &src, tk );
 	if( CompilePostStmt( compiler, op, &src, tk ) ) return ExprVoid( );
-	Expr dst = ExprAs( op->type, RegAlloc( compiler ) );
+	Expr dst = ExprAs( op->type, RegResult( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, src.reg, 0 );
 	return dst;
 }
@@ -239,18 +248,18 @@ static Expr CompileBadBinary( Compiler* c, Expr* lhs, Expr* rhs, Tk* tk ){
 }
 
 static u8 CompileBinaryStmt( Compiler* compiler, Op* op, Expr* lhs, Expr* rhs ){
-	if( compiler->state != CMP_STMT || !OpIsMutative( op->code ) ) return 0;	
+	if( compiler->mode != EM_STMT || !OpIsMutative( op->code ) ) return 0;	
 	InstABC( compiler->insts, op->code, lhs->reg, lhs->reg, rhs->reg ); /* no alloc, self-mutate */
 	return 1;
 }
 
 static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec, Tk* tk ){
 	Lex( lexer );
-	Expr rhs = CompileExprAs( compiler, lexer, prec, CMP_EXPR );
+	Expr rhs = CompileExprAs( compiler, lexer, prec, EM_EXPR );
 	Op* op = OpGetBinary( lhs.type, rhs.type, tk->type );
 	if( !op->code ) return CompileBadBinary( compiler, &lhs, &rhs, tk );
 	if( CompileBinaryStmt( compiler, op, &lhs, &rhs ) ) return ExprVoid( );
-	Expr dst = ExprAs( op->type, RegAlloc( compiler ) );
+	Expr dst = ExprAs( op->type, RegResult( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, lhs.reg, rhs.reg );
 	return dst;
 }
@@ -273,20 +282,39 @@ static Expr CompileExpr( Compiler* compiler, Lexer* lexer, Prec min ){
 	expr = CompileInfix( compiler, lexer, expr, min );
 	return expr;
 }
-
-static Expr CompileExprAs( Compiler* compiler, Lexer* lexer, Prec min, CmpState new_state ){
-	CmpState old_state = CompilerSetState( compiler, new_state );
+/* Compile an expr as a stmt or an expr. */
+static Expr CompileExprAs( Compiler* compiler, Lexer* lexer, Prec min, ExprMode new_mode ){
+	ExprMode old_mode = compiler->mode;
+	Reg old_dst = compiler->dst;
+	compiler->mode = new_mode;
+	compiler->dst = REG_NONE;
 	Expr expr = CompileExpr( compiler, lexer, min );
-	compiler->state = old_state;
+	compiler->mode = old_mode;
+	compiler->dst = old_dst;
 	return expr;
 }
+/* compile an expr into a specificed register. */
+// static Expr CompileExprInto( Compiler* compiler, Lexer* lexer, Prec min, Reg new_dst ){
+// 	ExprMode old_mode = compiler->mode;
+// 	Reg old_dst = compiler->dst;
+// 	compiler->mode = EM_EXPR;
+// 	compiler->dst = new_dst;
+// 	Expr expr = CompileExpr( compiler, lexer, min );
+// 	if( expr.type != EXPR_ERR && expr.type != EXPR_VOID && expr.reg != new_dst ){
+// 		InstABC( compiler->insts, OP_MOV, new_dst, expr.reg, 0 );
+// 		expr = ExprAs( expr.type, new_dst );
+// 	}
+// 	compiler->mode = old_mode;
+// 	compiler->dst = old_dst;
+// 	return expr;
+// }
 
 static void CompileLoopBody( Compiler* compiler, Lexer* lexer ){
 	compiler->nloops++;
-	CompilerScope scope = CompilerPushScope( compiler );
+	u32 old_locals = compiler->locals->len;
 	while( lexer->tk.type != TK_END && lexer->tk.type != TK_EOS )
 		CompileStmt( compiler, lexer );
-	CompilerPopScope( compiler, &scope );
+	compiler->locals->len = old_locals;
 	compiler->nloops--;
 }
 
@@ -325,19 +353,19 @@ static Expr CompileContinue( Compiler* compiler, Lexer* lexer ){
 }
 
 static void CompileIfBody( Compiler* compiler, Lexer* lexer ){
-	CompilerScope scope = CompilerPushScope( compiler );
+	u32 old_locals = compiler->locals->len;
 	while( lexer->tk.type != TK_END 
 		&& lexer->tk.type != TK_ELIF
 		&& lexer->tk.type != TK_ELSE
 		&& lexer->tk.type != TK_EOS )
 			CompileStmt( compiler, lexer );
-	CompilerPopScope( compiler, &scope );
+	compiler->locals->len = old_locals;
 }
 
 static PatchIdx CompileIfCond( Compiler* compiler, Lexer* lexer ){
 	PatchIdx branch = compiler->ifs->len;
 	Lex( lexer ); /* eat ?( or ??( */
-	Expr cond = CompileExprAs( compiler, lexer, PREC_NONE, CMP_EXPR );
+	Expr cond = CompileExprAs( compiler, lexer, PREC_NONE, EM_EXPR );
 	CompilerMatch( compiler, lexer, TK_RP ); /* match ) */
 	PatchPush( compiler->ifs, PATCH_BRANCH, InstJz( compiler->insts, cond.reg ) );
 	return branch;
@@ -374,11 +402,11 @@ static Expr CompileIf( Compiler* compiler, Lexer* lexer ){
 }
 
 static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
-	if( lexer->peek.type != TK_ASSIGN ) return CompileExprAs( compiler, lexer, PREC_NONE, CMP_STMT );
+	if( lexer->peek.type != TK_ASSIGN ) return CompileExprAs( compiler, lexer, PREC_NONE, EM_STMT );
 	Tk tk = lexer->tk;
 	Lex( lexer ); /* eat id */
 	Lex( lexer ); /* eat : */
-	Expr rhs = CompileExprAs( compiler, lexer, PREC_NONE, CMP_EXPR );
+	Expr rhs = CompileExprAs( compiler, lexer, PREC_NONE, EM_EXPR );
 	if( rhs.type == EXPR_ERR ) return rhs;
 	LocalPut( compiler->locals, tk.intern, rhs.type, rhs.reg );
 	return rhs;
@@ -386,7 +414,7 @@ static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
 
 static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 	switch( lexer->tk.type ){
-		default: return CompileExprAs( compiler, lexer, PREC_NONE, CMP_STMT );
+		default: return CompileExprAs( compiler, lexer, PREC_NONE, EM_STMT );
 		case TK_LOOP: return CompileLoop( compiler, lexer );
 		case TK_BREAK: return CompileBreak( compiler, lexer );
 		case TK_CONT: return CompileContinue( compiler, lexer );

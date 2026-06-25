@@ -4,7 +4,7 @@ SRC=src/main.c
 LIB=
 WARN=-Wall -Wextra -Werror -Wpedantic -Winline
 NOWARN=
-DBG=-O0 -ggdb3 -fno-omit-frame-pointer -DDEBUG
+DBG=-O0 -ggdb3 -fno-omit-frame-pointer -fsanitize=address -DDEBUG
 FAST=-Ofast -flto -fwhole-program -fomit-frame-pointer -fno-stack-protector -march=native -DNDEBUG
 ASM=-masm=intel -Ofast -fwhole-program -fomit-frame-pointer -fno-stack-protector -march=native -S
 

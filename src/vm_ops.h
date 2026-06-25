@@ -20,6 +20,10 @@ static inline void VmJz( Vm* vm, Inst* i, Value* regs ){
 static inline void VmJnz( Vm* vm, Inst* i, Value* regs ){
 	if( regs[ i->a ].num != 0 ) vm->ip = vm->base + InstGetBX( i );
 }
+
+static inline void VmMov( Vm* vm, Inst* i, Value* regs ){ ( void )( vm );
+	regs[ i->a ] = regs[ i->b ];
+}
 /*UNARY***********************************************************************/
 static inline void VmNotNum( Value* a, Value* b ){
 	VmNum( a, !b->num );

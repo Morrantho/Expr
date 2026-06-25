@@ -8,7 +8,8 @@
 	X( LOADC, LoadConst, _, _, _, _  )\
 	X( JMP,   Jmp,       _, _, _, _ )\
 	X( JZ,    Jz,        _, _, _, _ )\
-	X( JNZ,   Jnz,       _, _, _, _ )
+	X( JNZ,   Jnz,       _, _, _, _ )\
+	X( MOV,   Mov,       _, _, _, _ )
 	//X( RET,   Return,    _, _, _, _ )
 	//X( CALL,  Call,      _, _, _, _ )
 	//X( ARG,   Arg,       _, _, _, _ )
