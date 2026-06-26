@@ -15,4 +15,8 @@
 #define INST_VEC_CAP 1024
 #define CHUNK_VEC_CAP 1024
 #define PATCH_VEC_CAP 256
+#define FN_DECL_VEC_CAP 256
+#define FN_IMPL_VEC_CAP 256
+#define FN_ARG_VEC_CAP 256
+#define FN_TYPE_VEC_CAP 256
 #endif

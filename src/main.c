@@ -13,6 +13,7 @@ typedef struct App {
 	Insts insts;
 	Chunks chunks;
 	Patches ifs, loops;
+	Fns fns;
 	Lexer lexer;
 	Compiler compiler;
 	Vm vm;
@@ -33,11 +34,13 @@ static void AppInit( App* app, u8* path ){
 	ChunkInit( &app->chunks );
 	PatchInit( &app->ifs, &app->insts );
 	PatchInit( &app->loops, &app->insts );
+	FnInit( &app->fns );
 	CompilerInit( &app->compiler, app );
 	VmInit( &app->vm, app );
 }
 
 static void AppFree( App* app ){
+	FnFree( &app->fns );
 	PatchFree( &app->loops );
 	PatchFree( &app->ifs );
 	ChunkFree( &app->chunks );

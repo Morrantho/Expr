@@ -60,7 +60,7 @@ typedef enum Assoc {
 	ASSOC_LEFT = 1,
 	ASSOC_RIGHT,
 } Assoc;
-typedef enum ExprType { X_EXPRS( X_EXPR_ENUMS )  EXPR_COUNT } ExprType;
+typedef enum ExprType { X_EXPRS( X_EXPR_ENUMS ) EXPR_COUNT } ExprType;
 typedef struct Expr { /* 8 bytes max. If we need more metadata, use u8s for these. */
 	ExprType type;
 	union {

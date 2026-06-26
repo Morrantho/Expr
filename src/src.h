@@ -12,6 +12,11 @@ typedef struct Srcs {
 	u32 cap;
 } Srcs;
 
+typedef struct SrcSpan {
+	SrcIdx src;
+	SrcOffset start, end;
+} SrcSpan;
+
 typedef struct SrcPos {
 	SrcIdx src;
 	SrcOffset off;
