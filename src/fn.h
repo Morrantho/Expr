@@ -31,12 +31,12 @@ typedef struct Fns {
 #ifdef IMPL
 void FnInit( Fns* fns ){
 	fns->decls = MemAlloc( sizeof( FnDecl ), FN_DECL_VEC_CAP );
-	fns->args = MemAlloc( sizeof( InternIdx ), FN_ARG_VEC_CAP );
+	fns->args = MemAlloc( sizeof( InternIdx ), REG_CAP );
 	fns->impls = MemAlloc( sizeof( FnImpl ), FN_IMPL_VEC_CAP );
 	fns->types = MemAlloc( sizeof( ExprType ), FN_TYPE_VEC_CAP );
 	fns->decl_len = fns->arg_len = fns->impl_len = fns->type_len = 0;
 	fns->decl_cap = FN_DECL_VEC_CAP;
-	fns->arg_cap = FN_ARG_VEC_CAP;
+	fns->arg_cap = REG_CAP;
 	fns->impl_cap = FN_IMPL_VEC_CAP;
 	fns->type_cap = FN_TYPE_VEC_CAP;
 }

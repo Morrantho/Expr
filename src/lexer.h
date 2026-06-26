@@ -42,6 +42,7 @@ static void LexSet( Lexer* lexer, Tk* tk, TkType type ){
 	tk->type = type;
 	tk->pos.ln = lexer->pos.ln;
 	tk->pos.col = lexer->pos.col;
+	tk->pos.off = lexer->pos.off;
 }
 
 /* Single chars only. Multi-char ops can call this once. */
@@ -176,15 +177,11 @@ static void LexSemi( Lexer* lexer, Tk* tk ){ /* ;; */
 	LexEat( lexer, tk, TK_LOOP );
 }
 
-static void LexLt( Lexer* lexer, Tk* tk ){ /* < << <<= <= <( <== */
+static void LexLt( Lexer* lexer, Tk* tk ){ /* < << <<= <= <== <( <- */
 	LexChar( lexer, tk, TK_LT );
 	if( *lexer->text == '<' ){
 		LexEat( lexer, tk, TK_LSH );
 		if( *lexer->text == '=' ){ LexEat( lexer, tk, TK_LSHEQ ); return; }
-		return;
-	}
-	if( *lexer->text == '(' ){
-		LexEat( lexer, tk, TK_FNOPEN );
 		return;
 	}
 	if( *lexer->text == '=' ){
@@ -192,6 +189,8 @@ static void LexLt( Lexer* lexer, Tk* tk ){ /* < << <<= <= <( <== */
 		if( *lexer->text == '=' ){ LexEat( lexer, tk, TK_BREAK ); return; }
 		return;
 	}
+	if( *lexer->text == '(' ){ LexEat( lexer, tk, TK_FNOPEN ); return; }
+	if( *lexer->text == '-' ){ LexEat( lexer, tk, TK_RET ); return; }
 }
 
 static void LexEq( Lexer* lexer, Tk* tk ){ /* == ==> */
@@ -223,8 +222,6 @@ static void LexQuestion( Lexer* lexer, Tk* tk ){ /* ?( ?? ??( */
 	}
 	Log( lexer->logs, &pos, LEX_BADIF );
 }
-
-static void LexAt( Lexer* lexer, Tk* tk ){ LexChar( lexer, tk, TK_RET ); }
 
 static void LexId( Lexer* lexer, Tk* tk ){
 	LexSet( lexer, tk, TK_ID );
@@ -263,6 +260,7 @@ static void LexScan( Lexer* lexer, Tk* out ){
 
 void Lex( Lexer* lexer ){
 	lexer->tk = lexer->peek;
+	if( lexer->tk.type == TK_EOS ){ lexer->peek = lexer->tk; return; }
 	LexScan( lexer, &lexer->peek );
 }
 #endif

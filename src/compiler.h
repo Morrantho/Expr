@@ -13,6 +13,7 @@ typedef struct CompilerFrame {	/* register span */
 	ChunkIdx chunk;				/* previous chunk */
 	u32 nlocals;
 	ExprMode mode;				/* as stmt or as expr */
+	FnImplIdx impl;
 } CompilerFrame;
 
 typedef struct Compiler {
@@ -23,6 +24,7 @@ typedef struct Compiler {
 	Insts* insts;
 	Chunks* chunks;
 	Patches *ifs, *loops;
+	Fns* fns;
 	Lexer* lexer;
 	/* state */
 	Reg nregs;					/* regs in use */
@@ -30,6 +32,7 @@ typedef struct Compiler {
 	Reg dst;					/* for targeted exprs. needed for fn args. */
 	ExprMode mode;				/* compiling exprs as exprs or stmts. changes bytecode. */
 	ChunkIdx chunk;				/* cur chunk */
+	FnImplIdx impl;				/* current fn body */
 } Compiler;
 #endif
 
@@ -47,6 +50,7 @@ void CompilerInit( Compiler* compiler, App* app ){
 	compiler->chunks = &app->chunks;
 	compiler->ifs = &app->ifs;
 	compiler->loops = &app->loops;
+	compiler->fns = &app->fns;
 	compiler->lexer = &app->lexer;
 
 	compiler->nregs = 0;
@@ -54,6 +58,7 @@ void CompilerInit( Compiler* compiler, App* app ){
 	compiler->dst = REG_NONE;
 	compiler->chunk = CHUNK_NONE;
 	compiler->mode = EM_STMT;
+	compiler->impl = FN_IMPL_NONE;
 }
 
 static Reg RegAlloc( Compiler* compiler ){
@@ -84,6 +89,7 @@ static ChunkIdx CompilerPushChunk( Compiler* compiler, CompilerFrame* out ){
 	out->mode = compiler->mode;
 	out->nlocals = compiler->locals->len;
 	out->chunk = compiler->chunk; /* prev chunk */
+	out->impl = compiler->impl;
 	ChunkIdx chunk_idx = ChunkPush( compiler->chunks );
 	Chunk* chunk = ChunkGet( compiler->chunks, chunk_idx );
 	chunk->start = compiler->insts->len;
@@ -94,6 +100,7 @@ static ChunkIdx CompilerPushChunk( Compiler* compiler, CompilerFrame* out ){
 	compiler->chunk = chunk_idx;
 	compiler->nregs = 0;
 	compiler->locals->len = 0;
+	compiler->impl = FN_IMPL_NONE;
 	return chunk_idx;
 }
 
@@ -106,6 +113,7 @@ static void CompilerPopChunk( Compiler* compiler, CompilerFrame* in ){
 	compiler->mode = in->mode;
 	compiler->locals->len = in->nlocals;
 	compiler->chunk = in->chunk;
+	compiler->impl = in->impl;
 }
 
 static InstIdx CompilerGetIp( Compiler* compiler ){
@@ -183,7 +191,7 @@ static Expr CompileBadId( Compiler* compiler, Tk* tk ){
 	return ExprErr( );
 }
 
-static Expr CompileId( Compiler* compiler, Tk* tk ){
+static Expr CompileLocal( Compiler* compiler, Tk* tk ){
 	Local* local = LocalGet( compiler->locals, tk->intern );
 	if( !local ) return CompileBadId( compiler, tk );
 	return ExprAs( local->expr_type, local->reg );
@@ -200,7 +208,7 @@ static Expr CompilePrefix( Compiler* compiler, Lexer* lexer ){
 		case DENO_PRE: return CompileUnary( compiler, lexer, &tk );
 		case DENO_NUM: return CompileNum( compiler, &tk );
 		case DENO_STR: return CompileStr( compiler, &tk );
-		case DENO_ID: return CompileId( compiler, &tk );
+		case DENO_ID: return CompileLocal( compiler, &tk );
 	}
 }
 
@@ -412,6 +420,58 @@ static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
 	return rhs;
 }
 
+static void CompileSkipBody( Compiler* compiler, Lexer* lexer, SrcSpan* out ){
+	out->src = lexer->tk.pos.src;
+	out->start = lexer->tk.pos.off;
+	while( lexer->tk.type != TK_END && lexer->tk.type != TK_EOS ) Lex( lexer );
+	out->end = lexer->tk.pos.off;
+	CompilerMatch( compiler, lexer, TK_END );
+}
+
+static u32 CompileFnArgs( Compiler* compiler, Lexer* lexer, InternIdx* args ){
+	u32 nargs = 0;
+	while( lexer->tk.type != TK_FNCLOSE && lexer->tk.type != TK_EOS ){
+		InternIdx arg = lexer->tk.intern;
+		CompilerMatch( compiler, lexer, TK_ID );
+		if( nargs >= REG_CAP ) Halt( ERR_REGALLOC );
+		args[ nargs++ ] = arg;
+		if( lexer->tk.type != TK_COMMA ) break;
+		Lex( lexer );
+	}
+	return nargs;
+}
+
+static Expr CompileFnDecl( Compiler* compiler, Lexer* lexer ){
+	InternIdx name = lexer->tk.intern;
+	Lex( lexer ); /* eat id */
+	CompilerMatch( compiler, lexer, TK_FNOPEN ); /* <( */
+	InternIdx args[ REG_CAP ];
+	u32 nargs = CompileFnArgs( compiler, lexer, args );
+	CompilerMatch( compiler, lexer, TK_FNCLOSE ); /* )> */
+	SrcSpan body;
+	CompileSkipBody( compiler, lexer, &body );
+	FnArgIdx arg_base = FnArgsPush( compiler->fns, args, ( u8 )nargs );
+	FnDeclPush( compiler->fns, name, &body, arg_base, ( u8 )nargs );
+	return ExprVoid( );
+}
+
+static Expr CompileId( Compiler* compiler, Lexer* lexer ){
+	if( lexer->peek.type == TK_FNOPEN ) return CompileFnDecl( compiler, lexer );
+	return CompileDecl( compiler, lexer );
+}
+
+static Expr CompileReturn( Compiler* compiler, Lexer* lexer ){
+	Tk tk = lexer->tk;
+	Lex( lexer ); /* <- */
+	if( compiler->impl == FN_IMPL_NONE ){
+		Log( compiler->logs, &tk.pos, CMP_BADRET );
+		return ExprErr( );
+	}
+	Expr ret = CompileExprAs( compiler, lexer, PREC_NONE, EM_EXPR );
+	InstABC( compiler->insts, OP_RET, ret.reg, 0, 0 );
+	return ExprVoid( );
+}
+
 static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 	switch( lexer->tk.type ){
 		default: return CompileExprAs( compiler, lexer, PREC_NONE, EM_STMT );
@@ -419,7 +479,8 @@ static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 		case TK_BREAK: return CompileBreak( compiler, lexer );
 		case TK_CONT: return CompileContinue( compiler, lexer );
 		case TK_IF: return CompileIf( compiler, lexer );
-		case TK_ID: return CompileDecl( compiler, lexer );
+		case TK_RET: return CompileReturn( compiler, lexer );
+		case TK_ID: return CompileId( compiler, lexer );
 		case TK_EOS: return ExprErr( );
 	}
 }

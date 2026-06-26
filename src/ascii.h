@@ -67,7 +67,7 @@
 	X( EQ,        EOS, Eq,       RET )		/* '=' */\
 	X( GT,        EOS, Gt,       RET )		/* '>' */\
 	X( QUESTION,  EOS, Question, RET )		/* '?' */\
-	X( AT,        EOS, At,       RET )		/* '@' */\
+	X( AT,        EOS, Next,     RET )		/* '@' */\
 	X( UPPER_A,   ID,  Id,       RET )		/* 'A' */\
 	X( UPPER_B,   ID,  Id,       RET )		/* 'B' */\
 	X( UPPER_C,   ID,  Id,       RET )		/* 'C' */\

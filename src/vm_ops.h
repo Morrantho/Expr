@@ -24,6 +24,12 @@ static inline void VmJnz( Vm* vm, Inst* i, Value* regs ){
 static inline void VmMov( Vm* vm, Inst* i, Value* regs ){ ( void )( vm );
 	regs[ i->a ] = regs[ i->b ];
 }
+
+static inline void VmReturn( Vm* vm, Inst* i, Value* regs ){
+	( void )vm;
+	( void )i;
+	( void )regs;
+}
 /*UNARY***********************************************************************/
 static inline void VmNotNum( Value* a, Value* b ){
 	VmNum( a, !b->num );
