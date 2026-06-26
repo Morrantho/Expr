@@ -26,9 +26,9 @@
 	X( INF )\
 	X( NUM )\
 	X( STR )\
-	X( ID )
+	X( ID )\
+	X( CALL )
 	// X( FN )
-	// X( CALL )
 	// X( MEMB )
 #define X_EXPRS( X )\
 	X( ERR,		"error" )\
@@ -102,6 +102,10 @@ u8* ExprGetName( ExprType type ){
 
 Expr ExprAs( ExprType type, u32 reg ){
 	return ( Expr ){ .type = type, .reg = reg };
+}
+
+Expr ExprId( InternIdx intern ){
+	return ( Expr ){ .type = EXPR_ID, .intern = intern };
 }
 
 Expr ExprErr( ){

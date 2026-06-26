@@ -135,6 +135,19 @@ static Expr CompileVoid( Compiler* compiler ){
 	return expr;
 }
 
+static Expr CompileBadId( Compiler* compiler, SrcPos* pos, InternIdx intern ){
+	u8* id = InternGetRaw( compiler->interns, intern );
+	Log( compiler->logs, pos, CMP_BADID, id );
+	return ExprErr( );
+}
+
+static Expr CompileReg( Compiler* compiler, Expr expr, SrcPos* pos ){
+	if( expr.type != EXPR_ID ) return expr;
+	Local* local = LocalGet( compiler->locals, expr.intern );
+	if( !local ) return CompileBadId( compiler, pos, expr.intern );
+	return ExprAs( local->expr_type, local->reg );
+}
+
 static Expr CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
 	u8 *deno_name = DenoGetName( deno );
 	u8 *tk_name = TkGetName( tk->type );
@@ -163,6 +176,7 @@ static u8 CompileUnaryStmt( Compiler* compiler, Op* op, Expr* src ){
 
 static Expr CompileUnary( Compiler* compiler, Lexer* lexer, Tk* tk ){
 	Expr src = CompileExprAs( compiler, lexer, PREC_UNARY, EM_EXPR );
+	// src = CompileReg( compiler, src, &tk->pos );
 	Op* op = OpGetUnary( src.type, tk->type );
 	if( !op->code ) return CompileBadUnary( compiler, &src, tk );
 	if( CompileUnaryStmt( compiler, op, &src ) ) return ExprVoid( );
@@ -185,18 +199,6 @@ static Expr CompileStr( Compiler* compiler, Tk* tk ){
 	return dst;
 }
 
-static Expr CompileBadId( Compiler* compiler, Tk* tk ){
-	u8* id = InternGetRaw( compiler->interns, tk->intern );
-	Log( compiler->logs, &tk->pos, CMP_BADID, id );
-	return ExprErr( );
-}
-
-static Expr CompileLocal( Compiler* compiler, Tk* tk ){
-	Local* local = LocalGet( compiler->locals, tk->intern );
-	if( !local ) return CompileBadId( compiler, tk );
-	return ExprAs( local->expr_type, local->reg );
-}
-
 static Expr CompilePrefix( Compiler* compiler, Lexer* lexer ){
 	Tk tk = lexer->tk; /* copy */
 	Deno deno = DenoGet( PARSEPOS_PRE, tk.type );
@@ -208,7 +210,7 @@ static Expr CompilePrefix( Compiler* compiler, Lexer* lexer ){
 		case DENO_PRE: return CompileUnary( compiler, lexer, &tk );
 		case DENO_NUM: return CompileNum( compiler, &tk );
 		case DENO_STR: return CompileStr( compiler, &tk );
-		case DENO_ID: return CompileLocal( compiler, &tk );
+		case DENO_ID: return ExprId( tk.intern );
 	}
 }
 
@@ -227,6 +229,7 @@ static u8 CompilePostStmt( Compiler* compiler, Op* op, Expr* src, Tk* tk ){
 }
 
 static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
+	src = CompileReg( compiler, src, &tk->pos );
 	Lex( lexer );
 	Op* op = OpGetPost( src.type, tk->type );
 	if( !op->code ) return CompileBadPost( compiler, &src, tk );
@@ -236,6 +239,14 @@ static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	return dst;
 }
 
+static Expr CompileCall( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
+	( void )lexer;
+	( void )compiler;
+	( void )tk;
+	if( src.type != EXPR_ID ) return ExprErr( );
+	return ExprVoid( );
+}
+
 static Expr CompilePostfix( Compiler* compiler, Lexer* lexer, Expr src ){
 	for( ;; ){
 		Tk tk = lexer->tk; /* copy required */
@@ -243,6 +254,7 @@ static Expr CompilePostfix( Compiler* compiler, Lexer* lexer, Expr src ){
 		switch( deno ){
 			default: return src;
 			case DENO_POST: src = CompilePost( compiler, lexer, src, &tk ); break;
+			case DENO_CALL: src = CompileCall( compiler, lexer, src, &tk ); break;
 		}
 	}
 }
@@ -264,6 +276,7 @@ static u8 CompileBinaryStmt( Compiler* compiler, Op* op, Expr* lhs, Expr* rhs ){
 static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec, Tk* tk ){
 	Lex( lexer );
 	Expr rhs = CompileExprAs( compiler, lexer, prec, EM_EXPR );
+	// rhs = CompileReg( compiler, rhs, &tk->pos );
 	Op* op = OpGetBinary( lhs.type, rhs.type, tk->type );
 	if( !op->code ) return CompileBadBinary( compiler, &lhs, &rhs, tk );
 	if( CompileBinaryStmt( compiler, op, &lhs, &rhs ) ) return ExprVoid( );
@@ -273,8 +286,10 @@ static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec
 }
 
 static Expr CompileInfix( Compiler* compiler, Lexer* lexer, Expr lhs, Prec min ){
+	Tk tk = lexer->tk;
+	lhs = CompileReg( compiler, lhs, &tk.pos );
 	for( ;; ){
-		Tk tk = lexer->tk; /* copy */
+		tk = lexer->tk; /* copy */
 		if( DenoGet( PARSEPOS_INF, tk.type ) != DENO_INF ) return lhs;
 		Prec prec = PrecGet( tk.type );
 		if( prec <= min ) return lhs;
@@ -297,6 +312,7 @@ static Expr CompileExprAs( Compiler* compiler, Lexer* lexer, Prec min, ExprMode 
 	compiler->mode = new_mode;
 	compiler->dst = REG_NONE;
 	Expr expr = CompileExpr( compiler, lexer, min );
+	expr = CompileReg( compiler, expr, &lexer->tk.pos );
 	compiler->mode = old_mode;
 	compiler->dst = old_dst;
 	return expr;
@@ -308,6 +324,7 @@ static Expr CompileExprAs( Compiler* compiler, Lexer* lexer, Prec min, ExprMode 
 // 	compiler->mode = EM_EXPR;
 // 	compiler->dst = new_dst;
 // 	Expr expr = CompileExpr( compiler, lexer, min );
+// expr = CompileReg( compiler, expr, &lexer->tk.pos );
 // 	if( expr.type != EXPR_ERR && expr.type != EXPR_VOID && expr.reg != new_dst ){
 // 		InstABC( compiler->insts, OP_MOV, new_dst, expr.reg, 0 );
 // 		expr = ExprAs( expr.type, new_dst );
@@ -431,9 +448,9 @@ static void CompileSkipBody( Compiler* compiler, Lexer* lexer, SrcSpan* out ){
 static u32 CompileFnArgs( Compiler* compiler, Lexer* lexer, InternIdx* args ){
 	u32 nargs = 0;
 	while( lexer->tk.type != TK_FNCLOSE && lexer->tk.type != TK_EOS ){
+		if( nargs >= UINT8_MAX ) Halt( ERR_REGALLOC );
 		InternIdx arg = lexer->tk.intern;
 		CompilerMatch( compiler, lexer, TK_ID );
-		if( nargs >= REG_CAP ) Halt( ERR_REGALLOC );
 		args[ nargs++ ] = arg;
 		if( lexer->tk.type != TK_COMMA ) break;
 		Lex( lexer );
@@ -455,7 +472,7 @@ static Expr CompileFnDecl( Compiler* compiler, Lexer* lexer ){
 	return ExprVoid( );
 }
 
-static Expr CompileId( Compiler* compiler, Lexer* lexer ){
+static Expr CompileIdStmt( Compiler* compiler, Lexer* lexer ){
 	if( lexer->peek.type == TK_FNOPEN ) return CompileFnDecl( compiler, lexer );
 	return CompileDecl( compiler, lexer );
 }
@@ -480,7 +497,7 @@ static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 		case TK_CONT: return CompileContinue( compiler, lexer );
 		case TK_IF: return CompileIf( compiler, lexer );
 		case TK_RET: return CompileReturn( compiler, lexer );
-		case TK_ID: return CompileId( compiler, lexer );
+		case TK_ID: return CompileIdStmt( compiler, lexer );
 		case TK_EOS: return ExprErr( );
 	}
 }

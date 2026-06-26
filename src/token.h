@@ -13,7 +13,7 @@
 	X( AND,     AND,    LEFT,  ERR,    INF,   ERR,  "&&"    )\
 	X( BANDEQ,  ASSIGN, RIGHT, ERR,    INF,   ERR,  "&="    )\
 	X( LP,      NONE,   NONE,  GRP,    ERR,   ERR,  "("     )\
-	X( RP,      NONE,   NONE,  ERR,    ERR,   ERR,  ")"     )\
+	X( RP,      NONE,   NONE,  ERR,    ERR,   CALL, ")"     )\
 	X( FNCLOSE, NONE,   NONE,  ERR,    ERR,   ERR,  ")>"    )\
 	X( MUL,     FACTOR, LEFT,  ERR,    INF,   ERR,  "*"     )\
 	X( CEIL,    UNARY,  RIGHT, PRE,    ERR,   ERR,  "**"    )\

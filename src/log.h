@@ -15,7 +15,8 @@
 	X( CMP_BADID,		"undefined reference: %s" )\
 	X( CMP_BADBRK,      "cannot break outside a loop" )\
 	X( CMP_BADCONT,     "cannot continue outside a loop" )\
-	X( CMP_BADRET,      "cannot return outside a function" )
+	X( CMP_BADRET,      "cannot return outside a function" )\
+	X( CMP_BADCALL,     "call to undefined reference: %s" )
 #define X_LOG_ENUMS( ENUM, FMT ) ENUM,
 #define X_LOG_FMTS( ENUM, FMT ) ( u8* )FMT,
 typedef u32 LogIdx, LogOffset;
