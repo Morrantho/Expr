@@ -21,6 +21,7 @@ typedef u32 Idx, Offset;
 #include "token.h"
 #include "lexer.h"
 #include "parsing.h"
+#include "value.h"
 #include "const.h"
 #include "local.h"
 #include "op.h"

@@ -33,8 +33,6 @@
 #define X_EXPRS( X )\
 	X( ERR,		"error" )\
 	X( VOID,	"void" )\
-	X( NUM,		"number" )\
-	X( STR,		"string" )\
 	X( ID,		"id" )\
 	X( VALUE,   "value" )
 	// X( FN,		"function" )

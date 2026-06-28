@@ -119,30 +119,30 @@ static Expr CompileBadUnary( Compiler* compiler, Expr* expr, Tk* tk ){
 }
 /* Avoids regalloc for mutating unarys in stmt position. */
 static u8 CompileUnaryStmt( Compiler* compiler, Op* op, Expr* src ){
-	if( compiler->mode != EM_STMT || !OpIsMutative( op->code ) ){ return 0; }
+	if( compiler->mode != EM_STMT || !op->mut ){ return 0; }
 	InstABC( compiler->insts, op->code, src->reg, src->reg, 0 ); /* no alloc, self-mutate */
 	return 1;
 }
 
 static Expr CompileUnary( Compiler* compiler, Lexer* lexer, Tk* tk ){
 	Expr src = CompileExprAs( compiler, lexer, PREC_UNARY, EM_EXPR );
-	Op* op = OpGetUnary( src.type, tk->type );
-	if( !op->code ){ return CompileBadUnary( compiler, &src, tk ); }
+	Op* op = OpGetUnary( tk->type );
+	if( op->code == OP_ERR ){ return CompileBadUnary( compiler, &src, tk ); }
 	if( CompileUnaryStmt( compiler, op, &src ) ){ return ExprVoid( ); }
-	Expr dst = ExprAs( op->type, RegResult( compiler ) );
+	Expr dst = ExprAs( EXPR_VALUE, RegResult( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, src.reg, 0 );
 	return dst;
 }
 
 static Expr CompileNum( Compiler* compiler, Tk* tk ){
-	Expr dst = ExprAs( EXPR_NUM, RegResult( compiler ) );
+	Expr dst = ExprAs( EXPR_VALUE, RegResult( compiler ) );
 	ConstIdx idx = ConstPutNum( compiler->consts, tk->num );
 	InstABX( compiler->insts, OP_LOADC, dst.reg, idx );
 	return dst;
 }
 
 static Expr CompileStr( Compiler* compiler, Tk* tk ){
-	Expr dst = ExprAs( EXPR_STR, RegResult( compiler ) );
+	Expr dst = ExprAs( EXPR_VALUE, RegResult( compiler ) );
 	ConstIdx idx = ConstPutStr( compiler->consts, tk->intern );
 	InstABX( compiler->insts, OP_LOADC, dst.reg, idx );
 	return dst;
@@ -171,8 +171,8 @@ static Expr CompileBadPost( Compiler* compiler, Expr* src, Tk* tk ){
 }
 
 static u8 CompilePostStmt( Compiler* compiler, Op* op, Expr* src, Tk* tk ){
-	if( compiler->mode != EM_STMT || !OpIsMutative( op->code ) ){ return 0; }
-	Op* mut = OpGetUnary( src->type, tk->type ); /* use prefix, less vm overhead */
+	if( compiler->mode != EM_STMT || !op->mut ){ return 0; }
+	Op* mut = OpGetUnary( tk->type ); /* use prefix, less vm overhead */
 	InstABC( compiler->insts, mut->code, src->reg, src->reg, 0 ); /* no alloc, self-mutate. */
 	return 1;
 }
@@ -180,10 +180,10 @@ static u8 CompilePostStmt( Compiler* compiler, Op* op, Expr* src, Tk* tk ){
 static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	src = CompileReg( compiler, src, &tk->pos );
 	Lex( lexer );
-	Op* op = OpGetPost( src.type, tk->type );
-	if( !op->code ){ return CompileBadPost( compiler, &src, tk ); }
+	Op* op = OpGetPost( tk->type );
+	if( op->code == OP_ERR ){ return CompileBadPost( compiler, &src, tk ); }
 	if( CompilePostStmt( compiler, op, &src, tk ) ){ return ExprVoid( ); }
-	Expr dst = ExprAs( op->type, RegResult( compiler ) );
+	Expr dst = ExprAs( EXPR_VALUE, RegResult( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, src.reg, 0 );
 	return dst;
 }
@@ -237,7 +237,7 @@ static Expr CompileBadBinary( Compiler* c, Expr* lhs, Expr* rhs, Tk* tk ){
 }
 
 static u8 CompileBinaryStmt( Compiler* compiler, Op* op, Expr* lhs, Expr* rhs ){
-	if( compiler->mode != EM_STMT || !OpIsMutative( op->code ) ){ return 0; }
+	if( compiler->mode != EM_STMT || !op->mut ){ return 0; }
 	InstABC( compiler->insts, op->code, lhs->reg, lhs->reg, rhs->reg ); /* no alloc, self-mutate */
 	return 1;
 }
@@ -245,10 +245,10 @@ static u8 CompileBinaryStmt( Compiler* compiler, Op* op, Expr* lhs, Expr* rhs ){
 static Expr CompileBinary( Compiler* compiler, Lexer* lexer, Expr lhs, Prec prec, Tk* tk ){
 	Lex( lexer );
 	Expr rhs = CompileExprAs( compiler, lexer, prec, EM_EXPR );
-	Op* op = OpGetBinary( lhs.type, rhs.type, tk->type );
-	if( !op->code ){ return CompileBadBinary( compiler, &lhs, &rhs, tk ); }
+	Op* op = OpGetBinary( tk->type );
+	if( op->code == OP_ERR ){ return CompileBadBinary( compiler, &lhs, &rhs, tk ); }
 	if( CompileBinaryStmt( compiler, op, &lhs, &rhs ) ){ return ExprVoid( ); }
-	Expr dst = ExprAs( op->type, RegResult( compiler ) );
+	Expr dst = ExprAs( EXPR_VALUE, RegResult( compiler ) );
 	InstABC( compiler->insts, op->code, dst.reg, lhs.reg, rhs.reg );
 	return dst;
 }
@@ -460,6 +460,7 @@ static void CompileFnCode( Compiler* compiler, FnIdx fn_idx ){
 	CompileFnBody( compiler, fn );
 	Expr ret = CompileVoid( compiler );
 	InstABC( compiler->insts, OP_RET, ret.reg, 0, 0 );
+	fn = FnGet( compiler->fns, fn_idx ); /* Reacquire */
 	fn->nregs = compiler->nregs;
 	CompilerReset( compiler, FN_NONE );
 }
@@ -478,8 +479,8 @@ static Expr CompileDecl( Compiler* compiler, Lexer* lexer ){
 	if( lexer->tk.type == TK_FNOPEN ){ return CompileFn( compiler, lexer, tk.intern ); }
 	Expr rhs = CompileExprAs( compiler, lexer, PREC_NONE, EM_EXPR );
 	if( rhs.type == EXPR_ERR ){ return rhs; }
-	LocalPut( compiler->locals, tk.intern, rhs.type, rhs.reg );
-	return rhs;
+	LocalPut( compiler->locals, tk.intern, EXPR_VALUE, rhs.reg );
+	return ExprAs( EXPR_VALUE, rhs.reg );
 }
 
 static Expr CompileBadReturn( Compiler* compiler, Tk* tk ){

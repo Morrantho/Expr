@@ -1,12 +1,7 @@
 #ifdef IMPL
 /*CORE************************************************************************/
 static inline void VmLoadConst( Vm* vm, Inst* i ){
-	Const* c = ConstGet( vm->consts, InstGetBX( i ) );
-	switch( c->type ){
-		case CONST_NUM: VmNum( &vm->regs[ i->a ], c->num ); return;
-		case CONST_STR: VmStr( &vm->regs[ i->a ], c->str ); return;
-	}
-	// Halt( ERR_LOADCONST );
+	vm->regs[ i->a ] = *ConstGet( vm->consts, InstGetBX( i ) );
 }
 
 static inline void VmJmp( Vm* vm, Inst* i ){
@@ -47,188 +42,184 @@ static inline void VmCall( Vm* vm, Inst* i ){
 	vm->ip = vm->insts->data + fn->entry;
 }
 /*UNARY***********************************************************************/
-static inline void VmNotNum( Value* a, Value* b ){
+static inline void VmNot( Value* a, Value* b ){
 	VmNum( a, !b->num );
 }
 
-static inline void VmNegNum( Value* a, Value* b ){
+static inline void VmNeg( Value* a, Value* b ){
 	VmNum( a, -b->num );
 }
 
-static inline void VmBnotNum( Value* a, Value* b ){
+static inline void VmBnot( Value* a, Value* b ){
 	VmNum( a, ~( x64 )b->num );
 }
 
-static inline void VmPreIncNum( Value* a, Value* b ){
+static inline void VmPreInc( Value* a, Value* b ){
 	++b->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmPreDecNum( Value* a, Value* b ){
+static inline void VmPreDec( Value* a, Value* b ){
 	--b->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmRoundNum( Value* a, Value* b ){
+static inline void VmRound( Value* a, Value* b ){
 	f64 n = b->num;
 	x64 w = n;
 	f64 f = n - w;
 	VmNum( a, w + ( f >= 0.5 ) - ( f <= -0.5 ) );
 }
 
-static inline void VmCeilNum( Value* a, Value* b ){
+static inline void VmCeil( Value* a, Value* b ){
 	f64 n = b->num;
 	x64 w = n;
 	VmNum( a, w + ( w < n ) );
 }
 
-static inline void VmFloorNum( Value* a, Value* b ){
+static inline void VmFloor( Value* a, Value* b ){
 	f64 n = b->num;
 	x64 w = n;
 	VmNum( a, w - ( w > n ) );
 }
 /*POST************************************************************************/
-static inline void VmPostIncNum( Value* a, Value* b ){
+static inline void VmPostInc( Value* a, Value* b ){
 	f64 n = b->num;
 	VmNum( a, n );
 	++b->num;
 }
 
-static inline void VmPostDecNum( Value* a, Value* b ){
+static inline void VmPostDec( Value* a, Value* b ){
 	f64 n = b->num;
 	VmNum( a, n );
 	--b->num;
 }
 /*BINARY NUM******************************************************************/
-static inline void VmNotEqNum( Value* a, Value* b, Value* c ){
+static inline void VmNotEq( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num != c->num );
 }
 
-static inline void VmModNum( Value* a, Value* b, Value* c ){
+static inline void VmMod( Value* a, Value* b, Value* c ){
 	VmNum( a, ( x64 )b->num % ( x64 )c->num );
 }
 
-static inline void VmBandNum( Value* a, Value* b, Value* c ){
+static inline void VmBand( Value* a, Value* b, Value* c ){
 	VmNum( a, ( x64 )b->num & ( x64 )c->num );
 }
 
-static inline void VmAndNum( Value* a, Value* b, Value* c ){
+static inline void VmAnd( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num && c->num );
 }
 
-static inline void VmMulNum( Value* a, Value* b, Value* c ){
+static inline void VmMul( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num * c->num );
 }
 
-static inline void VmAddNum( Value* a, Value* b, Value* c ){
+static inline void VmAdd( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num + c->num );
 }
 
-static inline void VmSubNum( Value* a, Value* b, Value* c ){
+static inline void VmSub( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num - c->num );
 }
 
-static inline void VmDivNum( Value* a, Value* b, Value* c ){
+static inline void VmDiv( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num / c->num );
 }
 
-static inline void VmLtNum( Value* a, Value* b, Value* c ){
+static inline void VmLt( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num < c->num );
 }
 
-static inline void VmLshNum( Value* a, Value* b, Value* c ){
+static inline void VmLsh( Value* a, Value* b, Value* c ){
 	VmNum( a, ( x64 )b->num << ( x64 )c->num );
 }
 
-static inline void VmLteNum( Value* a, Value* b, Value* c ){
+static inline void VmLte( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num <= c->num );
 }
 
-static inline void VmCmpNum( Value* a, Value* b, Value* c ){
+static inline void VmCmp( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num == c->num );
 }
 
-static inline void VmGtNum( Value* a, Value* b, Value* c ){
+static inline void VmGt( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num > c->num );
 }
 
-static inline void VmRshNum( Value* a, Value* b, Value* c ){
+static inline void VmRsh( Value* a, Value* b, Value* c ){
 	VmNum( a, ( x64 )b->num >> ( x64 )c->num );
 }
 
-static inline void VmGteNum( Value* a, Value* b, Value* c ){
+static inline void VmGte( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num >= c->num );
 }
 
-static inline void VmBxorNum( Value* a, Value* b, Value* c ){
+static inline void VmBxor( Value* a, Value* b, Value* c ){
 	VmNum( a, ( x64 )b->num ^ ( x64 )c->num );
 }
 
-static inline void VmBorNum( Value* a, Value* b, Value* c ){
+static inline void VmBor( Value* a, Value* b, Value* c ){
 	VmNum( a, ( x64 )b->num | ( x64 )c->num );
 }
 
-static inline void VmOrNum( Value* a, Value* b, Value* c ){
+static inline void VmOr( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num || c->num );
 }
 
-static inline void VmModEqNum( Value* a, Value* b, Value* c ){
+static inline void VmModEq( Value* a, Value* b, Value* c ){
 	b->num = ( x64 )b->num % ( x64 )c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmBandEqNum( Value* a, Value* b, Value* c ){
+static inline void VmBandEq( Value* a, Value* b, Value* c ){
 	b->num = ( x64 )b->num & ( x64 )c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmMulEqNum( Value* a, Value* b, Value* c ){
+static inline void VmMulEq( Value* a, Value* b, Value* c ){
 	b->num *= c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmAddEqNum( Value* a, Value* b, Value* c ){
+static inline void VmAddEq( Value* a, Value* b, Value* c ){
 	b->num += c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmSubEqNum( Value* a, Value* b, Value* c ){
+static inline void VmSubEq( Value* a, Value* b, Value* c ){
 	b->num -= c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmDivEqNum( Value* a, Value* b, Value* c ){
+static inline void VmDivEq( Value* a, Value* b, Value* c ){
 	b->num /= c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmLshEqNum( Value* a, Value* b, Value* c ){
+static inline void VmLshEq( Value* a, Value* b, Value* c ){
 	b->num = ( x64 )b->num << ( x64 )c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmRshEqNum( Value* a, Value* b, Value* c ){
+static inline void VmRshEq( Value* a, Value* b, Value* c ){
 	b->num = ( x64 )b->num >> ( x64 )c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmBxorEqNum( Value* a, Value* b, Value* c ){
+static inline void VmBxorEq( Value* a, Value* b, Value* c ){
 	b->num = ( x64 )b->num ^ ( x64 )c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmBorEqNum( Value* a, Value* b, Value* c ){
+static inline void VmBorEq( Value* a, Value* b, Value* c ){
 	b->num = ( x64 )b->num | ( x64 )c->num;
 	VmNum( a, b->num );
 }
 
-static inline void VmPowNum( Value* a, Value* b, Value* c ){
+static inline void VmPow( Value* a, Value* b, Value* c ){
 	x64 base = b->num;
 	x64 exp = c->num;
 	VmNum( a, VmPowX64( base, exp ) );
-}
-/*BINARY STR******************************************************************/
-static inline void VmCmpStr( Value* a, Value* b, Value* c ){
-	VmNum( a, b->str == c->str );
 }
 #endif

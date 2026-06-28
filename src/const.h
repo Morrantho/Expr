@@ -1,21 +1,8 @@
 #ifdef TYPES
 typedef u32 ConstIdx;
 
-typedef enum ConstType {
-	CONST_NUM,
-	CONST_STR,
-} ConstType;
-
-typedef struct Const{
-	ConstType type;
-	union {
-		f64 num;
-		InternIdx str;
-	};
-} Const;
-
 typedef struct Consts {
-	Const* data;
+	Value* data;
 	u32 len, cap;
 } Consts;
 
@@ -23,13 +10,13 @@ static ConstIdx CONST_VOID = 0;
 #endif
 
 #ifdef IMPL
-ConstIdx ConstPutNum( Consts* consts, f64 num );
+ConstIdx ConstPut( Consts* consts, Value value );
 
 void ConstInit( Consts* consts ){
 	consts->data = MemAlloc( sizeof( consts->data[ 0 ] ), CONST_VEC_CAP );
 	consts->len = 0;
 	consts->cap = CONST_VEC_CAP;
-	CONST_VOID = ConstPutNum( consts, 0 );
+	CONST_VOID = ConstPut( consts, ValueNull( ) );
 	// if( CONST_VOID != 0 ) Halt( ERR_CONSTVOID );
 }
 
@@ -38,26 +25,22 @@ static void ConstGrow( Consts* consts ){
 	consts->data = MemRealloc( consts->data, sizeof( consts->data[ 0 ] ), consts->cap );
 }
 
-static ConstIdx ConstPut( Consts* consts, ConstType type ){
+ConstIdx ConstPut( Consts* consts, Value value ){
 	if( consts->len >= consts->cap ){ ConstGrow( consts ); }
 	ConstIdx idx = consts->len++;
-	consts->data[ idx ] = ( Const ){ .type = type };
+	consts->data[ idx ] = value;
 	return idx;
 }
 
 ConstIdx ConstPutNum( Consts* consts, f64 num ){
-	ConstIdx idx = ConstPut( consts, CONST_NUM );
-	consts->data[ idx ].num = num;
-	return idx;
+	return ConstPut( consts, ValueNum( num ) );
 }
 
 ConstIdx ConstPutStr( Consts* consts, InternIdx str ){
-	ConstIdx idx = ConstPut( consts, CONST_STR );
-	consts->data[ idx ].str = str;
-	return idx;
+	return ConstPut( consts, ValueStr( str ) );
 }
 
-Const* ConstGet( Consts* consts, ConstIdx idx ){
+Value* ConstGet( Consts* consts, ConstIdx idx ){
 	return &consts->data[ idx ];
 }
 
