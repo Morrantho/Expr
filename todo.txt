@@ -1,3 +1,5 @@
+gut typed opcodes, go fully dynamic.
+
 const dedupe
 
 fold consts
