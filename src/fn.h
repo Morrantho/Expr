@@ -1,11 +1,13 @@
 #ifdef TYPES
 #define FN_NONE UINT32_MAX
+#define FN_NATIVE 0x80000000u
+#define FN_TARGET 0x7fffffffu
 typedef u32 FnIdx, ArgIdx;
 
 typedef struct Fn {
 	SrcPos body;
 	InternIdx name;
-	InstIdx entry;
+	InstIdx target;				/* top bit indicates native */
 	u32 nregs;
 	ArgIdx args;				/* fns->args index */
 	u8 nargs;
@@ -76,8 +78,21 @@ FnIdx FnPush( Fns* fns, InternIdx name, SrcPos* body, ArgIdx base, u8 nargs ){
 	fn->name = name;
 	fn->body = *body;
 	fn->nregs = 0;
-	fn->entry = INST_NONE;
+	fn->target = INST_NONE;
 	fn->args = base;
+	fn->nargs = nargs;
+	return fn_idx;
+}
+
+FnIdx FnPushNative( Fns* fns, InternIdx name, NativeIdx native, u8 nargs ){
+	if( fns->fn_len >= fns->fn_cap ){ FnGrow( fns ); }
+	FnIdx fn_idx = fns->fn_len++;
+	Fn* fn = FnGet( fns, fn_idx );
+	fn->name = name;
+	fn->body = ( SrcPos ){ 0 };
+	fn->nregs = 0;
+	fn->target = FN_NATIVE | native;
+	fn->args = 0;
 	fn->nargs = nargs;
 	return fn_idx;
 }

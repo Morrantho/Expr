@@ -196,6 +196,7 @@ static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 static Expr CompileCallArgs( Compiler* compiler, Lexer* lexer, Reg base, u8* nargs ){
 	*nargs = 0;
 	Lex( lexer ); /* ( */
+	if( lexer->tk.type == TK_RP ){ Lex( lexer ); return ExprVoid( ); }
 	for( ;; ){
 		if( *nargs == UINT8_MAX ){ Halt( ERR_REGALLOC ); }
 		Reg arg = RegReserve( compiler, 1 );
@@ -463,9 +464,9 @@ static void CompileFnBody( Compiler* compiler, Fn* fn ){
 
 static void CompileFnCode( Compiler* compiler, FnIdx fn_idx ){
 	Fn* fn = FnGet( compiler->fns, fn_idx );
-	if( fn->entry != INST_NONE ){ return; }
+	if( fn->target != INST_NONE ){ return; } /* Should catch natives */
 	CompilerReset( compiler, fn_idx );
-	fn->entry = compiler->insts->len;
+	fn->target = compiler->insts->len;
 	CompileFnArgsInto( compiler, fn );
 	CompileFnBody( compiler, fn );
 	Expr ret = CompileVoid( compiler );

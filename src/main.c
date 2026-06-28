@@ -33,6 +33,7 @@ static void AppInit( App* app, u8* path ){
 	PatchInit( &app->ifs, &app->insts );
 	PatchInit( &app->loops, &app->insts );
 	FnInit( &app->fns );
+	NativeInit( app );
 	CompilerInit( &app->compiler, app );
 	VmInit( &app->vm, app );
 }
@@ -52,10 +53,7 @@ static void AppFree( App* app ){
 static void AppRun( App* app ){
 	InstIdx entry = CompilerRun( &app->compiler );
 	if( LogDump( &app->logs ) ){ return; }
-	InstDump( &app->insts );
-	Value* value = VmRun( &app->vm, entry );
-	if( value->type == VALUE_NULL ){ return; }
-	VmPrintValue( &app->vm, value );
+	VmRun( &app->vm, entry );
 }
 
 x32 main( x32 nargs, x8** args ){

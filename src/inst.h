@@ -1,6 +1,6 @@
 #ifdef TYPES
 #define INST_NONE UINT32_MAX
-typedef u32 InstIdx;
+typedef u32 InstIdx, NativeIdx;
 
 typedef struct Inst {
 	u8 op, a, b, c;

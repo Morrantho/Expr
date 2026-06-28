@@ -1,4 +1,29 @@
 #ifdef IMPL
+/*NATIVES*********************************************************************/
+static inline void VmPrint( Vm* vm, Inst* i ){
+	Value* args = &vm->regs[ i->a + 1 ];
+	for( u8 arg = 0; arg < i->b; arg++ ){
+		if( arg ) printf( " " );
+		Value* value = &args[ arg ];
+		switch( value->type ){
+			case VALUE_NULL:
+				printf( "NULL" ); break;
+			case VALUE_NUM:
+				printf( "%.15g", value->num ); break;
+			case VALUE_STR:
+				printf( "%s", InternGetRaw( vm->interns, value->str ) ); break;
+			case VALUE_FN:			
+				printf( "%p", ( void* )FnGet( vm->fns, value->fn ) ); break;
+		}
+	}
+	printf( "\n" );
+	vm->regs[ i->a ].type = VALUE_NULL;
+}
+
+static inline void VmDump( Vm* vm, Inst* i ){
+	InstDump( vm->insts );
+	vm->regs[ i->a ].type = VALUE_NULL;
+}
 /*CORE************************************************************************/
 static inline void VmLoadConst( Vm* vm, Inst* i ){
 	vm->regs[ i->a ] = *ConstGet( vm->consts, InstGetBX( i ) );
@@ -30,21 +55,29 @@ static inline void VmReturn( Vm* vm, Inst* i ){
 	vm->regs[ frame->ret ] = ret;
 }
 
+static inline void VmCallNative( Vm* vm, Inst* i, NativeIdx native ){
+	switch( ( NativeType )native ){
+		case NATIVE_COUNT: return;
+		X_NATIVES( X_NATIVE_CASE )
+	}
+}
+
 static inline void VmCall( Vm* vm, Inst* i ){
 	Value* callee = &vm->regs[ i->a ];
 	if( callee->type != VALUE_FN ){ Halt( ERR_BADCALL ); }
 	FnIdx fn_idx = callee->fn;
 	if( fn_idx >= vm->fns->fn_len ){ Halt( ERR_BADFN ); }
 	Fn* fn = FnGet( vm->fns, fn_idx );
-	if( fn->entry == INST_NONE ){ Halt( ERR_BADFN ); }
+	if( fn->target == INST_NONE ){ Halt( ERR_BADFN ); }
 	if( i->b != fn->nargs ){ Halt( ERR_BADARGS ); }
+	if( fn->target & FN_NATIVE ){ VmCallNative( vm, i, fn->target & FN_TARGET ); return; }
 	Frame* frame = VmFramePush( vm );
 	frame->ip = vm->ip;
 	frame->regs = vm->regs;
 	frame->ret = i->a;
 	vm->regs += i->a + 1;
 	if( vm->regs + fn->nregs > vm->reg_stack + VM_REG_CAP ){ Halt( ERR_REGOVERFLOW ); }
-	vm->ip = vm->insts->data + fn->entry;
+	vm->ip = vm->insts->data + fn->target;
 }
 /*UNARY***********************************************************************/
 static inline void VmNot( Value* a, Value* b ){

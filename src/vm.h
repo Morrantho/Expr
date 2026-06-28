@@ -61,29 +61,12 @@ static inline x64 VmPowX64( x64 base, x64 exp ){
 	return res;
 }
 
-void VmPrintValue( Vm* vm, Value* value ){
-	if( !value ){
-		printf( "NULL VALUE\n" );
-		return;
-	}
-	switch( value->type ){
-		case VALUE_NULL:
-			printf( "NULL\n" ); break;
-		case VALUE_NUM:
-			printf( "%.15g\n", value->num ); break;
-		case VALUE_STR:
-			printf( "\"%s\"\n", InternGetRaw( vm->interns, value->str ) ); break;
-		case VALUE_FN:
-			printf( "%p\n", ( void* )FnGet( vm->fns, value->fn ) ); break;
-	}
-}
-
 #include "vm_ops.h"
 
-Value* VmRun( Vm* vm, InstIdx entry ){
+Value* VmRun( Vm* vm, InstIdx target ){
 	vm->regs = vm->reg_stack;
 	vm->nframes = 0;
-	vm->ip = vm->insts->data + entry;
+	vm->ip = vm->insts->data + target;
 	for( ;; ){
 		Inst* i = vm->ip++;
 		switch( ( OpCode )i->op ){

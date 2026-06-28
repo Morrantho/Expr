@@ -3,7 +3,7 @@ RunCallback: <( name, fn )>
 ::
 
 Callback: <( name )>
-	<- name
+	Print( name )
 ::
 
 RunCallback( "Bob", Callback )
