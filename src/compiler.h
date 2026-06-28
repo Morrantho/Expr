@@ -235,6 +235,7 @@ static Expr CompileCall( Compiler* compiler, Lexer* lexer, Expr src ){
 
 static Expr CompilePostfix( Compiler* compiler, Lexer* lexer, Expr src ){
 	for( ;; ){
+		if( src.type == EXPR_ERR ){ return src; }
 		Tk tk = lexer->tk; /* copy required */
 		Deno deno = DenoGet( PARSEPOS_POST, tk.type );
 		switch( deno ){

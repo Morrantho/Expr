@@ -1,9 +1,1 @@
-RunCallback: <( name, fn )>
-	fn( name )
-::
-
-Callback: <( name )>
-	Print( name )
-::
-
-RunCallback( "Bob", Callback )
+BadFunc( )
