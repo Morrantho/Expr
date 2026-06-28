@@ -9,11 +9,13 @@ static inline void VmJmp( Vm* vm, Inst* i ){
 }
 
 static inline void VmJz( Vm* vm, Inst* i ){
-	if( vm->regs[ i->a ].num == 0 ){ vm->ip = vm->insts->data + InstGetBX( i ); }
+	if( vm->regs[ i->a ].num != 0 ) return;
+	vm->ip = vm->insts->data + InstGetBX( i );
 }
 
 static inline void VmJnz( Vm* vm, Inst* i ){
-	if( vm->regs[ i->a ].num != 0 ){ vm->ip = vm->insts->data + InstGetBX( i ); }
+	if( vm->regs[ i->a ].num == 0 ) return;
+	vm->ip = vm->insts->data + InstGetBX( i );
 }
 
 static inline void VmMov( Vm* vm, Inst* i ){ ( void )( vm );
@@ -29,15 +31,18 @@ static inline void VmReturn( Vm* vm, Inst* i ){
 }
 
 static inline void VmCall( Vm* vm, Inst* i ){
-	FnIdx fn_idx = InstGetBX( i );
+	Value* callee = &vm->regs[ i->a ];
+	if( callee->type != VALUE_FN ){ Halt( ERR_BADCALL ); }
+	FnIdx fn_idx = callee->fn;
 	if( fn_idx >= vm->fns->fn_len ){ Halt( ERR_BADFN ); }
 	Fn* fn = FnGet( vm->fns, fn_idx );
 	if( fn->entry == INST_NONE ){ Halt( ERR_BADFN ); }
+	if( i->b != fn->nargs ){ Halt( ERR_BADARGS ); }
 	Frame* frame = VmFramePush( vm );
 	frame->ip = vm->ip;
 	frame->regs = vm->regs;
 	frame->ret = i->a;
-	vm->regs += i->a;
+	vm->regs += i->a + 1;
 	if( vm->regs + fn->nregs > vm->reg_stack + VM_REG_CAP ){ Halt( ERR_REGOVERFLOW ); }
 	vm->ip = vm->insts->data + fn->entry;
 }
@@ -94,7 +99,7 @@ static inline void VmPostDec( Value* a, Value* b ){
 	VmNum( a, n );
 	--b->num;
 }
-/*BINARY NUM******************************************************************/
+/*BINARY**********************************************************************/
 static inline void VmNotEq( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num != c->num );
 }

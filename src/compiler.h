@@ -95,7 +95,12 @@ static Expr CompileReg( Compiler* compiler, Expr expr, SrcPos* pos ){
 	if( expr.type != EXPR_ID ){ return expr; }
 	Local* local = LocalFind( compiler->locals, expr.intern );
 	if( local ){ return ExprAs( local->expr_type, local->reg ); }
-	return CompileBadId( compiler, pos, expr.intern );
+	FnIdx fn_idx = FnFind( compiler->fns, expr.intern );
+	if( fn_idx == FN_NONE ) return CompileBadId( compiler, pos, expr.intern );
+	Expr dst = ExprAs( EXPR_VALUE, RegResult( compiler ) );
+	ConstIdx con_idx = ConstPutFn( compiler->consts, fn_idx );
+	InstABX( compiler->insts, OP_LOADC, dst.reg, con_idx );
+	return dst;
 }
 
 static Expr CompileBadPrefix( Compiler* compiler, Deno deno, Tk* tk ){
@@ -188,31 +193,42 @@ static Expr CompilePost( Compiler* compiler, Lexer* lexer, Expr src, Tk* tk ){
 	return dst;
 }
 
-static Expr CompileBadCall( Compiler* compiler, Lexer* lexer, Expr src ){
-	Log( compiler->logs, &lexer->tk.pos, CMP_BADCALL, src.intern );
-	return ExprErr( );
-}
-
-static Expr CompileCallArgs( Compiler* compiler, Lexer* lexer, Reg base, u8 nargs ){
+static Expr CompileCallArgs( Compiler* compiler, Lexer* lexer, Reg base, u8* nargs ){
+	*nargs = 0;
 	Lex( lexer ); /* ( */
-	for( u8 i = 0; i < nargs; i++ ){
-		Expr arg = CompileExprInto( compiler, lexer, PREC_NONE, base + i );
-		if( arg.type == EXPR_ERR ){ return arg; }
-		if( i + 1 < nargs ){ CompilerMatch( compiler, lexer, TK_COMMA ); }
+	for( ;; ){
+		if( *nargs == UINT8_MAX ){ Halt( ERR_REGALLOC ); }
+		Reg arg = RegReserve( compiler, 1 );
+		if( arg != base + 1 + *nargs ){ Halt( ERR_REGALLOC ); } /* Bail if not packed */
+		Expr expr = CompileExprInto( compiler, lexer, PREC_NONE, arg );
+		if( expr.type == EXPR_ERR ) return expr;
+		( *nargs )++;
+		compiler->nregs = arg + 1;
+		if( lexer->tk.type != TK_COMMA ) break;
+		Lex( lexer );
 	}
 	CompilerMatch( compiler, lexer, TK_RP ); /* ) */
 	return ExprVoid( );
 }
 
+static Expr CompileMoveTo( Compiler* compiler, Expr expr, Reg new_dst ){
+	if( expr.type == EXPR_ERR || expr.type == EXPR_VOID || expr.reg == new_dst ){ return expr; }
+	InstABC( compiler->insts, OP_MOV, new_dst, expr.reg, 0 );
+	return ExprAs( expr.type, new_dst );
+}
+
 static Expr CompileCall( Compiler* compiler, Lexer* lexer, Expr src ){
-	if( src.type != EXPR_ID ){ return CompileBadPost( compiler, &src, &lexer->tk ); }
-	FnIdx fn_idx = FnFind( compiler->fns, src.intern );
-	if( fn_idx == FN_NONE ){ return CompileBadCall( compiler, lexer, src ); }
-	Fn* fn = FnGet( compiler->fns, fn_idx );
-	Reg base = RegReserve( compiler, fn->nargs );
-	Expr args = CompileCallArgs( compiler, lexer, base, fn->nargs );
-	if( args.type == EXPR_ERR ){ return args; }
-	InstABX( compiler->insts, OP_CALL, base, fn_idx );
+	Tk tk = lexer->tk;
+	src = CompileReg( compiler, src, &tk.pos );
+	if( src.type == EXPR_ERR ) return src;
+	if( src.type == EXPR_VOID ) return CompileBadPost( compiler, &src, &tk );
+	Reg base = RegReserve( compiler, 1 );
+	src = CompileMoveTo( compiler, src, base );
+	u8 nargs = 0;
+	Expr args = CompileCallArgs( compiler, lexer, base, &nargs );
+	if( args.type == EXPR_ERR ) return args;
+	InstABC( compiler->insts, OP_CALL, base, nargs, 0 );
+	compiler->nregs = base + 1;
 	return ExprAs( EXPR_VALUE, base );
 }
 
@@ -284,12 +300,6 @@ static Expr CompileExprAs( Compiler* compiler, Lexer* lexer, Prec min, ExprMode 
 	compiler->mode = old_mode;
 	compiler->dst = old_dst;
 	return expr;
-}
-
-static Expr CompileMoveTo( Compiler* compiler, Expr expr, Reg new_dst ){
-	if( expr.type == EXPR_ERR || expr.type == EXPR_VOID || expr.reg == new_dst ){ return expr; }
-	InstABC( compiler->insts, OP_MOV, new_dst, expr.reg, 0 );
-	return ExprAs( expr.type, new_dst );
 }
 
 /* compile an expr into a specific register. */

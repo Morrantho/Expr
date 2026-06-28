@@ -1,5 +1,9 @@
-Add: <( a, b )>
-	<- a + b
+RunCallback: <( name, fn )>
+	fn( name )
 ::
 
-Add( 10, 20 ) + Add( 30, 40 )
+Callback: <( name )>
+	<- name
+::
+
+RunCallback( "Bob", Callback )

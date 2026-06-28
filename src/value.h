@@ -3,6 +3,7 @@ typedef enum ValueType {
 	VALUE_NULL,
 	VALUE_NUM,
 	VALUE_STR,
+	VALUE_FN,
 } ValueType;
 
 typedef struct Value { /* 4 bytes of waste */
@@ -10,6 +11,7 @@ typedef struct Value { /* 4 bytes of waste */
 	union {
 		f64 num;
 		InternIdx str;
+		u32 fn; /* FnIdx */
 	};
 } Value;
 #endif
@@ -25,5 +27,9 @@ static inline Value ValueNum( f64 num ){
 
 static inline Value ValueStr( InternIdx str ){
 	return ( Value ){ .type = VALUE_STR, .str = str };
+}
+
+static inline Value ValueFn( u32 fn ){ /* FnIdx */
+	return ( Value ){ .type = VALUE_FN, .fn = fn };
 }
 #endif

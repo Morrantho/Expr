@@ -73,6 +73,8 @@ void VmPrintValue( Vm* vm, Value* value ){
 			printf( "%.15g\n", value->num ); break;
 		case VALUE_STR:
 			printf( "\"%s\"\n", InternGetRaw( vm->interns, value->str ) ); break;
+		case VALUE_FN:
+			printf( "%p\n", ( void* )FnGet( vm->fns, value->fn ) ); break;
 	}
 }
 

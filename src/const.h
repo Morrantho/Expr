@@ -40,6 +40,10 @@ ConstIdx ConstPutStr( Consts* consts, InternIdx str ){
 	return ConstPut( consts, ValueStr( str ) );
 }
 
+ConstIdx ConstPutFn( Consts* consts, FnIdx fn ){
+	return ConstPut( consts, ValueFn( fn ) );
+}
+
 Value* ConstGet( Consts* consts, ConstIdx idx ){
 	return &consts->data[ idx ];
 }
