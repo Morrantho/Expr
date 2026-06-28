@@ -71,10 +71,6 @@ static Reg RegReserve( Compiler* compiler, Reg nregs ){
 	return reg;
 }
 
-static InstIdx CompilerGetIp( Compiler* compiler ){
-	return compiler->insts->len;
-}
-
 static void CompilerMatch( Compiler* compiler, Lexer* lexer, TkType expected ){
 	Tk* tk = &lexer->tk;
 	if( tk->type != expected ){
@@ -322,10 +318,10 @@ static void CompileLoopBody( Compiler* compiler, Lexer* lexer ){
 static Expr CompileLoop( Compiler* compiler, Lexer* lexer ){
 	Lex( lexer ); /* eat ;; */
 	PatchIdx mark = compiler->loops->len;
-	InstIdx enter = CompilerGetIp( compiler );
+	InstIdx enter = compiler->insts->len;
 	CompileLoopBody( compiler, lexer );
 	InstJmp( compiler->insts, enter );
-	InstIdx exit = CompilerGetIp( compiler );
+	InstIdx exit = compiler->insts->len;
 	PatchLoop( compiler->loops, mark, enter, exit );
 	CompilerMatch( compiler, lexer, TK_END );
 	return ExprVoid( );
@@ -374,7 +370,7 @@ static PatchIdx CompileIfCond( Compiler* compiler, Lexer* lexer ){
 
 static u8 CompileIfLast( Compiler* compiler, Lexer* lexer, PatchIdx branch ){
 	if( lexer->tk.type == TK_ELIF || lexer->tk.type == TK_ELSE ){ return 0; }
-	PatchApply( compiler->ifs, PATCH_BRANCH, branch, CompilerGetIp( compiler ) );
+	PatchApply( compiler->ifs, PATCH_BRANCH, branch, compiler->insts->len );
 	return 1;
 }
 
@@ -383,7 +379,7 @@ static void CompileIfBranch( Compiler* compiler, Lexer* lexer ){
 	CompileIfBody( compiler, lexer );
 	if( CompileIfLast( compiler, lexer, branch ) ){ return; }
 	InstIdx end = InstJmp( compiler->insts, 0 );
-	PatchApply( compiler->ifs, PATCH_BRANCH, branch, CompilerGetIp( compiler ) );
+	PatchApply( compiler->ifs, PATCH_BRANCH, branch, compiler->insts->len );
 	PatchPush( compiler->ifs, PATCH_END, end );
 }
 
@@ -395,10 +391,10 @@ static void CompileElse( Compiler* compiler, Lexer* lexer ){
 
 static Expr CompileIf( Compiler* compiler, Lexer* lexer ){
 	PatchIdx mark = compiler->ifs->len;
-	do{ CompileIfBranch( compiler, lexer ); }while( lexer->tk.type == TK_ELIF );
+	do{ CompileIfBranch( compiler, lexer ); } while( lexer->tk.type == TK_ELIF );
 	CompileElse( compiler, lexer );
 	CompilerMatch( compiler, lexer, TK_END );
-	PatchApply( compiler->ifs, PATCH_END, mark, CompilerGetIp( compiler ) );
+	PatchApply( compiler->ifs, PATCH_END, mark, compiler->insts->len );
 	return ExprVoid( );
 }
 
@@ -464,6 +460,7 @@ static void CompileFnCode( Compiler* compiler, FnIdx fn_idx ){
 	CompileFnBody( compiler, fn );
 	Expr ret = CompileVoid( compiler );
 	InstABC( compiler->insts, OP_RET, ret.reg, 0, 0 );
+	fn->nregs = compiler->nregs;
 	CompilerReset( compiler, FN_NONE );
 }
 

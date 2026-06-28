@@ -34,7 +34,9 @@ static inline void VmReturn( Vm* vm, Inst* i ){
 }
 
 static inline void VmCall( Vm* vm, Inst* i ){
-	Fn* fn = FnGet( vm->fns, InstGetBX( i ) );
+	FnIdx fn_idx = InstGetBX( i );
+	if( fn_idx >= vm->fns->fn_len ){ Halt( ERR_BADFN ); }
+	Fn* fn = FnGet( vm->fns, fn_idx );
 	if( fn->entry == INST_NONE ){ Halt( ERR_BADFN ); }
 	Frame* frame = VmFramePush( vm );
 	frame->ip = vm->ip;
