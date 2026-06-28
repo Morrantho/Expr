@@ -5,7 +5,8 @@ typedef u32 FnIdx, ArgIdx;
 typedef struct Fn {
 	SrcPos body;
 	InternIdx name;
-	ChunkIdx chunk;
+	InstIdx entry;
+	u32 nregs;
 	ArgIdx args;				/* fns->args index */
 	u8 nargs;
 } Fn;
@@ -68,13 +69,14 @@ ArgIdx FnArgsPush( Fns* fns, InternIdx* args, u8 nargs ){
 	return base;
 }
 
-FnIdx FnPush( Fns* fns, InternIdx name, SrcPos* body, ChunkIdx chunk, ArgIdx base, u8 nargs ){
+FnIdx FnPush( Fns* fns, InternIdx name, SrcPos* body, ArgIdx base, u8 nargs ){
 	if( fns->fn_len >= fns->fn_cap ){ FnGrow( fns ); }
 	FnIdx fn_idx = fns->fn_len++;
 	Fn* fn = FnGet( fns, fn_idx );
 	fn->name = name;
 	fn->body = *body;
-	fn->chunk = chunk;
+	fn->nregs = 0;
+	fn->entry = INST_NONE;
 	fn->args = base;
 	fn->nargs = nargs;
 	return fn_idx;

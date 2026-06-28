@@ -8,7 +8,8 @@
 	X( FREAD, "failed to read file: %s\n" )\
 	X( LOGBUF, "log buffer failed to allocate format string: %s\n" )\
 	X( REGALLOC, "ran out of registers. aborting.\n")\
-	X( BADCHUNK, "chunk compilation overlapped. aborting.\n" )\
+	X( BADFN, "invalid function. aborting.\n" )\
+	X( REGOVERFLOW, "max registers reached. aborting." )\
 	X( FRAMEOVERFLOW, "max frames reached. aborting.\n" )\
 	X( FRAMEUNDERFLOW, "frame underflow. aborting.\n" )\
 	X( BADFRAME, "bad frame span. aborting\n" )

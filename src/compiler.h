@@ -13,7 +13,6 @@ typedef struct Compiler {
 	Consts* consts;
 	Locals* locals;
 	Insts* insts;
-	Chunks* chunks;
 	Patches *ifs, *loops;
 	Fns* fns;
 	Lexer* lexer;
@@ -22,7 +21,6 @@ typedef struct Compiler {
 	u32 nloops;					/* continue + break context */
 	Reg dst;					/* for targeted exprs. needed for fn args. */
 	ExprMode mode;				/* compiling exprs as exprs or stmts. changes bytecode. */
-	ChunkIdx chunk;				/* cur chunk */
 	FnIdx fn;					/* current fn */
 } Compiler;
 #endif
@@ -33,8 +31,7 @@ static Expr CompileStmt( Compiler* compiler, Lexer* lexer );
 static Expr CompileExprAs( Compiler* compiler, Lexer* lexer, Prec min, ExprMode mode );
 static Expr CompileExprInto( Compiler* compiler, Lexer* lexer, Prec min, Reg new_dst );
 
-static void CompilerReset( Compiler* compiler, ChunkIdx chunk, FnIdx fn ){
-	compiler->chunk = chunk;
+static void CompilerReset( Compiler* compiler, FnIdx fn ){
 	compiler->fn = fn;
 	compiler->nregs = 0;
 	compiler->nloops = 0;
@@ -49,12 +46,11 @@ void CompilerInit( Compiler* compiler, App* app ){
 	compiler->consts = &app->consts;
 	compiler->locals = &app->locals;
 	compiler->insts = &app->insts;
-	compiler->chunks = &app->chunks;
 	compiler->ifs = &app->ifs;
 	compiler->loops = &app->loops;
 	compiler->fns = &app->fns;
 	compiler->lexer = &app->lexer;
-	CompilerReset( compiler, CHUNK_NONE, FN_NONE );
+	CompilerReset( compiler, FN_NONE );
 }
 
 static Reg RegAlloc( Compiler* compiler ){
@@ -75,27 +71,8 @@ static Reg RegReserve( Compiler* compiler, Reg nregs ){
 	return reg;
 }
 
-static ChunkIdx CompilerBeginChunk( Compiler* compiler, FnIdx fn ){
-	if( compiler->chunk != CHUNK_NONE ){ Halt( ERR_BADCHUNK ); }
-	ChunkIdx chunk_idx = ChunkPush( compiler->chunks );
-	Chunk* chunk = ChunkGet( compiler->chunks, chunk_idx );
-	chunk->start = compiler->insts->len;
-	chunk->len = 0;
-	chunk->nregs = 0;
-	CompilerReset( compiler, chunk_idx, fn );
-	return chunk_idx;
-}
-
-static void CompilerEndChunk( Compiler* compiler ){
-	Chunk* chunk = ChunkGet( compiler->chunks, compiler->chunk );
-	chunk->len = compiler->insts->len - chunk->start;
-	chunk->nregs = compiler->nregs;
-	CompilerReset( compiler, CHUNK_NONE, FN_NONE );
-}
-
 static InstIdx CompilerGetIp( Compiler* compiler ){
-	Chunk* chunk = ChunkGet( compiler->chunks, compiler->chunk );
-	return compiler->insts->len - chunk->start;
+	return compiler->insts->len;
 }
 
 static void CompilerMatch( Compiler* compiler, Lexer* lexer, TkType expected ){
@@ -460,7 +437,7 @@ static Expr CompileFn( Compiler* compiler, Lexer* lexer, InternIdx name ){
 	SrcPos body;
 	CompileSkipBody( compiler, lexer, &body );
 	ArgIdx arg_base = FnArgsPush( compiler->fns, args, nargs );
-	FnPush( compiler->fns, name, &body, CHUNK_NONE, arg_base, nargs );
+	FnPush( compiler->fns, name, &body, arg_base, nargs );
 	return ExprVoid( );
 }
 
@@ -478,21 +455,21 @@ static void CompileFnBody( Compiler* compiler, Fn* fn ){
 		{ CompileStmt( compiler, &lexer ); }	
 }
 
-static void CompileFnChunk( Compiler* compiler, FnIdx fn_idx ){
+static void CompileFnCode( Compiler* compiler, FnIdx fn_idx ){
 	Fn* fn = FnGet( compiler->fns, fn_idx );
-	if( fn->chunk != CHUNK_NONE ){ return; }
-	ChunkIdx chunk_idx = CompilerBeginChunk( compiler, fn_idx );
-	fn->chunk = chunk_idx;
+	if( fn->entry != INST_NONE ){ return; }
+	CompilerReset( compiler, fn_idx );
+	fn->entry = compiler->insts->len;
 	CompileFnArgsInto( compiler, fn );
 	CompileFnBody( compiler, fn );
 	Expr ret = CompileVoid( compiler );
 	InstABC( compiler->insts, OP_RET, ret.reg, 0, 0 );
-	CompilerEndChunk( compiler );
+	CompilerReset( compiler, FN_NONE );
 }
 
 static void CompileFns( Compiler* compiler ){
 	for( FnIdx i = 0; i < compiler->fns->fn_len; i++ ){
-		CompileFnChunk( compiler, i );
+		CompileFnCode( compiler, i );
 	}
 }
 
@@ -536,15 +513,15 @@ static Expr CompileStmt( Compiler* compiler, Lexer* lexer ){
 	}
 }
 
-ChunkIdx CompilerRun( Compiler* compiler ){
+InstIdx CompilerRun( Compiler* compiler ){
 	Lexer* lexer = compiler->lexer;
-	ChunkIdx chunk_idx = CompilerBeginChunk( compiler, FN_NONE );
+	InstIdx entry = compiler->insts->len;
+	CompilerReset( compiler, FN_NONE );
 	Expr expr = ExprVoid( );
 	while( lexer->tk.type != TK_EOS ){ expr = CompileStmt( compiler, lexer ); }
 	if( expr.type == EXPR_VOID ){ expr = CompileVoid( compiler ); }
 	InstABC( compiler->insts, OP_HALT, expr.reg, 0, 0 );
-	CompilerEndChunk( compiler );
 	CompileFns( compiler );
-	return chunk_idx;
+	return entry;
 }
 #endif

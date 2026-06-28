@@ -25,7 +25,6 @@ typedef u32 Idx, Offset;
 #include "local.h"
 #include "op.h"
 #include "inst.h"
-#include "chunk.h"
 #include "patch.h"
 #include "fn.h"
 #include "compiler.h"

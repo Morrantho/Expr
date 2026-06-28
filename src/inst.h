@@ -1,4 +1,5 @@
 #ifdef TYPES
+#define INST_NONE UINT32_MAX
 typedef u32 InstIdx;
 
 typedef struct Inst {

@@ -10,15 +10,15 @@ static inline void VmLoadConst( Vm* vm, Inst* i ){
 }
 
 static inline void VmJmp( Vm* vm, Inst* i ){
-	vm->ip = vm->base + InstGetBX( i );
+	vm->ip = vm->insts->data + InstGetBX( i );
 }
 
 static inline void VmJz( Vm* vm, Inst* i ){
-	if( vm->regs[ i->a ].num == 0 ){ vm->ip = vm->base + InstGetBX( i ); }
+	if( vm->regs[ i->a ].num == 0 ){ vm->ip = vm->insts->data + InstGetBX( i ); }
 }
 
 static inline void VmJnz( Vm* vm, Inst* i ){
-	if( vm->regs[ i->a ].num != 0 ){ vm->ip = vm->base + InstGetBX( i ); }
+	if( vm->regs[ i->a ].num != 0 ){ vm->ip = vm->insts->data + InstGetBX( i ); }
 }
 
 static inline void VmMov( Vm* vm, Inst* i ){ ( void )( vm );
@@ -28,24 +28,21 @@ static inline void VmMov( Vm* vm, Inst* i ){ ( void )( vm );
 static inline void VmReturn( Vm* vm, Inst* i ){
 	Value ret = vm->regs[ i->a ];
 	Frame* frame = VmFramePop( vm );
-	vm->base = frame->base;
 	vm->ip = frame->ip;
-	vm->end = frame->end;
 	vm->regs = frame->regs;
 	vm->regs[ frame->ret ] = ret;
 }
 
 static inline void VmCall( Vm* vm, Inst* i ){
 	Fn* fn = FnGet( vm->fns, InstGetBX( i ) );
-	if( fn->chunk == CHUNK_NONE ){ Halt( ERR_BADCHUNK ); }
+	if( fn->entry == INST_NONE ){ Halt( ERR_BADFN ); }
 	Frame* frame = VmFramePush( vm );
-	frame->base = vm->base;
 	frame->ip = vm->ip;
-	frame->end = vm->end;
 	frame->regs = vm->regs;
 	frame->ret = i->a;
-	vm->regs = vm->regs + i->a;
-	VmEnterChunk( vm, fn->chunk );
+	vm->regs += i->a;
+	if( vm->regs + fn->nregs > vm->reg_stack + VM_REG_CAP ){ Halt( ERR_REGOVERFLOW ); }
+	vm->ip = vm->insts->data + fn->entry;
 }
 /*UNARY***********************************************************************/
 static inline void VmNotNum( Value* a, Value* b ){

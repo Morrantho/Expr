@@ -14,9 +14,7 @@ typedef struct Value { /* 4 bytes of waste */
 } Value;
 
 typedef struct Frame {
-	Inst* base;
 	Inst* ip;
-	Inst* end;
 	Value* regs;
 	Reg ret;
 } Frame;
@@ -25,14 +23,13 @@ typedef struct Vm {
 	Interns* interns;
 	Consts* consts;
 	Insts* insts;
-	Chunks* chunks;
 	Fns* fns;
 	Value* regs;
 	
 	Value reg_stack[ VM_REG_CAP ];
 	Frame frames[ VM_FRAME_CAP ];
 	u32 nframes;
-	Inst *base, *ip, *end;
+	Inst *ip;
 } Vm;
 #endif
 
@@ -41,20 +38,11 @@ void VmInit( Vm* vm, App* app ){
 	vm->interns = &app->interns;
 	vm->consts = &app->consts;
 	vm->insts = &app->insts;
-	vm->chunks = &app->chunks;
 	vm->fns = &app->fns;
 	
 	vm->regs = vm->reg_stack;
 	vm->ip = vm->insts->data;
 	vm->nframes = 0;
-	vm->base = vm->end = 0;
-}
-
-static inline void VmEnterChunk( Vm* vm, ChunkIdx idx ){
-	Chunk* chunk = ChunkGet( vm->chunks, idx );
-	vm->base = vm->insts->data + chunk->start;
-	vm->ip = vm->base;
-	vm->end = vm->base + chunk->len;
 }
 
 static Frame* VmFramePush( Vm* vm ){
@@ -104,10 +92,10 @@ void VmPrintValue( Vm* vm, Value* value ){
 
 #include "vm_ops.h"
 
-Value* VmRun( Vm* vm, ChunkIdx entry ){
+Value* VmRun( Vm* vm, InstIdx entry ){
 	vm->regs = vm->reg_stack;
 	vm->nframes = 0;
-	VmEnterChunk( vm, entry );
+	vm->ip = vm->insts->data + entry;
 	for( ;; ){
 		Inst* i = vm->ip++;
 		switch( ( OpCode )i->op ){
