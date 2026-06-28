@@ -63,7 +63,7 @@ static void InternReput( Interns* interns, EntryIdx entry_idx ){
 	Intern* entry = &interns->entries[ entry_idx ];
 	u32 mask = interns->slot_cap - 1;
 	SlotIdx slot_idx = entry->hash & mask;
-	while( interns->slots[ slot_idx ] ) slot_idx = ( slot_idx + 1 ) & mask;
+	while( interns->slots[ slot_idx ] ){ slot_idx = ( slot_idx + 1 ) & mask; }
 	interns->slots[ slot_idx ] = entry_idx + 1;
 }
 
@@ -72,7 +72,7 @@ static void InternGrowSlots( Interns* interns ){
 	interns->half_cap = interns->slot_cap; /* always half slot cap */
 	interns->slot_cap <<= 1;
 	interns->slots = MemCalloc( sizeof( interns->slots[ 0 ] ), interns->slot_cap );
-	for( EntryIdx i = 0; i < interns->len; i++ ) InternReput( interns, i );
+	for( EntryIdx i = 0; i < interns->len; i++ ){ InternReput( interns, i ); }
 }
 
 static void InternGrowEntries( Interns* interns ){
@@ -96,7 +96,7 @@ static SlotIdx InternProbe( Interns* interns, InternKey* key, EntryIdx* out_idx 
 		EntryIdx entry_idx = interns->slots[ slot_idx ];
 		if( !entry_idx ){ *out_idx = 0; return slot_idx; } /* empty slot */
 		Intern* entry = &interns->entries[ entry_idx - 1 ];
-		if( entry->hash != key->hash || entry->len != key->len || entry->tag != key->tag ) continue;
+		if( entry->hash != key->hash || entry->len != key->len || entry->tag != key->tag ){ continue; }
 		u8* dst = AobGet( &interns->aob, entry->offset );
 		if( memcmp( dst, key->src, key->len ) == 0 ){
 			*out_idx = entry_idx;
@@ -108,7 +108,7 @@ static SlotIdx InternProbe( Interns* interns, InternKey* key, EntryIdx* out_idx 
 static EntryIdx InternPutInternal( Interns* interns, InternKey* key ){
 	EntryIdx entry_idx = 0;
 	SlotIdx slot_idx = InternProbe( interns, key, &entry_idx );
-	if( entry_idx ) return entry_idx - 1; 
+	if( entry_idx ){ return entry_idx - 1; } 
 	if( interns->len >= interns->entry_cap ){ InternGrowEntries( interns ); }
 	if( interns->len >= interns->half_cap ){
 		InternGrowSlots( interns );

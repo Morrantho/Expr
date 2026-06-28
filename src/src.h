@@ -12,11 +12,6 @@ typedef struct Srcs {
 	u32 cap;
 } Srcs;
 
-typedef struct SrcSpan {
-	SrcIdx src;
-	SrcOffset start, end;
-} SrcSpan;
-
 typedef struct SrcPos {
 	SrcIdx src;
 	SrcOffset off;
@@ -75,7 +70,7 @@ static void SrcGrow( Srcs* srcs ){
 }
 
 static SrcIdx SrcPush( Srcs* srcs ){
-	if( srcs->len >= srcs->cap ) SrcGrow( srcs );
+	if( srcs->len >= srcs->cap ){ SrcGrow( srcs ); }
 	return srcs->len++;
 }
 

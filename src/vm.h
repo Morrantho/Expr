@@ -13,14 +13,26 @@ typedef struct Value { /* 4 bytes of waste */
 	};
 } Value;
 
+typedef struct Frame {
+	Inst* base;
+	Inst* ip;
+	Inst* end;
+	Value* regs;
+	Reg ret;
+} Frame;
+
 typedef struct Vm {
-	Value regs[ REG_CAP ];
 	Interns* interns;
 	Consts* consts;
 	Insts* insts;
 	Chunks* chunks;
-
-	Inst *ip, *base, *end;
+	Fns* fns;
+	Value* regs;
+	
+	Value reg_stack[ VM_REG_CAP ];
+	Frame frames[ VM_FRAME_CAP ];
+	u32 nframes;
+	Inst *base, *ip, *end;
 } Vm;
 #endif
 
@@ -30,8 +42,11 @@ void VmInit( Vm* vm, App* app ){
 	vm->consts = &app->consts;
 	vm->insts = &app->insts;
 	vm->chunks = &app->chunks;
-
+	vm->fns = &app->fns;
+	
+	vm->regs = vm->reg_stack;
 	vm->ip = vm->insts->data;
+	vm->nframes = 0;
 	vm->base = vm->end = 0;
 }
 
@@ -40,6 +55,16 @@ static inline void VmEnterChunk( Vm* vm, ChunkIdx idx ){
 	vm->base = vm->insts->data + chunk->start;
 	vm->ip = vm->base;
 	vm->end = vm->base + chunk->len;
+}
+
+static Frame* VmFramePush( Vm* vm ){
+	if( vm->nframes >= VM_FRAME_CAP ){ Halt( ERR_FRAMEOVERFLOW ); }
+	return &vm->frames[ vm->nframes++ ];
+}
+
+static inline Frame* VmFramePop( Vm* vm ){
+	if( !vm->nframes ){ Halt( ERR_FRAMEUNDERFLOW ); }
+	return &vm->frames[ --vm->nframes ];
 }
 
 static inline void VmNum( Value* dst, f64 n ){
@@ -53,10 +78,10 @@ static inline void VmStr( Value* dst, InternIdx str ){
 }
 
 static inline x64 VmPowX64( x64 base, x64 exp ){
-	if( exp < 0 ) return 0;
+	if( exp < 0 ){ return 0; }
 	x64 res = 1;
 	for( ; exp; exp >>= 1 ){
-		if( exp & 1 ) res *= base;
+		if( exp & 1 ){ res *= base; }
 		base *= base;
 	}
 	return res;
@@ -80,13 +105,14 @@ void VmPrintValue( Vm* vm, Value* value ){
 #include "vm_ops.h"
 
 Value* VmRun( Vm* vm, ChunkIdx entry ){
-	Value* regs = vm->regs;
+	vm->regs = vm->reg_stack;
+	vm->nframes = 0;
 	VmEnterChunk( vm, entry );
 	for( ;; ){
 		Inst* i = vm->ip++;
 		switch( ( OpCode )i->op ){
 			case OP_ERR: case OP_COUNT: return 0;
-			case OP_HALT: return &regs[ i->a ];
+			case OP_HALT: return &vm->regs[ i->a ];
 			X_OPS_CORE( X_OP_VM_CORE_CASE )
 			X_OPS_UNARY( X_OP_VM_UNARY_CASE )
 			X_OPS_POST( X_OP_VM_POST_CASE )

@@ -5,14 +5,13 @@
 	X( HALT, _, _, _, _, _ )
 /*CORE************************************************************************/
 #define X_OPS_CORE( X )\
-	X( LOADC, LoadConst, _, _, _, _  )\
-	X( JMP,   Jmp,       _, _, _, _ )\
-	X( JZ,    Jz,        _, _, _, _ )\
-	X( JNZ,   Jnz,       _, _, _, _ )\
-	X( MOV,   Mov,       _, _, _, _ )\
-	X( RET,   Return,    _, _, _, _ )
-	//X( CALL,  Call,      _, _, _, _ )
-	//X( ARG,   Arg,       _, _, _, _ )
+	X( LOADC,  LoadConst, _, _, _, _  )\
+	X( JMP,    Jmp,       _, _, _, _ )\
+	X( JZ,     Jz,        _, _, _, _ )\
+	X( JNZ,    Jnz,       _, _, _, _ )\
+	X( MOV,    Mov,       _, _, _, _ )\
+	X( RET,    Return,    _, _, _, _ )\
+	X( CALL,   Call,      _, _, _, _ )
 /*UNARY***********************************************************************/
 #define X_OPS_UNARY_NUM_C( X )\
 	X( NOT_NUM,	   NotNum,    NOT,   NUM, _, NUM ) /* !a */\
@@ -42,7 +41,7 @@
 	X( BAND_NUM,   BandNum,   BAND,   NUM, NUM, NUM ) /* a & b */\
 	X( AND_NUM,    AndNum,    AND,    NUM, NUM, NUM ) /* a && b */\
 	X( MUL_NUM,    MulNum,    MUL,    NUM, NUM, NUM ) /* a * b */\
-	X( ADD_NUM,    AddNum,    ADD,    NUM, NUM, NUM ) /* a + b */\
+	X( ADD_NUM,    AddNum,    ADD,    VALUE, VALUE, VALUE ) /* a + b */\
 	X( SUB_NUM,    SubNum,    SUB,    NUM, NUM, NUM ) /* a - b */\
 	X( DIV_NUM,    DivNum,    DIV,    NUM, NUM, NUM ) /* a / b */\
 	X( LT_NUM,     LtNum,     LT,     NUM, NUM, NUM ) /* a < b */\
@@ -93,12 +92,12 @@
 	[ EXPR_##LHS ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT },
 #define X_OP_BINARY_INIT( OP, FN, TK, LHS, RHS, OUT )\
 	[ EXPR_##LHS ][ EXPR_##RHS ][ TK_##TK ] = { .code = OP_##OP, .type = EXPR_##OUT },
-#define X_OP_VM_CORE_CASE( OP, FN, TK, LHS, RHS, OUT ) case OP_##OP:{ Vm##FN( vm, i, regs ); continue; }
+#define X_OP_VM_CORE_CASE( OP, FN, TK, LHS, RHS, OUT ) case OP_##OP:{ Vm##FN( vm, i ); continue; }
 #define X_OP_VM_UNARY_CASE( OP, FN, TK, LHS, RHS, OUT )\
-	case OP_##OP:{ Vm##FN( &regs[ i->a ], &regs[ i->b ] ); continue; }
+	case OP_##OP:{ Vm##FN( &vm->regs[ i->a ], &vm->regs[ i->b ] ); continue; }
 #define X_OP_VM_POST_CASE X_OP_VM_UNARY_CASE
 #define X_OP_VM_BINARY_CASE( OP, FN, TK, LHS, RHS, OUT )\
-	case OP_##OP:{ Vm##FN( &regs[ i->a ], &regs[ i->b ], &regs[ i->c ] ); continue; }
+	case OP_##OP:{ Vm##FN( &vm->regs[ i->a ], &vm->regs[ i->b ], &vm->regs[ i->c ] ); continue; }
 typedef enum OpCode { X_OPS( X_OP_ENUMS ) OP_COUNT } OpCode;
 typedef struct Op {
 	u8 code; /* OpCode */

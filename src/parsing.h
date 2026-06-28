@@ -35,7 +35,8 @@
 	X( VOID,	"void" )\
 	X( NUM,		"number" )\
 	X( STR,		"string" )\
-	X( ID,		"id" )
+	X( ID,		"id" )\
+	X( VALUE,   "value" )
 	// X( FN,		"function" )
 #define X_PREC_ENUMS( ENUM ) PREC_##ENUM,
 #define X_DENO_ENUMS( ENUM ) DENO_##ENUM,

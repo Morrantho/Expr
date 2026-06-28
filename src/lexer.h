@@ -40,9 +40,7 @@ static void LexNext( Lexer* lexer, Tk* tk ){
 /* Snapshots source position */
 static void LexSet( Lexer* lexer, Tk* tk, TkType type ){
 	tk->type = type;
-	tk->pos.ln = lexer->pos.ln;
-	tk->pos.col = lexer->pos.col;
-	tk->pos.off = lexer->pos.off;
+	tk->pos = lexer->pos;
 }
 
 /* Single chars only. Multi-char ops can call this once. */
@@ -95,7 +93,7 @@ static void LexStr( Lexer* lexer, Tk* tk ){ /* "anything in between" */
 static void LexComment( Lexer* lexer, Tk* tk ){ /* $ */
 	LexNext( lexer, tk );
 	for( ; *lexer->text != '\n'; LexNext( lexer, tk ) )
-		if( !*lexer->text ) break;
+		{ if( !*lexer->text ){ break; } }
 }
 
 static void LexMod( Lexer* lexer, Tk* tk ){ /* % %% %= */
@@ -153,7 +151,7 @@ static void LexNum( Lexer* lexer, Tk* tk ){
 	LexSet( lexer, tk, TK_NUM );
 	f64 n = 0;
 	for( ; LexGetType( *lexer->text ) == TK_NUM; LexNext( lexer, tk ) )
-		n = n * 10.0 + *lexer->text - '0';
+		{ n = n * 10.0 + *lexer->text - '0'; }
 	if( *lexer->text == '.' && LexGetType( lexer->text[ 1 ] ) == TK_NUM ){
 		LexNext( lexer, tk );
 		for( f64 f = 0.1; LexGetType( *lexer->text ) == TK_NUM; ){
@@ -229,7 +227,7 @@ static void LexId( Lexer* lexer, Tk* tk ){
 	u32 hash = HashStart( HASH_ID );
 	for( ;; ){
 		TkType type = LexGetType( *lexer->text );
-		if( type != TK_ID && type != TK_NUM ) break;
+		if( type != TK_ID && type != TK_NUM ){ break; }
 		hash = HashU8( hash, *lexer->text );
 		LexNext( lexer, tk );
 	}
@@ -256,6 +254,13 @@ static void LexScan( Lexer* lexer, Tk* out ){
 	for( ;; ){
 		switch( ( Ascii )*lexer->text ){ X_ASCIIS( X_LEX_CASE ) }
 	}
+}
+
+void LexAt( Lexer* lexer, SrcPos* pos ){
+	lexer->pos = *pos;
+	lexer->text = SrcGetText( lexer->srcs, pos->src ) + pos->off;
+	LexScan( lexer, &lexer->tk );
+	LexScan( lexer, &lexer->peek );
 }
 
 void Lex( Lexer* lexer ){

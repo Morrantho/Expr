@@ -54,15 +54,15 @@ static void AppFree( App* app ){
 
 static void AppRun( App* app ){
 	ChunkIdx entry = CompilerRun( &app->compiler );
-	if( LogDump( &app->logs ) ) return;
+	if( LogDump( &app->logs ) ){ return; }
 	InstDump( &app->insts );
 	Value* value = VmRun( &app->vm, entry );
-	if( value->type == VALUE_NULL ) return;
+	if( value->type == VALUE_NULL ){ return; }
 	VmPrintValue( &app->vm, value );
 }
 
 x32 main( x32 nargs, x8** args ){
-	if( nargs == 1 ) Halt( ERR_NOFILE );
+	if( nargs == 1 ){ Halt( ERR_NOFILE ); }
 	App app = { 0 };
 	AppInit( &app, ( u8* )args[ 1 ] );
 	AppRun( &app );

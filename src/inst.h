@@ -30,7 +30,7 @@ static void InstGrow( Insts* insts ){
 }
 
 static Inst* InstPush( Insts* insts, InstIdx* out ){
-	if( insts->len >= insts->cap ) InstGrow( insts );
+	if( insts->len >= insts->cap ){ InstGrow( insts ); }
 	*out = insts->len++;
 	return &insts->data[ *out ];
 }

@@ -22,14 +22,14 @@ void AobReset( Aob* aob ){
 }
 
 static void AobGrow( Aob* aob, u32 total ){
-	while( total > aob->cap ) aob->cap <<= 1;
+	while( total > aob->cap ){ aob->cap <<= 1; }
 	aob->data = MemRealloc( aob->data, 1, aob->cap );
 }
 
 Offset AobPush( Aob* aob, u32 count ){
 	u32 len = aob->len;
 	u32 total = len + count;
-	if( total > aob->cap ) AobGrow( aob, total );
+	if( total > aob->cap ){ AobGrow( aob, total ); }
 	aob->len = total;
 	return len;
 }

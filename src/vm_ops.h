@@ -1,34 +1,51 @@
 #ifdef IMPL
 /*CORE************************************************************************/
-static inline void VmLoadConst( Vm* vm, Inst* i, Value* regs ){
+static inline void VmLoadConst( Vm* vm, Inst* i ){
 	Const* c = ConstGet( vm->consts, InstGetBX( i ) );
 	switch( c->type ){
-		case CONST_NUM: VmNum( &regs[ i->a ], c->num ); return;
-		case CONST_STR: VmStr( &regs[ i->a ], c->str ); return;
+		case CONST_NUM: VmNum( &vm->regs[ i->a ], c->num ); return;
+		case CONST_STR: VmStr( &vm->regs[ i->a ], c->str ); return;
 	}
 	// Halt( ERR_LOADCONST );
 }
 
-static inline void VmJmp( Vm* vm, Inst* i, Value* regs ){ ( void )( regs );
+static inline void VmJmp( Vm* vm, Inst* i ){
 	vm->ip = vm->base + InstGetBX( i );
 }
 
-static inline void VmJz( Vm* vm, Inst* i, Value* regs ){
-	if( regs[ i->a ].num == 0 ) vm->ip = vm->base + InstGetBX( i );
+static inline void VmJz( Vm* vm, Inst* i ){
+	if( vm->regs[ i->a ].num == 0 ){ vm->ip = vm->base + InstGetBX( i ); }
 }
 
-static inline void VmJnz( Vm* vm, Inst* i, Value* regs ){
-	if( regs[ i->a ].num != 0 ) vm->ip = vm->base + InstGetBX( i );
+static inline void VmJnz( Vm* vm, Inst* i ){
+	if( vm->regs[ i->a ].num != 0 ){ vm->ip = vm->base + InstGetBX( i ); }
 }
 
-static inline void VmMov( Vm* vm, Inst* i, Value* regs ){ ( void )( vm );
-	regs[ i->a ] = regs[ i->b ];
+static inline void VmMov( Vm* vm, Inst* i ){ ( void )( vm );
+	vm->regs[ i->a ] = vm->regs[ i->b ];
 }
 
-static inline void VmReturn( Vm* vm, Inst* i, Value* regs ){
-	( void )vm;
-	( void )i;
-	( void )regs;
+static inline void VmReturn( Vm* vm, Inst* i ){
+	Value ret = vm->regs[ i->a ];
+	Frame* frame = VmFramePop( vm );
+	vm->base = frame->base;
+	vm->ip = frame->ip;
+	vm->end = frame->end;
+	vm->regs = frame->regs;
+	vm->regs[ frame->ret ] = ret;
+}
+
+static inline void VmCall( Vm* vm, Inst* i ){
+	Fn* fn = FnGet( vm->fns, InstGetBX( i ) );
+	if( fn->chunk == CHUNK_NONE ){ Halt( ERR_BADCHUNK ); }
+	Frame* frame = VmFramePush( vm );
+	frame->base = vm->base;
+	frame->ip = vm->ip;
+	frame->end = vm->end;
+	frame->regs = vm->regs;
+	frame->ret = i->a;
+	vm->regs = vm->regs + i->a;
+	VmEnterChunk( vm, fn->chunk );
 }
 /*UNARY***********************************************************************/
 static inline void VmNotNum( Value* a, Value* b ){

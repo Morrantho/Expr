@@ -6,7 +6,6 @@ typedef struct Chunk { /* instruction span */
 	InstIdx start;
 	InstIdx len;
 	u32 nregs;
-	u8 nargs;
 } Chunk;
 
 typedef struct Chunks {
@@ -34,7 +33,7 @@ static void ChunkGrow( Chunks* chunks ){
 }
 
 ChunkIdx ChunkPush( Chunks* chunks ){
-	if( chunks->len >= chunks->cap ) ChunkGrow( chunks );
+	if( chunks->len >= chunks->cap ){ ChunkGrow( chunks ); }
 	return chunks->len++;
 }
 

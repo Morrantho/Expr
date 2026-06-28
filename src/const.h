@@ -39,7 +39,7 @@ static void ConstGrow( Consts* consts ){
 }
 
 static ConstIdx ConstPut( Consts* consts, ConstType type ){
-	if( consts->len >= consts->cap ) ConstGrow( consts );
+	if( consts->len >= consts->cap ){ ConstGrow( consts ); }
 	ConstIdx idx = consts->len++;
 	consts->data[ idx ] = ( Const ){ .type = type };
 	return idx;

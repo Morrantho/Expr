@@ -63,7 +63,7 @@ static void LogGrow( Logs* logs ){
 }
 
 static LogIdx LogPush( Logs* logs ){
-	if( logs->len >= logs->cap ) LogGrow( logs );
+	if( logs->len >= logs->cap ){ LogGrow( logs ); }
 	return logs->len++;
 }
 
@@ -81,19 +81,19 @@ LogIdx Log( Logs* logs, SrcPos* pos, LogType type, ... ){
 	u8 buf[ LOG_BUF_CAP ];
 	u8* path = SrcGetPath( logs->srcs, pos->src );
 	int len1 = snprintf( ( x8* )buf, LOG_BUF_CAP, "%s:%d:%d: ", path, pos->ln, pos->col );
-	if( len1 < 0 || len1 >= LOG_BUF_CAP ) Halt( ERR_LOGBUF );
+	if( len1 < 0 || len1 >= LOG_BUF_CAP ){ Halt( ERR_LOGBUF ); }
 	va_list args;
 	va_start( args, type );
 	int len2 = vsnprintf( ( x8* )buf + len1, LOG_BUF_CAP - len1, ( x8* )LogGetFmt( type ), args );
 	u32 total = len1 + len2;
-	if( len2 < 0 || total >= LOG_BUF_CAP ) Halt( ERR_LOGBUF );
+	if( len2 < 0 || total >= LOG_BUF_CAP ){ Halt( ERR_LOGBUF ); }
 	va_end( args );
 	LogOffset offset = LogCopy( logs, buf, total );
 	return LogWrite( logs, offset );
 }
 
 u8 LogDump( Logs* logs ){
-	if( !logs->len ) return 0;
+	if( !logs->len ){ return 0; }
 	for( u32 i = 0; i < logs->len; i++ ){
 		u8* msg = AobGet( &logs->aob, logs->data[ i ] );
 		fprintf( stderr, "%s\n", msg );

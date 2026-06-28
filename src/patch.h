@@ -49,7 +49,7 @@ void PatchReset( Patches* patches, PatchIdx mark ){
 }
 
 void PatchPush( Patches* patches, PatchType type, InstIdx idx ){
-	if( patches->len >= patches->cap ) PatchGrow( patches );
+	if( patches->len >= patches->cap ){ PatchGrow( patches ); }
 	patches->data[ patches->len++ ] = ( Patch ){
 		.type = type,
 		.inst = idx
@@ -59,7 +59,7 @@ void PatchPush( Patches* patches, PatchType type, InstIdx idx ){
 void PatchApply( Patches* patches, PatchType type, PatchIdx mark, InstIdx target ){
 	for( ; mark < patches->len; mark++ ){
 		Patch* patch = &patches->data[ mark ];
-		if( patch->type != type ) continue;
+		if( patch->type != type ){ continue; }
 		Inst* inst = InstGet( patches->insts, patch->inst );
 		PatchBX( inst, target );
 	}

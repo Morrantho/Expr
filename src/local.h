@@ -26,11 +26,11 @@ void LocalFree( Locals* locals ){
 	MemFree( locals->data );
 }
 
-Local* LocalGet( Locals* locals, InternIdx name ){
+Local* LocalFind( Locals* locals, InternIdx name ){
 	for( LocalIdx i = locals->len; i; ){
 		i--;
 		Local* local = &locals->data[ i ];
-		if( local->name == name ) return local;
+		if( local->name == name ){ return local; }
 	}
 	return NULL;
 }
@@ -41,7 +41,7 @@ static void LocalGrow( Locals* locals ){
 }
 
 static Local* LocalPush( Locals* locals ){
-	if( locals->len >= locals->cap ) LocalGrow( locals );
+	if( locals->len >= locals->cap ){ LocalGrow( locals ); }
 	return &locals->data[ locals->len++ ];
 }
 
