@@ -1,1 +1,11 @@
-BadFunc( )
+NumBits: <( n )>
+	bits: 0
+	;;
+		?( !n ) <== ::
+		n >>= 1
+		bits++
+	::
+	<- bits
+::
+
+NumBits( 128 )
