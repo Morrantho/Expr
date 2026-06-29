@@ -39,7 +39,7 @@
 	X( LT,		Lt,			LT,		0	)\
 	X( LSH,		Lsh,		LSH,	0	)\
 	X( LTE,		Lte,		LTE,	0	)\
-	X( CMP,		Cmp,		CMP,	0	)\
+	X( EQ,		Eq,			EQ,		0	)\
 	X( GT,		Gt,			GT,		0	)\
 	X( RSH,		Rsh,		RSH,	0	)\
 	X( GTE,		Gte,		GTE,	0	)\

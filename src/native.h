@@ -1,7 +1,8 @@
 #ifdef TYPES
 #define X_NATIVES( X )\
 	X( PRINT, Print, 1 )\
-	X( DUMP, Dump, 0 )
+	X( DUMP, Dump, 0 )\
+	X( TYPE, Type, 1 )
 
 #define X_NATIVE_ENUMS( ENUM, NAME, NARGS ) NATIVE_##ENUM,
 #define X_NATIVE_INIT( ENUM, NAME, NARGS ) [ NATIVE_##ENUM ] = { .name = ( u8* )#NAME, .nargs = NARGS },
@@ -22,7 +23,7 @@ void NativeInit( App* app ){
 
 	for( u32 i = 0; i < NATIVE_COUNT; i++ ){
 		Native* native = &natives[ i ];
-		InternIdx intern = InternPut( interns, native->name );
+		InternIdx intern = InternPut( interns, native->name, HASH_ID );
 		FnPushNative( fns, intern, i, native->nargs );
 	}		
 }

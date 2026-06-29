@@ -136,11 +136,12 @@ u8* InternGetRaw( Interns* interns, EntryIdx entry_idx ){
 	return AobGet( &interns->aob, entry->offset );
 }
 
-InternIdx InternPut( Interns* interns, u8* str ){
+InternIdx InternPut( Interns* interns, u8* str, HashTag tag ){
 	u32 len = 0;
-	u32 hash = HashStart( HASH_ID );
+	u32 hash = HashStart( tag );
 	for( ; str[ len ]; len++ ) hash = HashU8( hash, str[ len ] );
 	hash = HashEnd( hash );
-	return InternPutId( interns, str, len, hash );
+	InternKey key = { tag, str, len, hash };
+	return InternPutInternal( interns, &key );
 }
 #endif

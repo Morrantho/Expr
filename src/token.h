@@ -39,7 +39,7 @@
 	X( FNOPEN,  NONE,   NONE,  ERR,    ERR,   ERR,  "<("    )\
 	X( LSHEQ,   ASSIGN, RIGHT, ERR,    INF,   ERR,  "<<="   )\
 	X( BREAK,   NONE,   NONE,  ERR,    ERR,   ERR,  "<=="   )\
-	X( CMP,     EQUAL,  LEFT,  ERR,    INF,   ERR,  "=="    )\
+	X( EQ,      EQUAL,  LEFT,  ERR,    INF,   ERR,  "=="    )\
 	X( CONT,    NONE,   NONE,  ERR,    ERR,   ERR,  "==>"   )\
 	X( GT,      REL,    LEFT,  ERR,    INF,   ERR,  ">"     )\
 	X( RSH,     SHIFT,  LEFT,  ERR,    INF,   ERR,  ">>"    )\

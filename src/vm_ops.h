@@ -24,6 +24,13 @@ static inline void VmDump( Vm* vm, Inst* i ){
 	InstDump( vm->insts );
 	vm->regs[ i->a ].type = VALUE_NULL;
 }
+
+static inline void VmType( Vm* vm, Inst* i ){ /* lazy intern for now */
+	Value* arg = &vm->regs[ i->a + 1 ];
+	u8* name = ValueGetName( arg->type );
+	vm->regs[ i->a ].type = VALUE_STR;
+	vm->regs[ i->a ].str = InternPut( vm->interns, name, HASH_STR );
+}
 /*CORE************************************************************************/
 static inline void VmLoadConst( Vm* vm, Inst* i ){
 	vm->regs[ i->a ] = *ConstGet( vm->consts, InstGetBX( i ) );
@@ -133,8 +140,11 @@ static inline void VmPostDec( Value* a, Value* b ){
 	--b->num;
 }
 /*BINARY**********************************************************************/
+static inline void VmEq( Value* a, Value* b, Value* c );
+
 static inline void VmNotEq( Value* a, Value* b, Value* c ){
-	VmNum( a, b->num != c->num );
+	VmEq( a, b, c );
+	a->num = !a->num;
 }
 
 static inline void VmMod( Value* a, Value* b, Value* c ){
@@ -177,8 +187,15 @@ static inline void VmLte( Value* a, Value* b, Value* c ){
 	VmNum( a, b->num <= c->num );
 }
 
-static inline void VmCmp( Value* a, Value* b, Value* c ){
-	VmNum( a, b->num == c->num );
+static inline void VmEq( Value* a, Value* b, Value* c ){
+	a->type = VALUE_NUM;
+	if( b->type != c->type ){ a->num = 0; return; }
+	switch( b->type ){
+		case VALUE_NULL: a->num = 1; return;
+		case VALUE_NUM: a->num = b->num == c->num; return;
+		case VALUE_STR: a->num = b->str == c->str; return;
+		case VALUE_FN: a->num = b->fn == c->fn; return;
+	}
 }
 
 static inline void VmGt( Value* a, Value* b, Value* c ){

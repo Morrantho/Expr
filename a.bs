@@ -1,4 +1,9 @@
 NumBits: <( n )>
+	?( Type( n ) != "number" )
+		Print( "N must be a number" )
+		<- -1
+	::
+
 	bits: 0
 	;;
 		?( !n ) <== ::
@@ -8,4 +13,5 @@ NumBits: <( n )>
 	<- bits
 ::
 
-NumBits( 128 )
+Print( NumBits( 123 ) )
+Print( NumBits( "abc" ) )
